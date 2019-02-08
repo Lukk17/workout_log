@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:workout_log/chest.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
-  String _TITLE = "It is your time !";
+  static const String _TITLE = "It is your time !";
+
+  static String get TITLE => _TITLE;
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +20,13 @@ class MyApp extends StatelessWidget {
 //        in normal ThemeData:
 //        primarySwatch: Colors.red,
           ),
-      home: MyHomePage(title: _TITLE),
+      home: HelloWorldPage(title: _TITLE),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class HelloWorldPage extends StatefulWidget {
+  HelloWorldPage({Key key, this.title}) : super(key: key);
 
   // This widget is the home page of your application.
   // Fields in a Widget subclass are always marked "final".
@@ -31,10 +35,10 @@ class MyHomePage extends StatefulWidget {
   // override to manually creates private (starting with _ ) subclass
   // to update state of counter widget
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HelloWorldPageState createState() => _HelloWorldPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HelloWorldPageState extends State<HelloWorldPage> {
   int _counter = 0;
 
   // update state of widget to increase count value
@@ -58,19 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  MaterialButton _createCategoryButton(String text) {
-    MaterialButton cb = MaterialButton(
-      onPressed: _incrementCounter,
-      height: 60,
-      minWidth: 350,
-      color: Colors.red,
-      child: Text(text),
-    );
-    Timer(Duration(seconds: 20), null);
-    return cb;
-  }
-
-  Container _spacer() {
+  Widget _spacer() {
     return Container(margin: EdgeInsets.all(5));
   }
 
@@ -96,13 +88,13 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Column(
               children: <Widget>[
-                _createCategoryButton('chest'),
+                _createCategoryButton('chest', Chest()),
                 _spacer(),
-                _createCategoryButton('back'),
+                _createCategoryButton('back', Chest()),
                 _spacer(),
-                _createCategoryButton('arm'),
+                _createCategoryButton('arm', Chest()),
                 _spacer(),
-                _createCategoryButton('leg'),
+                _createCategoryButton('leg', Chest()),
               ],
             ),
             Text(
@@ -122,7 +114,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _createFloatingActionButton() {
-    return FloatingActionButton(
+    return Hero(
+        tag: "button",
+      child: FloatingActionButton(
       onPressed: _incrementCounter,
 
       // text which will be shown after long press on button
@@ -131,6 +125,21 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Icon(Icons.add),
       backgroundColor: Colors.red,
       foregroundColor: Colors.black,
+    ));
+  }
+
+  Widget _createCategoryButton(String text, Widget page) {
+    MaterialButton cb = MaterialButton(
+      // after pushing button, navigate to a new screen
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+      },
+      height: 60,
+      minWidth: 350,
+      color: Colors.red,
+      child: Text(text),
     );
+    Timer(Duration(seconds: 20), null);
+    return cb;
   }
 }
