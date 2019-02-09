@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:workout_log/chest.dart';
+import 'package:workout_log/bodyPart/chest.dart';
 
 void main() => runApp(MyApp());
 
@@ -54,7 +54,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
     // by the _incrementCounter method above.
     //
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
           appBar: _createAppBar(),
           body: _createBody(),
@@ -73,7 +73,11 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
       title: Text(widget.title),
       backgroundColor: Colors.red,
       bottom: TabBar(
-        tabs: <Widget>[Tab(text: "log"), Tab(text: "timer")],
+        tabs: <Widget>[
+          Tab(text: "log"),
+          Tab(text: "calendar"),
+          Tab(text: "timer")
+        ],
       ),
     );
   }
@@ -109,23 +113,35 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
           ],
         ),
       ),
-      Center()
+      Center(
+          child: Text(
+        'calendar',
+        style: TextStyle(color: Colors.red),
+      )),
+      Column(children: <Widget>[
+        Center(
+          child: Text(
+            'timer',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ])
     ]);
   }
 
   Widget _createFloatingActionButton() {
     return Hero(
         tag: "button",
-      child: FloatingActionButton(
-      onPressed: _incrementCounter,
+        child: FloatingActionButton(
+          onPressed: _incrementCounter,
 
-      // text which will be shown after long press on button
-      tooltip: 'Increment',
+          // text which will be shown after long press on button
+          tooltip: 'Increment',
 
-      child: Icon(Icons.add),
-      backgroundColor: Colors.red,
-      foregroundColor: Colors.black,
-    ));
+          child: Icon(Icons.add),
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.black,
+        ));
   }
 
   Widget _createCategoryButton(String text, Widget page) {
@@ -139,7 +155,6 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
       color: Colors.red,
       child: Text(text),
     );
-    Timer(Duration(seconds: 20), null);
     return cb;
   }
 }
