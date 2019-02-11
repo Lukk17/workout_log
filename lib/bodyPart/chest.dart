@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:workout_log/entity/bodyPart.dart';
+import 'package:workout_log/entity/exercise.dart';
+import 'package:workout_log/entity/workLog.dart';
 
 class Chest extends StatefulWidget {
   Chest({
@@ -14,8 +17,9 @@ class Chest extends StatefulWidget {
 class _ChestState extends State<Chest> {
   List<Widget> wList = List();
 
-   static const double _FONTSIZE = 30;
-   final textController = TextEditingController();
+  static const BodyPart _BODYPART = BodyPart.CHEST;
+  static const double _FONTSIZE = 30;
+  final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +80,9 @@ class _ChestState extends State<Chest> {
                         onPressed: () {
                           // add widget to column widget's list
                           // text is forwarded by controller from SimpleDialog text field
-                          addWidget(wList, textController.text, _FONTSIZE);
+                          Exercise e = Exercise(textController.text, _BODYPART);
+                          WorkLog w = WorkLog(e);
+                          addWidget(wList, textController.text, _FONTSIZE, w);
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -90,24 +96,51 @@ class _ChestState extends State<Chest> {
     );
   }
 
-  void addWidget(List<Widget> wList, String text, double fontSize) {
+  void addWidget(
+      List<Widget> wList, String text, double fontSize, WorkLog worklog) {
     setState(() {
       wList.add(
-        addRow(text, fontSize),
+        addRow(text, fontSize, worklog),
       );
     });
   }
 }
 
-  Widget addRow(String text, double fontSize){
-
+Widget addRow(String text, double fontSize, WorkLog worklog) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: <Widget>[
-      Text(text, style: TextStyle(fontSize: fontSize)),
-      Text('0', style: TextStyle(fontSize: fontSize)),
-      Text('0', style: TextStyle(fontSize: fontSize)),
-      Text('0', style: TextStyle(fontSize: fontSize)),
+      addBorderedContainer(
+        Text(
+          worklog.exercise.name,
+          style: TextStyle(fontSize: fontSize),
+        ),
+      ),
+      addBorderedContainer(
+        Text(
+          worklog.series.toString(),
+          style: TextStyle(fontSize: fontSize),
+        ),
+      ),
+      addBorderedContainer(
+        Text(
+          worklog.repeat.toString(),
+          style: TextStyle(fontSize: fontSize),
+        ),
+      ),
+      Text(
+        worklog.time.toString(),
+        style: TextStyle(fontSize: fontSize),
+      ),
     ],
   );
-  }
+}
+
+Widget addBorderedContainer(Widget widget) {
+  return Container(
+    decoration:
+        BoxDecoration(border: Border(right: BorderSide(color: Colors.red))),
+    padding: EdgeInsets.symmetric(horizontal: 30),
+    child: widget,
+  );
+}

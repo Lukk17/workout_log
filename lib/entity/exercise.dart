@@ -3,10 +3,10 @@ import 'package:workout_log/entity/bodyPart.dart';
 
 class Exercise {
 
-  String _name;
+  String name;
   BodyPart _bodyPart;
 
-  Exercise(this._name, this._bodyPart);
+  Exercise(this.name, this._bodyPart);
 
 
 }
