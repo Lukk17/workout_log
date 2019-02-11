@@ -14,11 +14,8 @@ class Chest extends StatefulWidget {
 class _ChestState extends State<Chest> {
   List<Widget> wList = List();
 
-  @override
-  void setState(fn) {
-    // TODO: implement setState to add row on addButton click
-    super.setState(fn);
-  }
+   static const double _FONTSIZE = 30;
+   final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +30,7 @@ class _ChestState extends State<Chest> {
           child: ListView(
             children: <Widget>[
               Column(
-                children: <Widget>[
-                  _createRow('pushups', 30),
-                ],
+                children: wList,
               ),
             ],
           ),
@@ -67,6 +62,8 @@ class _ChestState extends State<Chest> {
             contentPadding: EdgeInsets.all(20),
             children: <Widget>[
               TextField(
+                // use text controller to save given by user String
+                controller: textController,
                 autofocus: true,
                 autocorrect: true,
                 decoration: InputDecoration(hintText: hint),
@@ -77,6 +74,9 @@ class _ChestState extends State<Chest> {
                     FlatButton(
                         child: const Text('SAVE'),
                         onPressed: () {
+                          // add widget to column widget's list
+                          // text is forwarded by controller from SimpleDialog text field
+                          addWidget(wList, textController.text, _FONTSIZE);
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -90,17 +90,24 @@ class _ChestState extends State<Chest> {
     );
   }
 
-  Widget _createRow(String text, double fontSize) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: wList,
-    );
-  }
-
-  List<Widget> addWidget(List<Widget> wList, String text, double fontSize) {
-    wList.add(
-      Text(text, style: TextStyle(fontSize: fontSize)),
-    );
-    return wList;
+  void addWidget(List<Widget> wList, String text, double fontSize) {
+    setState(() {
+      wList.add(
+        addRow(text, fontSize),
+      );
+    });
   }
 }
+
+  Widget addRow(String text, double fontSize){
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: <Widget>[
+      Text(text, style: TextStyle(fontSize: fontSize)),
+      Text('0', style: TextStyle(fontSize: fontSize)),
+      Text('0', style: TextStyle(fontSize: fontSize)),
+      Text('0', style: TextStyle(fontSize: fontSize)),
+    ],
+  );
+  }
