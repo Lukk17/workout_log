@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
@@ -82,7 +84,7 @@ class _ChestState extends State<Chest> {
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise e = Exercise(textController.text, _BODYPART);
                           WorkLog w = WorkLog(e);
-                          addWidget(wList, textController.text, _FONTSIZE, w);
+                          addWidget(wList, textController.text, _FONTSIZE, w, context);
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -97,16 +99,16 @@ class _ChestState extends State<Chest> {
   }
 
   void addWidget(
-      List<Widget> wList, String text, double fontSize, WorkLog worklog) {
+      List<Widget> wList, String text, double fontSize, WorkLog worklog, BuildContext context) {
     setState(() {
       wList.add(
-        addRow(text, fontSize, worklog),
+        addRow(text, fontSize, worklog, context),
       );
     });
   }
 }
 
-Widget addRow(String text, double fontSize, WorkLog worklog) {
+Widget addRow(String text, double fontSize, WorkLog worklog, BuildContext context) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: <Widget>[
@@ -114,30 +116,36 @@ Widget addRow(String text, double fontSize, WorkLog worklog) {
         Text(
           worklog.exercise.name,
           style: TextStyle(fontSize: fontSize),
-        ),
+
+        ),0.4,context
       ),
       addBorderedContainer(
         Text(
           worklog.series.toString(),
           style: TextStyle(fontSize: fontSize),
-        ),
+
+        ), 0.2,context
       ),
       addBorderedContainer(
         Text(
           worklog.repeat.toString(),
           style: TextStyle(fontSize: fontSize),
-        ),
+        ),  0.2,context
       ),
-      Text(
+      Container(
+        width: MediaQuery.of(context).size.width *0.2,
+        padding: EdgeInsets.symmetric(horizontal: 30),
+      child: Text(
         worklog.time.toString(),
         style: TextStyle(fontSize: fontSize),
-      ),
+      ),)
     ],
   );
 }
 
-Widget addBorderedContainer(Widget widget) {
+Widget addBorderedContainer(Widget widget, double width, BuildContext context) {
   return Container(
+    width: MediaQuery.of(context).size.width * width,
     decoration:
         BoxDecoration(border: Border(right: BorderSide(color: Colors.red))),
     padding: EdgeInsets.symmetric(horizontal: 30),
