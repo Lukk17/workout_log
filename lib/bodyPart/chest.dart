@@ -1,14 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appTheme.dart';
 import 'package:workout_log/util/util.dart';
 
-class Chest extends StatefulWidget{
+class Chest extends StatefulWidget {
   Chest({
     Key key,
   }) : super(key: key);
@@ -19,11 +15,9 @@ class Chest extends StatefulWidget{
   }
 }
 
-class _ChestState extends State<Chest> implements BodyPartInterface{
+class _ChestState extends State<Chest> implements BodyPartInterface {
   List<Widget> wList = List();
-
   static const BodyPart _BODYPART = BodyPart.CHEST;
-  final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +47,13 @@ class _ChestState extends State<Chest> implements BodyPartInterface{
             tooltip: 'Add exercise',
 
             // open pop-up on button press to add new exercise
-            onPressed: () => Util.addRowDialog(this, 'Exercise', 'eg. pushup', context, textController, _BODYPART,),
-            
+            onPressed: () => Util.addRowDialog(
+                  this,
+                  'Exercise',
+                  'eg. pushup',
+                  context,
+                  _BODYPART,
+                ),
             child: Icon(Icons.add),
             backgroundColor: Colors.red,
             foregroundColor: Colors.black,
@@ -70,5 +69,15 @@ class _ChestState extends State<Chest> implements BodyPartInterface{
       wList.add(Util.addHorizontalLine());
     });
   }
-  
+
+  void refreshList(WorkLog worklog, Widget widget) {
+    setState(() {
+      print(worklog.id);
+      print(wList.length);
+      // and updated worklog need to be inserted in exactly same position in List - same as it's ID
+      wList.insert(worklog.id, widget);
+      // to refresh view old worklog need to be removed - its ID is same as its position in List
+      wList.removeAt(worklog.id + 1);
+    });
+  }
 }

@@ -6,12 +6,13 @@ import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
 
 class Util {
+  static TextEditingController textController = TextEditingController();
+
   static Future addRowDialog(
     BodyPartInterface bp,
     String title,
     String hint,
     BuildContext context,
-    TextEditingController textController,
     BodyPart bodyPart,
   ) {
     return showDialog(
@@ -39,8 +40,11 @@ class Util {
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
                           WorkLog workLog = WorkLog(exercise);
+                          // as new worklog is added at the end of wList, its length is new ID
+                          workLog.id = bp.wList.length;
                           bp.addWidgetToList(
-                            addWorkLogRow(workLog, bp, "title", "hint", context, textController, bodyPart),
+                            addWorkLogRow(workLog, bp, "title", "hint", context,
+                                bodyPart),
                           );
                           Navigator.pop(context);
                         }),
@@ -61,7 +65,6 @@ class Util {
     String title,
     String hint,
     BuildContext context,
-    TextEditingController textController,
     BodyPart bodyPart,
   ) {
     context.findRenderObject();
@@ -82,7 +85,8 @@ class Util {
               workLog.exercise.name,
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
-            onPressed: () => addRowDialog(bp, title, hint, context, textController, bodyPart),
+            onPressed: () => editExerciseNameDialog(
+                bp, context, textController, bodyPart, workLog),
           ),
         ),
         Container(
@@ -98,7 +102,8 @@ class Util {
               workLog.series.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
-            onPressed: () => addRowDialog(bp, title, hint, context, textController, bodyPart),
+            onPressed: () => editSeriesDialog(
+                bp, context, textController, bodyPart, workLog),
           ),
         ),
         Container(
@@ -109,7 +114,8 @@ class Util {
               workLog.repeat.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
-            onPressed: () => addRowDialog(bp, title, hint, context, textController, bodyPart),
+            onPressed: () => editRepeatsDialog(
+                bp, context, textController, bodyPart, workLog),
           ),
         ),
       ],
@@ -117,44 +123,143 @@ class Util {
   }
 
   static Future editSeriesDialog(
-      String title,
-      BuildContext context,
-      TextEditingController textController,
-      BodyPart bodyPart,
-      WorkLog worklog,
-      BodyPartInterface bp,
-      ) {
+    BodyPartInterface bp,
+    BuildContext context,
+    TextEditingController textController,
+    BodyPart bodyPart,
+    WorkLog worklog,
+  ) {
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-        title: Center(child: Text("Edit series number")),
-        contentPadding: EdgeInsets.all(20),
-        children: <Widget>[
-          TextField(
-            // use text controller to save given by user String
-            controller: textController,
-            autofocus: true,
-            autocorrect: true,
-            decoration: InputDecoration(hintText: worklog.series.toString()),
-            maxLength: 4,
+            title: Center(child: Text("Edit series number")),
+            contentPadding: EdgeInsets.all(20),
+            children: <Widget>[
+              TextField(
+                // use text controller to save given by user String
+                controller: textController,
+                autofocus: true,
+                autocorrect: true,
+                keyboardType: TextInputType.number,
+                decoration:
+                    InputDecoration(hintText: worklog.series.toString()),
+                maxLength: 4,
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FlatButton(
+                        child: const Text('SAVE'),
+                        onPressed: () {
+                          worklog.series = int.parse(textController.text);
+                          bp.refreshList(
+                            worklog,
+                            addWorkLogRow(worklog, bp, "title", "hint", context,
+                                bodyPart),
+                          );
+                          Navigator.pop(context);
+                        }),
+                    FlatButton(
+                        child: const Text('CANCEL'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ]),
+            ],
           ),
-          Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                FlatButton(
-                    child: const Text('SAVE'),
-                    onPressed: () {
-                      worklog.series=textController.text as int;
-                      Navigator.pop(context);
-                    }),
-                FlatButton(
-                    child: const Text('CANCEL'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-              ]),
-        ],
-      ),
+    );
+  }
+
+  static Future editRepeatsDialog(
+    BodyPartInterface bp,
+    BuildContext context,
+    TextEditingController textController,
+    BodyPart bodyPart,
+    WorkLog worklog,
+  ) {
+    return showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+            title: Center(child: Text("Edit repeats number")),
+            contentPadding: EdgeInsets.all(20),
+            children: <Widget>[
+              TextField(
+                // use text controller to save given by user String
+                controller: textController,
+                autofocus: true,
+                autocorrect: true,
+                keyboardType: TextInputType.number,
+                decoration:
+                    InputDecoration(hintText: worklog.repeat.toString()),
+                maxLength: 4,
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FlatButton(
+                        child: const Text('SAVE'),
+                        onPressed: () {
+                          worklog.repeat = int.parse(textController.text);
+                          bp.refreshList(
+                            worklog,
+                            addWorkLogRow(worklog, bp, "title", "hint", context,
+                                bodyPart),
+                          );
+                          Navigator.pop(context);
+                        }),
+                    FlatButton(
+                        child: const Text('CANCEL'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ]),
+            ],
+          ),
+    );
+  }
+
+  static Future editExerciseNameDialog(
+    BodyPartInterface bp,
+    BuildContext context,
+    TextEditingController textController,
+    BodyPart bodyPart,
+    WorkLog worklog,
+  ) {
+    return showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+            title: Center(child: Text("Edit exercise name")),
+            contentPadding: EdgeInsets.all(20),
+            children: <Widget>[
+              TextField(
+                // use text controller to save given by user String
+                controller: textController,
+                autofocus: true,
+                autocorrect: true,
+                decoration: InputDecoration(hintText: worklog.exercise.name),
+                maxLength: 50,
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FlatButton(
+                        child: const Text('SAVE'),
+                        onPressed: () {
+                          worklog.exercise.name = textController.text;
+                          bp.refreshList(
+                              worklog,
+                              addWorkLogRow(worklog, bp, "title", "hint",
+                                  context, bodyPart));
+                          Navigator.pop(context);
+                        }),
+                    FlatButton(
+                        child: const Text('CANCEL'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ]),
+            ],
+          ),
     );
   }
 
@@ -177,5 +282,4 @@ class Util {
       ),
     );
   }
-
 }

@@ -1,10 +1,10 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:workout_log/entity/workLog.dart';
 
-abstract class BodyPartInterface{
+abstract class BodyPartInterface {
+  List<Widget> wList = List();
 
-  void addWidgetToList(Widget widget);
+  addWidgetToList(Widget widget);
 
-
+  refreshList(WorkLog worklog, Widget widget);
 }
