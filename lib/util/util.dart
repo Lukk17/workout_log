@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/entity/bodyPart.dart';
@@ -40,8 +42,11 @@ class Util {
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
                           WorkLog workLog = WorkLog(exercise);
-                          // as new worklog is added at the end of wList, its length is new ID
+                          // as new worklog is added at the end of list of widgets (wList),
+                          // list length is new ID
                           workLog.id = bp.wList.length;
+                          String json = jsonEncode(workLog);
+                          print(json);
                           bp.addWidgetToList(
                             addWorkLogRow(workLog, bp, "title", "hint", context,
                                 bodyPart),
