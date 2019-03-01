@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
@@ -6,6 +7,7 @@ import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/storage.dart';
 
 class Util {
   static TextEditingController textController = TextEditingController();
@@ -47,6 +49,7 @@ class Util {
                           workLog.id = bp.wList.length;
                           String json = jsonEncode(workLog);
                           print(json);
+                          Storage.writeToFile(json);
                           bp.addWidgetToList(
                             addWorkLogRow(workLog, bp, "title", "hint", context,
                                 bodyPart),
@@ -287,4 +290,7 @@ class Util {
       ),
     );
   }
+
+
+
 }
