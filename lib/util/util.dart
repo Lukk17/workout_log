@@ -49,6 +49,7 @@ class Util {
                           workLog.id = bp.wList.length;
                           String json = jsonEncode(workLog);
                           print(json);
+                          // save to json
                           Storage.writeToFile(json);
                           bp.addWidgetToList(
                             addWorkLogRow(workLog, bp, "title", "hint", context,
