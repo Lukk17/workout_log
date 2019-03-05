@@ -12,6 +12,7 @@ part 'workLog.g.dart';
 
 @JsonSerializable()
 class WorkLog {
+
   int id;
   Exercise exercise;
   int series = 0;
@@ -24,4 +25,15 @@ class WorkLog {
   // auto-create addition files for file XXX.dart - XXX.g.dart
   factory WorkLog.fromJson(Map<String, dynamic> json) => _$WorkLogFromJson(json);
   Map<String, dynamic> toJson() => _$WorkLogToJson(this);
+
+  factory WorkLog.fromMap(Map<String, dynamic> json) => new WorkLog(
+    json["exercise"]
+  );
+
+  Map<String, dynamic> toMap() => {
+    "id": id,
+    "first_name": firstName,
+    "last_name": lastName,
+    "blocked": blocked,
+  };
 }

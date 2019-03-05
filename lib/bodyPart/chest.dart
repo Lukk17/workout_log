@@ -19,8 +19,18 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
   List<Widget> wList = List();
   static const BodyPart _BODYPART = BodyPart.CHEST;
 
+  void restoreWorklogFromDB(){
+
+
+    wList.add(Util.addWorkLogRow(workLog, this, "title", "hint", context,
+        _BODYPART));
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    restoreWorklogFromDB();
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -75,6 +85,7 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
       print(worklog.id);
       print(wList.length);
       // and updated worklog need to be inserted in exactly same position in List - same as it's ID
+      //TODO databese edit needed
       wList.insert(worklog.id, widget);
       // to refresh view old worklog need to be removed - its ID is same as its position in List
       wList.removeAt(worklog.id + 1);

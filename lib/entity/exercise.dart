@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:workout_log/entity/bodyPart.dart';
+import 'package:uuid/uuid.dart';
 
 
 // needs to run in terminal within project dir:
@@ -12,6 +13,8 @@ part 'exercise.g.dart';
 
 @JsonSerializable()
 class Exercise {
+
+  String id = Uuid().v1();
   String name;
   BodyPart bodyPart;
 
@@ -22,5 +25,7 @@ class Exercise {
   // auto-create addition files for file XXX.dart - XXX.g.dart
   factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
+
+
 
 }
