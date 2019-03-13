@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/workLog.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
 class Chest extends StatefulWidget {
@@ -19,16 +20,18 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
   List<Widget> wList = List();
   static const BodyPart _BODYPART = BodyPart.CHEST;
 
-  void restoreWorklogFromDB(){
+  void restoreWorklogFromDB() async {
+    //  get DB from singleton global provider
+    DBProvider db = DBProvider.db;
 
-
-    wList.add(Util.addWorkLogRow(workLog, this, "title", "hint", context,
-        _BODYPART));
+    List<WorkLog> workLogList = await db.getAllWorkLogs();
+    for (WorkLog workLog in workLogList) {
+      wList.add(Util.addWorkLogRow(workLog, this, context, _BODYPART));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-
     restoreWorklogFromDB();
 
     return DefaultTabController(
@@ -80,15 +83,21 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
     });
   }
 
-  void refreshList(WorkLog worklog, Widget widget) {
+  saveWorkLogToDB(WorkLog workLog) {
+    DBProvider db = DBProvider.db;
+    db.newWorkLog(workLog);
+  }
+
+  void refreshList(WorkLog workLog, Widget widget) {
     setState(() {
-      print(worklog.id);
+      DBProvider db = DBProvider.db;
+      print(workLog.id);
       print(wList.length);
       // and updated worklog need to be inserted in exactly same position in List - same as it's ID
       //TODO databese edit needed
-      wList.insert(worklog.id, widget);
+//      wList.insert(worklog.id, widget);
       // to refresh view old worklog need to be removed - its ID is same as its position in List
-      wList.removeAt(worklog.id + 1);
+//      wList.removeAt(worklog.id + 1);
     });
   }
 }

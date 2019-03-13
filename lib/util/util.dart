@@ -7,6 +7,7 @@ import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/storage.dart';
 
 class Util {
@@ -46,14 +47,17 @@ class Util {
                           WorkLog workLog = WorkLog(exercise);
                           // as new worklog is added at the end of list of widgets (wList),
                           // list length is new ID
-                          workLog.id = bp.wList.length;
+                          //  TODO id generate automatically
+//                          workLog.id = bp.wList.length;
                           String json = jsonEncode(workLog);
                           print(json);
                           // save to json
-                          Storage.writeToFile(json);
+//                          Storage.writeToFile(json);
+                          //  save worklog to DB
+                          bp.saveWorkLogToDB(workLog);
+                          //  add worklog to widgets
                           bp.addWidgetToList(
-                            addWorkLogRow(workLog, bp, "title", "hint", context,
-                                bodyPart),
+                            addWorkLogRow(workLog, bp, context, bodyPart),
                           );
                           Navigator.pop(context);
                         }),
@@ -68,11 +72,14 @@ class Util {
     );
   }
 
+  /// require:
+  /// worklog which will be added to widget
+  /// BodyPartInterface class which implement it (usually it will call this)
+  /// context of application (for screen dimension)
+  /// BodyPart of class which call this method
   static Widget addWorkLogRow(
     WorkLog workLog,
     BodyPartInterface bp,
-    String title,
-    String hint,
     BuildContext context,
     BodyPart bodyPart,
   ) {
@@ -94,6 +101,7 @@ class Util {
               workLog.exercise.name,
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
+            // TODO row should be edited after opening it in new window for details
             onPressed: () => editExerciseNameDialog(
                 bp, context, textController, bodyPart, workLog),
           ),
@@ -111,6 +119,7 @@ class Util {
               workLog.series.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
+            // TODO row should be edited after opening it in new window for details
             onPressed: () => editSeriesDialog(
                 bp, context, textController, bodyPart, workLog),
           ),
@@ -123,6 +132,7 @@ class Util {
               workLog.repeat.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
+            // TODO row should be edited after opening it in new window for details
             onPressed: () => editRepeatsDialog(
                 bp, context, textController, bodyPart, workLog),
           ),
@@ -163,8 +173,7 @@ class Util {
                           worklog.series = int.parse(textController.text);
                           bp.refreshList(
                             worklog,
-                            addWorkLogRow(worklog, bp, "title", "hint", context,
-                                bodyPart),
+                            addWorkLogRow(worklog, bp, context, bodyPart),
                           );
                           Navigator.pop(context);
                         }),
@@ -211,8 +220,7 @@ class Util {
                           worklog.repeat = int.parse(textController.text);
                           bp.refreshList(
                             worklog,
-                            addWorkLogRow(worklog, bp, "title", "hint", context,
-                                bodyPart),
+                            addWorkLogRow(worklog, bp, context, bodyPart),
                           );
                           Navigator.pop(context);
                         }),
@@ -255,10 +263,8 @@ class Util {
                         child: const Text('SAVE'),
                         onPressed: () {
                           worklog.exercise.name = textController.text;
-                          bp.refreshList(
-                              worklog,
-                              addWorkLogRow(worklog, bp, "title", "hint",
-                                  context, bodyPart));
+                          bp.refreshList(worklog,
+                              addWorkLogRow(worklog, bp, context, bodyPart));
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -291,7 +297,4 @@ class Util {
       ),
     );
   }
-
-
-
 }

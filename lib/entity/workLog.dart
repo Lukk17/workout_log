@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -9,31 +10,53 @@ import 'package:json_annotation/json_annotation.dart';
 // clearing flutter cashe maybe be necessary
 part 'workLog.g.dart';
 
-
 @JsonSerializable()
 class WorkLog {
+//  int id; OLD
+//  ID generate based on time (UUID.v1)
+  String id = Uuid().v1();
 
-  int id;
   Exercise exercise;
   int series = 0;
   int repeat = 0;
 
-  WorkLog(this.exercise);
+  //  Date for SQLITE must be in format:
+  //  YYYY-MM-DD
+  DateTime created = DateTime.now();
 
+  WorkLog(this.exercise);
 
   // for Json serializable
   // auto-create addition files for file XXX.dart - XXX.g.dart
-  factory WorkLog.fromJson(Map<String, dynamic> json) => _$WorkLogFromJson(json);
+  factory WorkLog.fromJson(Map<String, dynamic> json) =>
+      _$WorkLogFromJson(json);
+
   Map<String, dynamic> toJson() => _$WorkLogToJson(this);
 
   factory WorkLog.fromMap(Map<String, dynamic> json) => new WorkLog(
-    json["exercise"]
-  );
+        //  get from given map
+        json["exercise"],
+      );
 
   Map<String, dynamic> toMap() => {
-    "id": id,
-    "first_name": firstName,
-    "last_name": lastName,
-    "blocked": blocked,
-  };
+        "id": id,
+        "exercise": exercise,
+        "series": series,
+        "repeat": repeat,
+        "created": created,
+      };
+/*
+    WITHOUT LAMBDA:
+
+  Map<String, dynamic> toMap() {
+    var map = <String, dynamic> {
+      "id": id,
+      "exercise": exercise,
+      "series": series,
+      "repeat": repeat,
+      "created": created,
+    };
+    return map;
+  }
+  */
 }

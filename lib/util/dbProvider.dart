@@ -7,76 +7,87 @@ import 'package:sqflite/sqflite.dart';
 import 'package:workout_log/entity/workLog.dart';
 
 class DBProvider {
+  final String TABLEWORKLOG = "workLog";
+
+  // singleton is needed to have only one global DB provider
   DBProvider._();
+
   static final DBProvider db = DBProvider._();
 
+  //  check if there is already database
   static Database _database;
 
   Future<Database> get database async {
-    if (_database != null)
-      return _database;
+    if (_database != null) return _database;
 
     // if _database is null - instantiate it
     _database = await initDB();
     return _database;
   }
 
-
   initDB() async {
+    //  get path for storing DB (needs imported path_provider package)
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     // join need 'dart:async' lib imported
     String path = join(documentsDirectory.path, "worklog.db");
-    return await openDatabase(path, version: 1, onOpen: (db) {
-    }, onCreate: (Database db, int version) async {
-
+    return await openDatabase(path, version: 1, onOpen: (db) {},
+        onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE IF NOT EXISTS exercise ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
           "bodypart TEXT"
           ")");
 
-      await db.execute("CREATE TABLE IF NOT EXISTS worklog ("
+      //  foreign key here because worklog can have only one exercise
+      //  exercise can be in many worklogs
+      //  ONE TO MANY relation
+      await db.execute("CREATE TABLE IF NOT EXISTS $TABLEWORKLOG ("
           "id VARCHAR(32) PRIMARY KEY,"
           "series INTEGER,"
-          "repeat INTEGER"
-          ")");
-
-      // exercise can be in many worklogs, worklog can have many exercises
-      // Many to Many relation need additional table
-      // TODO wrong relation ! worklog have exactly one exercise(which can be in many worklogs)
-      await db.execute("CREATE TABLE IF NOT EXISTS exercise_worklog ("
+          "repeat INTEGER,"
           "exercise_id VARCHAR(32),"
-          "worklog_id VARCHAR(32),"
-          "FOREIGN KEY(exercise_id) REFERENCES exercise(id),"
-          "FOREIGN KEY(worklog_id) REFERENCES worklog(id)"
+          "FOREIGN KEY(exercise_id) REFERENCES exercise(id)"
           ")");
     });
   }
 
-  newWorkLog(WorkLog newClient) async {
-    await _database.transaction((txn) async {
-      // Ok
-      await txn.execute('CREATE TABLE Test1 (id INTEGER PRIMARY KEY)');
-    });
-  }
-
-  getWorkLog(int id) async {
+  Future<int> newWorkLog(WorkLog workLog) async {
     final db = await database;
-    var res = await  db.query("worklog", where: "id = ?", whereArgs: [id]);
-    if(res.isNotEmpty){
-      // TODO worklog is created from exercise and then add rest
-      WorkLog log = WorkLog.fromMap(res.first);
 
-      //needs exercise ID to get exercise from DB and add to worklog
-      // get exercise id from common table
-      var findExercise = await  db.rawQuery("SELECT exercise_id FROM exercise_worklog WHERE worklog_id="+log.id.toString());
-      String exerciseID = findExercise.removeLast().remove("exercise_id");
+    //  DB when insert give back ID of created entry
+    //  TODO check if id saved in db is same as generated in class
+    int idFromDB = await db.insert(TABLEWORKLOG, workLog.toMap());
 
-      // get exerciese from exercise table by id
-      var exerciseRes = await  db.query("exercise", where: "id = ?", whereArgs: [exerciseID]);
-      log.exercise = Exercise.fromMap(exerciseRes.first);
-
-    }
+    return idFromDB;
   }
 
+  Future<int> updateWorkLog(WorkLog workLog) async {
+    final db = await database;
+    return await db.update(TABLEWORKLOG, workLog.toMap(),
+        where: "id = ?", whereArgs: [workLog.id]);
+  }
+
+  Future<WorkLog> getWorkLogByID(int id) async {
+    WorkLog log;
+    final db = await database;
+    var res = await db.query("worklog", where: "id = ?", whereArgs: [id]);
+
+    //  if there is entry with this ID in DB it will be pulled
+    if (res.isNotEmpty) {
+      log = WorkLog.fromMap(res.first);
+    }
+    return log;
+  }
+
+  Future<List<WorkLog>> getAllWorkLogs() async {
+    List<WorkLog> workLogList = new List();
+    final db = await database;
+    var res = await db.query("worklog");
+    for (var l in res) {
+      workLogList.add(WorkLog.fromMap(l));
+    }
+    return workLogList;
+  }
+
+  Future close() async => _database.close();
 }

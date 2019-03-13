@@ -8,10 +8,12 @@ part of 'exercise.dart';
 
 Exercise _$ExerciseFromJson(Map<String, dynamic> json) {
   return Exercise(json['name'] as String,
-      _$enumDecodeNullable(_$BodyPartEnumMap, json['bodyPart']));
+      _$enumDecodeNullable(_$BodyPartEnumMap, json['bodyPart']))
+    ..id = json['id'] as String;
 }
 
 Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
+      'id': instance.id,
       'name': instance.name,
       'bodyPart': _$BodyPartEnumMap[instance.bodyPart]
     };

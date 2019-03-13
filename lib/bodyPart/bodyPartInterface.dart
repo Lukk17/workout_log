@@ -7,4 +7,6 @@ abstract class BodyPartInterface {
   addWidgetToList(Widget widget);
 
   refreshList(WorkLog worklog, Widget widget);
+
+  saveWorkLogToDB(WorkLog workLog);
 }
