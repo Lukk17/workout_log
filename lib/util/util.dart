@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
@@ -7,13 +6,12 @@ import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
-import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/storage.dart';
 
 class Util {
   static TextEditingController textController = TextEditingController();
 
-  static Future addRowDialog(
+  static Future showAddWorkLogDialog(
     BodyPartInterface bp,
     String title,
     String hint,
@@ -40,25 +38,10 @@ class Util {
                     FlatButton(
                         child: const Text('SAVE'),
                         onPressed: () {
-                          // add widget to column widget's list
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
-                          WorkLog workLog = WorkLog(exercise);
-                          // as new worklog is added at the end of list of widgets (wList),
-                          // list length is new ID
-                          //  TODO id generate automatically
-//                          workLog.id = bp.wList.length;
-                          String json = jsonEncode(workLog);
-                          print(json);
-                          // save to json
-//                          Storage.writeToFile(json);
-                          //  save worklog to DB
-                          bp.saveWorkLogToDB(workLog);
-                          //  add worklog to widgets
-                          bp.addWidgetToList(
-                            addWorkLogRow(workLog, bp, context, bodyPart),
-                          );
+                          addWorkLog(exercise, bp);
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -72,17 +55,29 @@ class Util {
     );
   }
 
+  static addWorkLog(Exercise exercise, BodyPartInterface bp) {
+    print("adding worklog");
+    WorkLog workLog = WorkLog(exercise);
+    String json = jsonEncode(workLog);
+    print(json);
+    // save to json
+    Storage.writeToFile(json);
+    //  save worklog to DB
+    bp.saveWorkLogToDB(workLog);
+  }
+
   /// require:
   /// worklog which will be added to widget
   /// BodyPartInterface class which implement it (usually it will call this)
   /// context of application (for screen dimension)
   /// BodyPart of class which call this method
-  static Widget addWorkLogRow(
+  static Widget createWorkLogRowWidget(
     WorkLog workLog,
     BodyPartInterface bp,
     BuildContext context,
     BodyPart bodyPart,
   ) {
+    print("adding row");
     context.findRenderObject();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -98,7 +93,8 @@ class Util {
           ),
           child: FlatButton(
             child: Text(
-              workLog.exercise.name,
+              // TODO change to exercise name
+              workLog.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
             // TODO row should be edited after opening it in new window for details
@@ -170,11 +166,8 @@ class Util {
                     FlatButton(
                         child: const Text('SAVE'),
                         onPressed: () {
+                          // TODO call setState to change in UI
                           worklog.series = int.parse(textController.text);
-                          bp.refreshList(
-                            worklog,
-                            addWorkLogRow(worklog, bp, context, bodyPart),
-                          );
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -217,11 +210,8 @@ class Util {
                     FlatButton(
                         child: const Text('SAVE'),
                         onPressed: () {
+                          // TODO call setState to change in UI
                           worklog.repeat = int.parse(textController.text);
-                          bp.refreshList(
-                            worklog,
-                            addWorkLogRow(worklog, bp, context, bodyPart),
-                          );
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -262,9 +252,8 @@ class Util {
                     FlatButton(
                         child: const Text('SAVE'),
                         onPressed: () {
+                          // TODO call setState to change in UI
                           worklog.exercise.name = textController.text;
-                          bp.refreshList(worklog,
-                              addWorkLogRow(worklog, bp, context, bodyPart));
                           Navigator.pop(context);
                         }),
                     FlatButton(

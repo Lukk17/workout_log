@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:workout_log/entity/bodyPart.dart';
 import 'package:uuid/uuid.dart';
+import 'package:workout_log/entity/bodyPart.dart';
+
+part 'exercise.g.dart';
 
 // needs to run in terminal within project dir:
 // flutter packages pub run build_runner watch
@@ -8,7 +10,6 @@ import 'package:uuid/uuid.dart';
 // flutter packages pub run build_runner build
 // commend in project root to generate this file
 // clearing flutter cashe maybe be necessary
-part 'exercise.g.dart';
 
 @JsonSerializable()
 class Exercise {

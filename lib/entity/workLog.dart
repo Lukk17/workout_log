@@ -1,6 +1,8 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
-import 'package:json_annotation/json_annotation.dart';
+
+part 'workLog.g.dart';
 
 // needs to run in terminal within project dir:
 // flutter packages pub run build_runner watch
@@ -8,7 +10,6 @@ import 'package:json_annotation/json_annotation.dart';
 // flutter packages pub run build_runner build
 // commend in project root to generate this file
 // clearing flutter cashe maybe be necessary
-part 'workLog.g.dart';
 
 @JsonSerializable()
 class WorkLog {
@@ -40,10 +41,10 @@ class WorkLog {
 
   Map<String, dynamic> toMap() => {
         "id": id,
-        "exercise": exercise,
+//        "exercise": exercise,
         "series": series,
         "repeat": repeat,
-        "created": created,
+//        "created": created,
       };
 /*
     WITHOUT LAMBDA:
