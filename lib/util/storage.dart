@@ -17,5 +17,5 @@ class Storage {
     print(_path);
     file.writeAsString(content);
   }
-  
+
 }

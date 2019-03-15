@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/workLog.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
 class Chest extends StatefulWidget {
@@ -16,11 +17,18 @@ class Chest extends StatefulWidget {
 }
 
 class _ChestState extends State<Chest> implements BodyPartInterface {
-  List<Widget> wList = List();
   static const BodyPart _BODYPART = BodyPart.CHEST;
+  static List<Widget> wList = List();
+
+  @override
+  void initState() {
+    updateWorklogFromDB();
+  }
 
   @override
   Widget build(BuildContext context) {
+    print("build");
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -47,7 +55,7 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
             tooltip: 'Add exercise',
 
             // open pop-up on button press to add new exercise
-            onPressed: () => Util.addRowDialog(
+            onPressed: () => Util.showAddWorkLogDialog(
                   this,
                   'Exercise',
                   'eg. pushup',
@@ -63,21 +71,32 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
     );
   }
 
-  void addWidgetToList(Widget widget) {
-    setState(() {
-      wList.add(widget);
-      wList.add(Util.addHorizontalLine());
-    });
+  void updateWorklogFromDB() async {
+    //  get DB from singleton global provider
+    DBProvider db = DBProvider.db;
+
+    List<WorkLog> workLogList = await db.getAllWorkLogs();
+    if (workLogList != null && workLogList.isNotEmpty) {
+      print(workLogList);
+      List<Widget> dbList = List();
+      for (WorkLog workLog in workLogList) {
+        print("updating entries");
+//        workLog.exercise;
+        dbList.add(
+            Util.createWorkLogRowWidget(workLog, this, context, _BODYPART));
+        dbList.add(Util.addHorizontalLine());
+      }
+      setState(() {
+        wList = dbList;
+      });
+    }
   }
 
-  void refreshList(WorkLog worklog, Widget widget) {
-    setState(() {
-      print(worklog.id);
-      print(wList.length);
-      // and updated worklog need to be inserted in exactly same position in List - same as it's ID
-      wList.insert(worklog.id, widget);
-      // to refresh view old worklog need to be removed - its ID is same as its position in List
-      wList.removeAt(worklog.id + 1);
-    });
+  saveWorkLogToDB(WorkLog workLog) {
+    DBProvider db = DBProvider.db;
+    print(
+        "SAVING TO DB          " + workLog.exercise.name + workLog.exercise.id);
+    db.newWorkLog(workLog);
+    updateWorklogFromDB();
   }
 }
