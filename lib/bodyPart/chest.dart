@@ -81,7 +81,7 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
       List<Widget> dbList = List();
       for (WorkLog workLog in workLogList) {
         print("updating entries");
-        workLog.exercise;
+//        workLog.exercise;
         dbList.add(
             Util.createWorkLogRowWidget(workLog, this, context, _BODYPART));
         dbList.add(Util.addHorizontalLine());
