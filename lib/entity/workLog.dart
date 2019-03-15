@@ -23,6 +23,7 @@ class WorkLog {
 
   //  Date for SQLITE must be in format:
   //  YYYY-MM-DD
+  // TODO format it for SQLITE
   DateTime created = DateTime.now();
 
   WorkLog(this.exercise);
@@ -34,14 +35,19 @@ class WorkLog {
 
   Map<String, dynamic> toJson() => _$WorkLogToJson(this);
 
-  factory WorkLog.fromMap(Map<String, dynamic> json) => new WorkLog(
-        //  get from given map
-        json["exercise"],
-      );
+  //  needed for SQLite
+  factory WorkLog.fromMap(Map<String, dynamic> json, Exercise e) {
+    WorkLog result = WorkLog(e);
+    result.id = json["id"];
+    result.series = json["series"];
+    result.repeat = json["repeat"];
+//    result.created = json["created"];
+    return result;
+  }
 
   Map<String, dynamic> toMap() => {
         "id": id,
-//        "exercise": exercise,
+        "exercise_id": exercise.id,
         "series": series,
         "repeat": repeat,
 //        "created": created,

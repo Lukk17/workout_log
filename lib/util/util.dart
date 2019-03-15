@@ -41,6 +41,7 @@ class Util {
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
+                          print("EXEEEERSISEEEEE         " + exercise.id);
                           addWorkLog(exercise, bp);
                           Navigator.pop(context);
                         }),
@@ -93,8 +94,7 @@ class Util {
           ),
           child: FlatButton(
             child: Text(
-              // TODO change to exercise name
-              workLog.toString(),
+              workLog.exercise.name,
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
             // TODO row should be edited after opening it in new window for details

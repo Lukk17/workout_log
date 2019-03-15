@@ -81,6 +81,7 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
       List<Widget> dbList = List();
       for (WorkLog workLog in workLogList) {
         print("updating entries");
+        workLog.exercise;
         dbList.add(
             Util.createWorkLogRowWidget(workLog, this, context, _BODYPART));
         dbList.add(Util.addHorizontalLine());
@@ -93,6 +94,8 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
 
   saveWorkLogToDB(WorkLog workLog) {
     DBProvider db = DBProvider.db;
+    print(
+        "SAVING TO DB          " + workLog.exercise.name + workLog.exercise.id);
     db.newWorkLog(workLog);
     updateWorklogFromDB();
   }

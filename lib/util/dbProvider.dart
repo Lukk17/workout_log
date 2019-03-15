@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 
 class DBProvider {
-  final String TABLEWORKLOG = "workLog";
+  final String WORKLOGTABLE = "workLog";
+  final String EXERCISETABLE = "exercise";
 
   // singleton is needed to have only one global DB provider
   DBProvider._();
@@ -32,7 +34,7 @@ class DBProvider {
     String path = join(documentsDirectory.path, "worklog.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
-      await db.execute("CREATE TABLE IF NOT EXISTS exercise ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $EXERCISETABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
           "bodypart TEXT"
@@ -41,7 +43,7 @@ class DBProvider {
       //  foreign key here because worklog can have only one exercise
       //  exercise can be in many worklogs
       //  ONE TO MANY relation
-      await db.execute("CREATE TABLE IF NOT EXISTS $TABLEWORKLOG ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOGTABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
           "series INTEGER,"
           "repeat INTEGER,"
@@ -56,14 +58,16 @@ class DBProvider {
 
     //  DB when insert give back ID of created entry
     //  TODO check if id saved in db is same as generated in class
-    int idFromDB = await db.insert(TABLEWORKLOG, workLog.toMap());
+    int idFromDB = await db.insert(WORKLOGTABLE, workLog.toMap());
+    //  need to save exercise to DB as well
+    await db.insert(EXERCISETABLE, workLog.exercise.toMap());
 
     return idFromDB;
   }
 
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
-    return await db.update(TABLEWORKLOG, workLog.toMap(),
+    return await db.update(WORKLOGTABLE, workLog.toMap(),
         where: "id = ?", whereArgs: [workLog.id]);
   }
 
@@ -71,10 +75,10 @@ class DBProvider {
     WorkLog log;
     final db = await database;
     var res = await db.query("worklog", where: "id = ?", whereArgs: [id]);
-
+    // TODO need refactor to include pulling exercise from DB like getAllWorkLogs method
     //  if there is entry with this ID in DB it will be pulled
     if (res.isNotEmpty) {
-      log = WorkLog.fromMap(res.first);
+//      log = WorkLog.fromMap(res.first);
     }
     return log;
   }
@@ -84,9 +88,26 @@ class DBProvider {
     final db = await database;
     var res = await db.query("worklog");
     for (var l in res) {
-      workLogList.add(WorkLog.fromMap(l));
+      //  exercise need to be pulled from DB
+      // and pushed to WorkLog.fromMap method
+      Exercise exercise = await getExerciseByID(l["exercise_id"]);
+      WorkLog dbLog = WorkLog.fromMap(l, exercise);
+      workLogList.add(dbLog);
     }
     return workLogList;
+  }
+
+  Future<Exercise> getExerciseByID(String id) async {
+    Exercise exercise;
+    final db = await database;
+    var res = await db.query("exercise", where: "id = ?", whereArgs: [id]);
+    //  if there is entry with this ID in DB it will be pulled
+    if (res.isNotEmpty) {
+      exercise = Exercise.fromMap(res.first);
+    } else {
+      throw new Exception("exersice with id: $id was NOT found");
+    }
+    return exercise;
   }
 
   Future close() async => _database.close();

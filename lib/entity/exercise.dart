@@ -16,7 +16,9 @@ class Exercise {
   //  ID generate based on time (UUID.v1)
   String id = Uuid().v1();
 
-  String name;
+  //  initialize name to avoid nullpointer when user will not add any name
+  String name = "";
+
   BodyPart bodyPart;
 
   Exercise(this.name, this.bodyPart);
@@ -27,4 +29,17 @@ class Exercise {
       _$ExerciseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
+
+  //  needed for SQLite
+  factory Exercise.fromMap(Map<String, dynamic> json) => new Exercise(
+        //  get from given map
+        json["name"],
+        json["bodyPart"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "name": name,
+        "bodyPart": bodyPart.toString(),
+      };
 }
