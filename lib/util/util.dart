@@ -78,62 +78,55 @@ class Util {
     BuildContext context,
     BodyPart bodyPart,
   ) {
-    print("adding row");
-    context.findRenderObject();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          height: MediaQuery.of(context).size.height * 0.15,
-          width: MediaQuery.of(context).size.width * 0.5,
-          decoration: BoxDecoration(
-            border: Border(
-              right: BorderSide(color: AppTheme.borderColor),
+//    context.findRenderObject();
+    return FlatButton(
+      child: Row(
+        children: <Widget>[
+          Container(
+            height: MediaQuery.of(context).size.height * 0.15,
+            width: MediaQuery.of(context).size.width * 0.5,
+            alignment: FractionalOffset(0.5, 0.5),
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: AppTheme.borderColor),
+              ),
             ),
+              child: Text(
+                workLog.exercise.name,
+                style: TextStyle(fontSize: AppTheme.fontSize),
+                textAlign: TextAlign.center,
+              ),
           ),
-          child: FlatButton(
-            child: Text(
-              workLog.exercise.name,
-              style: TextStyle(fontSize: AppTheme.fontSize),
+          Container(
+            height: MediaQuery.of(context).size.height * 0.15,
+            width: MediaQuery.of(context).size.width * 0.25,
+            alignment: FractionalOffset(0.5, 0.5),
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(color: AppTheme.borderColor),
+              ),
             ),
-            // TODO row should be edited after opening it in new window for details
-            onPressed: () => editExerciseNameDialog(
-                bp, context, textController, bodyPart, workLog),
-          ),
-        ),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.15,
-          width: MediaQuery.of(context).size.width * 0.25,
-          decoration: BoxDecoration(
-            border: Border(
-              right: BorderSide(color: AppTheme.borderColor),
-            ),
-          ),
-          child: FlatButton(
             child: Text(
               workLog.series.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
-            // TODO row should be edited after opening it in new window for details
-            onPressed: () => editSeriesDialog(
-                bp, context, textController, bodyPart, workLog),
           ),
-        ),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.15,
-          width: MediaQuery.of(context).size.width * 0.25,
-          child: FlatButton(
+          Container(
+            height: MediaQuery.of(context).size.height * 0.15,
+            //  needs to have 0.15 due to parent widget - flatbutton,
+            // which consumed space
+            width: MediaQuery.of(context).size.width * 0.15,
+            alignment: FractionalOffset(0.8, 0.5),
             child: Text(
               workLog.repeat.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
+              textAlign: TextAlign.end,
             ),
-            // TODO row should be edited after opening it in new window for details
-            onPressed: () => editRepeatsDialog(
-                bp, context, textController, bodyPart, workLog),
           ),
-        ),
-      ],
+        ],
+      ),
+      onPressed: () => editExerciseNameDialog(
+          bp, context, textController, bodyPart, workLog),
     );
   }
 
