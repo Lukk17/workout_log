@@ -8,8 +8,8 @@ import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 
 class DBProvider {
-  final String WORKLOGTABLE = "workLog";
-  final String EXERCISETABLE = "exercise";
+  final String WORKLOG_TABLE = "workLog";
+  final String EXERCISE_TABLE = "exercise";
 
   // singleton is needed to have only one global DB provider
   DBProvider._();
@@ -34,7 +34,7 @@ class DBProvider {
     String path = join(documentsDirectory.path, "worklog.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
-      await db.execute("CREATE TABLE IF NOT EXISTS $EXERCISETABLE ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $EXERCISE_TABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
           "bodypart TEXT"
@@ -43,7 +43,7 @@ class DBProvider {
       //  foreign key here because worklog can have only one exercise
       //  exercise can be in many worklogs
       //  ONE TO MANY relation
-      await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOGTABLE ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOG_TABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
           "series INTEGER,"
           "repeat INTEGER,"
@@ -58,16 +58,16 @@ class DBProvider {
 
     //  DB when insert give back ID of created entry
     //  TODO check if id saved in db is same as generated in class
-    int idFromDB = await db.insert(WORKLOGTABLE, workLog.toMap());
+    int idFromDB = await db.insert(WORKLOG_TABLE, workLog.toMap());
     //  need to save exercise to DB as well
-    await db.insert(EXERCISETABLE, workLog.exercise.toMap());
+    await db.insert(EXERCISE_TABLE, workLog.exercise.toMap());
 
     return idFromDB;
   }
 
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
-    return await db.update(WORKLOGTABLE, workLog.toMap(),
+    return await db.update(WORKLOG_TABLE, workLog.toMap(),
         where: "id = ?", whereArgs: [workLog.id]);
   }
 
