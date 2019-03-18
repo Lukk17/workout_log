@@ -5,4 +5,6 @@ abstract class BodyPartInterface {
   static List<Widget> wList = List();
 
   saveWorkLogToDB(WorkLog workLog);
+
+  updateWorkLogToDB(WorkLog workLog);
 }

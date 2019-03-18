@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
+import 'package:workout_log/bodyPart/workLogView.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
@@ -41,8 +42,7 @@ class Util {
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
-                          print("EXEEEERSISEEEEE         " + exercise.id);
-                          addWorkLog(exercise, bp);
+                          addWorkLog(exercise, bp, bodyPart);
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -56,9 +56,10 @@ class Util {
     );
   }
 
-  static addWorkLog(Exercise exercise, BodyPartInterface bp) {
-    print("adding worklog");
+  static addWorkLog(
+      Exercise exercise, BodyPartInterface bp, BodyPart bodyPart) {
     WorkLog workLog = WorkLog(exercise);
+    workLog.exercise.bodyPart = bodyPart;
     String json = jsonEncode(workLog);
     print(json);
     // save to json
@@ -91,11 +92,11 @@ class Util {
                 right: BorderSide(color: AppTheme.borderColor),
               ),
             ),
-              child: Text(
-                workLog.exercise.name,
-                style: TextStyle(fontSize: AppTheme.fontSize),
-                textAlign: TextAlign.center,
-              ),
+            child: Text(
+              workLog.exercise.name,
+              style: TextStyle(fontSize: AppTheme.fontSize),
+              textAlign: TextAlign.center,
+            ),
           ),
           Container(
             height: MediaQuery.of(context).size.height * 0.15,
@@ -125,17 +126,18 @@ class Util {
           ),
         ],
       ),
-      onPressed: () => editExerciseNameDialog(
-          bp, context, textController, bodyPart, workLog),
+      //  push workLog and bodyPartInterface to new screen to display it's details
+      onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => WorkLogView(workLog: workLog, bp: bp))),
     );
   }
 
   static Future editSeriesDialog(
     BodyPartInterface bp,
     BuildContext context,
-    TextEditingController textController,
-    BodyPart bodyPart,
-    WorkLog worklog,
+    WorkLog workLog,
   ) {
     return showDialog(
       context: context,
@@ -145,12 +147,12 @@ class Util {
             children: <Widget>[
               TextField(
                 // use text controller to save given by user String
-                controller: textController,
+                controller: Util.textController,
                 autofocus: true,
                 autocorrect: true,
                 keyboardType: TextInputType.number,
                 decoration:
-                    InputDecoration(hintText: worklog.series.toString()),
+                    InputDecoration(hintText: (workLog.series + 1).toString()),
                 maxLength: 4,
               ),
               Row(
@@ -160,7 +162,8 @@ class Util {
                         child: const Text('SAVE'),
                         onPressed: () {
                           // TODO call setState to change in UI
-                          worklog.series = int.parse(textController.text);
+                          workLog.series = int.parse(textController.text);
+                          bp.updateWorkLogToDB(workLog);
                           Navigator.pop(context);
                         }),
                     FlatButton(

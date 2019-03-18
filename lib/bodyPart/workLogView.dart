@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+import 'package:workout_log/bodyPart/bodyPartInterface.dart';
+import 'package:workout_log/entity/workLog.dart';
+import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/util.dart';
+
+class WorkLogView extends StatelessWidget {
+  final WorkLog workLog;
+  final BodyPartInterface bp;
+
+  WorkLogView({Key key, @required this.workLog, @required this.bp})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+          title: Row(
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                child: Text(
+                  workLog.exercise.bodyPart.toString(),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width * 0.3,
+                child: Text(
+                  workLog.created.toIso8601String().substring(0, 10),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red),
+      body: Column(
+        children: <Widget>[
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: AppTheme.borderColor),
+              ),
+            ),
+            height: MediaQuery.of(context).size.height * 0.20,
+            width: MediaQuery.of(context).size.width,
+            alignment: FractionalOffset(0.5, 0.5),
+            child: Text(workLog.exercise.name),
+          ),
+          Row(
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderColor),
+                  ),
+                ),
+                height: MediaQuery.of(context).size.height * 0.10,
+                width: MediaQuery.of(context).size.width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: Text("series"),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderColor),
+                    left: BorderSide(color: AppTheme.borderColor),
+                  ),
+                ),
+                height: MediaQuery.of(context).size.height * 0.10,
+                width: MediaQuery.of(context).size.width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: Text("repeats"),
+              ),
+            ],
+          ),
+          ListView(
+            //  nested listview need to shrink to size of its children
+            //  if not shrinked it will be infinite in size and can't be render
+            shrinkWrap: true,
+            children: createRowsForSeries(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> createRowsForSeries(BuildContext context) {
+    List<Widget> wList = List();
+    for (int i = 1; i <= workLog.series; i++) {
+      wList.add(
+        Row(
+          children: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppTheme.borderColor),
+                  left: BorderSide(color: AppTheme.borderColor),
+                ),
+              ),
+              height: MediaQuery.of(context).size.height * 0.10,
+              width: MediaQuery.of(context).size.width * 0.5,
+              alignment: FractionalOffset(0.5, 0.5),
+              child: FlatButton(
+                  child: Text(workLog.series.toString()),
+                  onPressed: () {
+                    Util.editSeriesDialog(bp, context, workLog);
+                  }),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppTheme.borderColor),
+                  left: BorderSide(color: AppTheme.borderColor),
+                ),
+              ),
+              height: MediaQuery.of(context).size.height * 0.10,
+              width: MediaQuery.of(context).size.width * 0.5,
+              alignment: FractionalOffset(0.5, 0.5),
+              child: FlatButton(
+                  child: Text(workLog.repeat.toString()),
+                  onPressed: () {
+                    Util.editSeriesDialog(bp, context, workLog);
+                  }),
+            ),
+          ],
+        ),
+      );
+    }
+    return wList;
+  }
+}

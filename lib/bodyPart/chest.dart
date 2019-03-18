@@ -6,9 +6,7 @@ import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
 class Chest extends StatefulWidget {
-  Chest({
-    Key key,
-  }) : super(key: key);
+  Chest({Key key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -20,6 +18,9 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
   static const BodyPart _BODYPART = BodyPart.CHEST;
   static List<Widget> wList = List();
 
+  //  get DB from singleton global provider
+  DBProvider db = DBProvider.db;
+
   @override
   void initState() {
     updateWorklogFromDB();
@@ -27,8 +28,6 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
 
   @override
   Widget build(BuildContext context) {
-    print("build");
-
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -72,8 +71,6 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
   }
 
   void updateWorklogFromDB() async {
-    //  get DB from singleton global provider
-    DBProvider db = DBProvider.db;
 
     List<WorkLog> workLogList = await db.getAllWorkLogs();
     if (workLogList != null && workLogList.isNotEmpty) {
@@ -92,11 +89,15 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
     }
   }
 
+  @override
   saveWorkLogToDB(WorkLog workLog) {
-    DBProvider db = DBProvider.db;
-    print(
-        "SAVING TO DB          " + workLog.exercise.name + workLog.exercise.id);
     db.newWorkLog(workLog);
+    updateWorklogFromDB();
+  }
+
+  @override
+  updateWorkLogToDB(WorkLog workLog) {
+    db.updateWorkLog(workLog);
     updateWorklogFromDB();
   }
 }
