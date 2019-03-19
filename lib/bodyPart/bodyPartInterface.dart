@@ -7,4 +7,6 @@ abstract class BodyPartInterface {
   saveWorkLogToDB(WorkLog workLog);
 
   updateWorkLogToDB(WorkLog workLog);
+
+  updateState();
 }
