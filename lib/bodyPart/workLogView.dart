@@ -5,7 +5,6 @@ import 'package:workout_log/setting/appTheme.dart';
 import 'package:workout_log/util/util.dart';
 
 class WorkLogView extends StatefulWidget {
-
   final WorkLog workLog;
   final BodyPartInterface bp;
 
@@ -16,7 +15,6 @@ class WorkLogView extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _WorkLogView(workLog: workLog, bp: bp);
   }
-
 }
 
 class _WorkLogView extends State<WorkLogView> {
@@ -27,6 +25,7 @@ class _WorkLogView extends State<WorkLogView> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> wList = createRowsForSeries(context);
     return Scaffold(
       appBar: AppBar(
           title: Row(
@@ -88,24 +87,31 @@ class _WorkLogView extends State<WorkLogView> {
               ),
             ],
           ),
-          ListView(
-            //  nested listview need to shrink to size of its children
-            //  if not shrinked it will be infinite in size and can't be render
-            shrinkWrap: true,
-            children: createRowsForSeries(context),
+          Container(
+            //  weird height because of AppBar
+            height: MediaQuery.of(context).size.height * 0.596,
+            child: ListView.builder(
+              itemCount: wList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return wList[index];
+              },
+              //  nested listview need to shrink to size of its children
+              //  if not shrinked it will be infinite in size and can't be render
+              shrinkWrap: true,
+            ),
           ),
         ],
       ),
-      floatingActionButton:FloatingActionButton(
-          // text which will be shown after long press on button
-          tooltip: 'Add exercise',
+      floatingActionButton: FloatingActionButton(
+        // text which will be shown after long press on button
+        tooltip: 'Add exercise',
 
-          // open pop-up on button press to add new exercise
-          onPressed: () => Util.addSeries(bp, workLog),
-          child: Icon(Icons.add),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.black,
-        ),
+        // open pop-up on button press to add new exercise
+        onPressed: () => addSeriesToWorkLog(),
+        child: Icon(Icons.add),
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.black,
+      ),
     );
   }
 
@@ -151,6 +157,18 @@ class _WorkLogView extends State<WorkLogView> {
         ),
       );
     }
+    wList.add(
+      Container(
+        height: MediaQuery.of(context).size.height * 0.10,
+        width: MediaQuery.of(context).size.width * 0.5,
+      ),
+    );
     return wList;
+  }
+
+  addSeriesToWorkLog() {
+    setState(() {
+      Util.addSeries(bp, workLog);
+    });
   }
 }

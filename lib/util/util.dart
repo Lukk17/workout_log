@@ -113,8 +113,8 @@ class Util {
           ),
           Container(
             height: MediaQuery.of(context).size.height * 0.15,
-            //  needs to have 0.15 due to parent widget - flatbutton,
-            // which consumed space
+            ///  needs to have 0.15 due to parent widget - flatbutton,
+            /// which consumed space
             width: MediaQuery.of(context).size.width * 0.15,
             alignment: FractionalOffset(0.8, 0.5),
             child: Text(
@@ -125,11 +125,12 @@ class Util {
           ),
         ],
       ),
-      //  push workLog and bodyPartInterface to new screen to display it's details
+      ///  push workLog and bodyPartInterface to new screen to display it's details
       onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => WorkLogView(workLog: workLog, bp: bp))),
+            ///  using Navigator.then to update parent state as well
+              builder: (context) => WorkLogView(workLog: workLog, bp: bp))).then((v) => bp.updateState()),
     );
   }
 

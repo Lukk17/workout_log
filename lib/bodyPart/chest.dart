@@ -98,7 +98,16 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
 
   @override
   updateWorkLogToDB(WorkLog workLog) {
+    print("UPDATE STATE OF CHEST");
     db.updateWorkLog(workLog);
     updateWorklogFromDB();
   }
+
+  @override
+  updateState() {
+    setState(() {
+      updateWorklogFromDB();
+    });
+  }
+
 }
