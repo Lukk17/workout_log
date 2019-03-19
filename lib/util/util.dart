@@ -79,7 +79,6 @@ class Util {
     BuildContext context,
     BodyPart bodyPart,
   ) {
-//    context.findRenderObject();
     return FlatButton(
       child: Row(
         children: <Widget>[
@@ -132,6 +131,12 @@ class Util {
           MaterialPageRoute(
               builder: (context) => WorkLogView(workLog: workLog, bp: bp))),
     );
+  }
+
+  static addSeries(BodyPartInterface bp, WorkLog workLog) {
+    workLog.series += 1;
+    print("series after +1        " + workLog.series.toString());
+    bp.updateWorkLogToDB(workLog);
   }
 
   static Future editSeriesDialog(

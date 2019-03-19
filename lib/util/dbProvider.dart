@@ -55,7 +55,7 @@ class DBProvider {
 
   Future<int> newWorkLog(WorkLog workLog) async {
     final db = await database;
-
+    print("NEW EXERCISE ID:      " + workLog.exercise.id);
     //  DB when insert give back ID of created entry
     //  TODO check if id saved in db is same as generated in class
     int idFromDB = await db.insert(WORKLOG_TABLE, workLog.toMap());
@@ -67,6 +67,8 @@ class DBProvider {
 
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
+    print("UPDATE EXERCISE ID:      " + workLog.exercise.id);
+    await db.update(EXERCISE_TABLE, workLog.exercise.toMap(), where: "id = ?", whereArgs: [workLog.exercise.id]);
     return await db.update(WORKLOG_TABLE, workLog.toMap(),
         where: "id = ?", whereArgs: [workLog.id]);
   }
@@ -100,6 +102,7 @@ class DBProvider {
   Future<Exercise> getExerciseByID(String id) async {
     Exercise exercise;
     final db = await database;
+    print("GET EXERCISE BY ID:    "+ id);
     var res = await db.query("exercise", where: "id = ?", whereArgs: [id]);
     //  if there is entry with this ID in DB it will be pulled
     if (res.isNotEmpty) {

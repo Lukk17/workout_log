@@ -18,6 +18,9 @@ class WorkLog {
   String id = Uuid().v1();
 
   Exercise exercise;
+
+  //TODO series as List, where each position number is series number and value stored is repeat number
+  //TODO for example: list[1]=5 > mean that in 1 series there were 5 repeats
   int series = 0;
   int repeat = 0;
 
