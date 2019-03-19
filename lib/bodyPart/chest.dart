@@ -89,6 +89,7 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
     }
   }
 
+  // TODO move it to util and delete bp parameter in methods
   @override
   saveWorkLogToDB(WorkLog workLog) {
     db.newWorkLog(workLog);

@@ -31,13 +31,21 @@ class Exercise {
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 
   //  needed for SQLite
-  factory Exercise.fromMap(Map<String, dynamic> json) => new Exercise(
-        //  get from given map
-        json["name"],
-        json["bodyPart"],
-      );
+  factory Exercise.fromMap(Map<String, dynamic> json) {
+    Exercise e = Exercise(
+      //  get from given map
+      json["name"],
+      json["bodyPart"],
+    );
+    //  id needed to be saved as it is in json,
+    //  otherwise id will again generated,
+    //  which will be incoherent with DB entry
+     e.id=json["id"];
+    return e;
+  }
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>
+      {
         "id": id,
         "name": name,
         "bodyPart": bodyPart.toString(),
