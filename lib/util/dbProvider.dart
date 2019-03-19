@@ -217,6 +217,7 @@ class DBProvider {
   Future<Exercise> getExerciseByID(String id) async {
     Exercise exercise;
     final db = await database;
+    print("GET EXERCISE BY ID:    "+ id);
     var res = await db.query("exercise", where: "id = ?", whereArgs: [id]);
 
     //  if there is entry with this ID in DB it will be pulled

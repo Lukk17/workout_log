@@ -4,12 +4,26 @@ import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
 import 'package:workout_log/util/util.dart';
 
-class WorkLogView extends StatelessWidget {
+class WorkLogView extends StatefulWidget {
+
   final WorkLog workLog;
   final BodyPartInterface bp;
 
   WorkLogView({Key key, @required this.workLog, @required this.bp})
       : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _WorkLogView(workLog: workLog, bp: bp);
+  }
+
+}
+
+class _WorkLogView extends State<WorkLogView> {
+  final WorkLog workLog;
+  final BodyPartInterface bp;
+
+  _WorkLogView({Key key, @required this.workLog, @required this.bp});
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +96,16 @@ class WorkLogView extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton:FloatingActionButton(
+          // text which will be shown after long press on button
+          tooltip: 'Add exercise',
+
+          // open pop-up on button press to add new exercise
+          onPressed: () => Util.addSeries(bp, workLog),
+          child: Icon(Icons.add),
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.black,
+        ),
     );
   }
 
