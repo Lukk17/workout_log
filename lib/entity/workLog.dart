@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
+import 'package:intl/intl.dart';
+import 'package:workout_log/util/util.dart';
 
 part 'workLog.g.dart';
 
@@ -9,10 +11,11 @@ part 'workLog.g.dart';
 // or
 // flutter packages pub run build_runner build
 // commend in project root to generate this file
-// clearing flutter cashe maybe be necessary
+// clearing flutter cache maybe be necessary
 
 @JsonSerializable()
 class WorkLog {
+
 //  int id; OLD
 //  ID generate based on time (UUID.v1)
   String id = Uuid().v1();
@@ -24,9 +27,8 @@ class WorkLog {
   int series = 0;
   int repeat = 0;
 
-  //  Date for SQLITE must be in format:
+  //  Date for SQLite must be in format:
   //  YYYY-MM-DD
-  // TODO format it for SQLITE
   DateTime created = DateTime.now();
 
   WorkLog(this.exercise);
@@ -44,7 +46,7 @@ class WorkLog {
     result.id = json["id"];
     result.series = json["series"];
     result.repeat = json["repeat"];
-//    result.created = json["created"];
+    result.created = DateTime.parse(json["created"]);
     return result;
   }
 
@@ -53,20 +55,6 @@ class WorkLog {
         "exercise_id": exercise.id,
         "series": series,
         "repeat": repeat,
-//        "created": created,
+        "created": Util.formatter.format(created),
       };
-/*
-    WITHOUT LAMBDA:
-
-  Map<String, dynamic> toMap() {
-    var map = <String, dynamic> {
-      "id": id,
-      "exercise": exercise,
-      "series": series,
-      "repeat": repeat,
-      "created": created,
-    };
-    return map;
-  }
-  */
 }

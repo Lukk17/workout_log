@@ -6,7 +6,11 @@ import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
 class Chest extends StatefulWidget {
-  Chest({Key key}) : super(key: key);
+  final DateTime date;
+  final BodyPart bodyPart;
+
+  Chest({Key key, @required this.date, @required this.bodyPart})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -15,7 +19,9 @@ class Chest extends StatefulWidget {
 }
 
 class _ChestState extends State<Chest> implements BodyPartInterface {
-  static const BodyPart _BODYPART = BodyPart.CHEST;
+
+  BodyPart _bodyPart;
+  DateTime _date;
   static List<Widget> wList = List();
 
   //  get DB from singleton global provider
@@ -23,7 +29,13 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
 
   @override
   void initState() {
-    updateWorklogFromDB();
+    super.initState();
+
+    // get date and bodyPart from forwarded variable
+    this._bodyPart = widget.bodyPart;
+    this._date = widget.date;
+
+    updateWorkLogFromDB();
   }
 
   @override
@@ -41,46 +53,45 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
               Column(
                 children: wList,
               ),
+              //  container at bottom which make it possible to scroll down
+              //  and see last workLog fully
               Container(
                 height: MediaQuery.of(context).size.height * 0.15,
               ),
             ],
           ),
         ),
-        floatingActionButton: Hero(
-          tag: "button",
-          child: FloatingActionButton(
-            // text which will be shown after long press on button
-            tooltip: 'Add exercise',
+        floatingActionButton: FloatingActionButton(
+          // text which will be shown after long press on button
+          tooltip: 'Add exercise',
 
-            // open pop-up on button press to add new exercise
-            onPressed: () => Util.showAddWorkLogDialog(
-                  this,
-                  'Exercise',
-                  'eg. pushup',
-                  context,
-                  _BODYPART,
-                ),
-            child: Icon(Icons.add),
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.black,
-          ),
+          // open pop-up on button press to add new exercise
+          onPressed: () => Util.showAddWorkLogDialog(
+                this,
+                'Exercise',
+                'eg. pushup',
+                context,
+                _bodyPart,
+              ),
+          child: Icon(Icons.add),
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.black,
         ),
       ),
     );
   }
 
-  void updateWorklogFromDB() async {
-
-    List<WorkLog> workLogList = await db.getAllWorkLogs();
+  @override
+  void updateWorkLogFromDB() async {
+    List<WorkLog> workLogList = await db.getWorkLogs(Util.formatter.format(_date), _bodyPart);
     if (workLogList != null && workLogList.isNotEmpty) {
-      print(workLogList);
+      print(workLogList[0].created);
       List<Widget> dbList = List();
       for (WorkLog workLog in workLogList) {
         print("updating entries");
 //        workLog.exercise;
         dbList.add(
-            Util.createWorkLogRowWidget(workLog, this, context, _BODYPART));
+            Util.createWorkLogRowWidget(workLog, this, context, _bodyPart));
         dbList.add(Util.addHorizontalLine());
       }
       setState(() {
@@ -89,24 +100,17 @@ class _ChestState extends State<Chest> implements BodyPartInterface {
     }
   }
 
-  // TODO move it to util and delete bp parameter in methods
-  @override
-  saveWorkLogToDB(WorkLog workLog) {
-    db.newWorkLog(workLog);
-    updateWorklogFromDB();
-  }
-
   @override
   updateWorkLogToDB(WorkLog workLog) {
     print("UPDATE STATE OF CHEST");
     db.updateWorkLog(workLog);
-    updateWorklogFromDB();
+    updateWorkLogFromDB();
   }
 
   @override
   updateState() {
     setState(() {
-      updateWorklogFromDB();
+      updateWorkLogFromDB();
     });
   }
 

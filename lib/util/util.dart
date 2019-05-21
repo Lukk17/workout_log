@@ -1,16 +1,25 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/bodyPart/workLogView.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/storage.dart';
 
 class Util {
   static TextEditingController textController = TextEditingController();
+
+  //  get DB from singleton global provider
+  static DBProvider db = DBProvider.db;
+
+  static String pattern = "yyyy-MM-dd";
+  static DateFormat formatter = new DateFormat(pattern);
+
 
   static Future showAddWorkLogDialog(
     BodyPartInterface bp,
@@ -43,6 +52,8 @@ class Util {
                           Exercise exercise =
                               Exercise(textController.text, bodyPart);
                           addWorkLog(exercise, bp, bodyPart);
+                          //  after saving new record bp state need to be updated:
+                          bp.updateWorkLogFromDB();
                           Navigator.pop(context);
                         }),
                     FlatButton(
@@ -64,12 +75,13 @@ class Util {
     print(json);
     // save to json
     Storage.writeToFile(json);
-    //  save worklog to DB
-    bp.saveWorkLogToDB(workLog);
+    //  save workLog to DB
+    db.newWorkLog(workLog);
   }
 
+  /// open new window to edit selected workLog
   /// require:
-  /// worklog which will be added to widget
+  /// workLog which will be added to widget
   /// BodyPartInterface class which implement it (usually it will call this)
   /// context of application (for screen dimension)
   /// BodyPart of class which call this method
@@ -113,7 +125,7 @@ class Util {
           ),
           Container(
             height: MediaQuery.of(context).size.height * 0.15,
-            ///  needs to have 0.15 due to parent widget - flatbutton,
+            ///  needs to have 0.15 due to parent widget - flatButton,
             /// which consumed space
             width: MediaQuery.of(context).size.width * 0.15,
             alignment: FractionalOffset(0.8, 0.5),
@@ -227,12 +239,13 @@ class Util {
     );
   }
 
+  //  TODO use it
   static Future editExerciseNameDialog(
     BodyPartInterface bp,
     BuildContext context,
     TextEditingController textController,
     BodyPart bodyPart,
-    WorkLog worklog,
+    WorkLog workLog,
   ) {
     return showDialog(
       context: context,
@@ -245,7 +258,7 @@ class Util {
                 controller: textController,
                 autofocus: true,
                 autocorrect: true,
-                decoration: InputDecoration(hintText: worklog.exercise.name),
+                decoration: InputDecoration(hintText: workLog.exercise.name),
                 maxLength: 50,
               ),
               Row(
@@ -255,7 +268,7 @@ class Util {
                         child: const Text('SAVE'),
                         onPressed: () {
                           // TODO call setState to change in UI
-                          worklog.exercise.name = textController.text;
+                          workLog.exercise.name = textController.text;
                           Navigator.pop(context);
                         }),
                     FlatButton(

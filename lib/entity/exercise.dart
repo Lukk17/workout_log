@@ -9,14 +9,14 @@ part 'exercise.g.dart';
 // or
 // flutter packages pub run build_runner build
 // commend in project root to generate this file
-// clearing flutter cashe maybe be necessary
+// clearing flutter cache maybe be necessary
 
 @JsonSerializable()
 class Exercise {
   //  ID generate based on time (UUID.v1)
   String id = Uuid().v1();
 
-  //  initialize name to avoid nullpointer when user will not add any name
+  //  initialize name to avoid nullPointer when user will not add any name
   String name = "";
 
   BodyPart bodyPart;

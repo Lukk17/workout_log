@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 
@@ -40,13 +41,14 @@ class DBProvider {
           "bodypart TEXT"
           ")");
 
-      //  foreign key here because worklog can have only one exercise
-      //  exercise can be in many worklogs
+      //  foreign key here because workLog can have only one exercise
+      //  exercise can be in many workLogs
       //  ONE TO MANY relation
       await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOG_TABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
           "series INTEGER,"
           "repeat INTEGER,"
+          "created TEXT,"
           "exercise_id VARCHAR(32),"
           "FOREIGN KEY(exercise_id) REFERENCES exercise(id)"
           ")");
@@ -55,7 +57,8 @@ class DBProvider {
 
   Future<int> newWorkLog(WorkLog workLog) async {
     final db = await database;
-    print("NEW EXERCISE ID:      " + workLog.exercise.id);
+    String exerciseID = workLog.exercise.id;
+    print("NEW EXERCISE ID:      " + exerciseID);
     //  DB when insert give back ID of created entry
     //  TODO check if id saved in db is same as generated in class
     int idFromDB = await db.insert(WORKLOG_TABLE, workLog.toMap());
@@ -68,7 +71,8 @@ class DBProvider {
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
     print("UPDATE EXERCISE ID:      " + workLog.exercise.id);
-    await db.update(EXERCISE_TABLE, workLog.exercise.toMap(), where: "id = ?", whereArgs: [workLog.exercise.id]);
+    await db.update(EXERCISE_TABLE, workLog.exercise.toMap(),
+        where: "id = ?", whereArgs: [workLog.exercise.id]);
     return await db.update(WORKLOG_TABLE, workLog.toMap(),
         where: "id = ?", whereArgs: [workLog.id]);
   }
@@ -111,6 +115,29 @@ class DBProvider {
       throw new Exception("exersice with id: $id was NOT found");
     }
     return exercise;
+  }
+
+  Future<List<WorkLog>> getWorkLogs(String date, BodyPart part) async {
+
+    List<WorkLog> workLogList = List();
+    final db = await database;
+
+    // pull every workLog from given date
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
+
+    for (var l in res) {
+      //  exercise need to be pulled from DB
+      // and pushed to WorkLog.fromMap method
+      Exercise exercise = await getExerciseByID(l["exercise_id"]);
+      WorkLog dbLog = WorkLog.fromMap(l, exercise);
+
+      // save only entries with given BodyPart
+      // TODO repair this to add only records with given body part
+//      if(dbLog.exercise.bodyPart == part) {
+        workLogList.add(dbLog);
+//      }
+    }
+    return workLogList;
   }
 
   Future close() async => _database.close();

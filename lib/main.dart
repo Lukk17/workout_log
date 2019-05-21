@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:workout_log/bodyPart/chest.dart';
 
+import 'entity/bodyPart.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -92,13 +94,14 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
           children: <Widget>[
             Column(
               children: <Widget>[
-                _createCategoryButton('chest', Chest()),
+                _createCategoryButton('chest', BodyPart.CHEST),
                 _spacer(),
-                _createCategoryButton('back', Chest()),
+                //  TODO change to each body part
+                _createCategoryButton('back', BodyPart.BACK),
                 _spacer(),
-                _createCategoryButton('arm', Chest()),
+                _createCategoryButton('arm', BodyPart.ARM),
                 _spacer(),
-                _createCategoryButton('leg', Chest()),
+                _createCategoryButton('leg', BodyPart.LEG),
               ],
             ),
             Text(
@@ -130,25 +133,28 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
   }
 
   Widget _createFloatingActionButton() {
-    return Hero(
-        tag: "button",
-        child: FloatingActionButton(
-          onPressed: _incrementCounter,
+    return FloatingActionButton(
+      onPressed: _incrementCounter,
 
-          // text which will be shown after long press on button
-          tooltip: 'Increment',
+      // text which will be shown after long press on button
+      tooltip: 'Increment',
 
-          child: Icon(Icons.add),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.black,
-        ));
+      child: Icon(Icons.add),
+      backgroundColor: Colors.red,
+      foregroundColor: Colors.black,
+    );
   }
 
-  Widget _createCategoryButton(String text, Widget page) {
+  Widget _createCategoryButton(String text, BodyPart bodyPart) {
     MaterialButton cb = MaterialButton(
       // after pushing button, navigate to a new screen
       onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Chest(date: DateTime.now(), bodyPart: bodyPart),
+          ),
+        );
       },
       height: 60,
       minWidth: 350,
