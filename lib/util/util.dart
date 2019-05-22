@@ -20,7 +20,6 @@ class Util {
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
 
-
   static Future showAddWorkLogDialog(
     BodyPartInterface bp,
     String title,
@@ -79,7 +78,7 @@ class Util {
     db.newWorkLog(workLog);
   }
 
-  /// open new window to edit selected workLog
+  /// create workLog entry in given bodyPart page
   /// require:
   /// workLog which will be added to widget
   /// BodyPartInterface class which implement it (usually it will call this)
@@ -119,48 +118,98 @@ class Util {
               ),
             ),
             child: Text(
-              workLog.series.toString(),
+              //  sum of workLog series
+              workLog.series.length.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
             ),
           ),
           Container(
             height: MediaQuery.of(context).size.height * 0.15,
+
             ///  needs to have 0.15 due to parent widget - flatButton,
             /// which consumed space
             width: MediaQuery.of(context).size.width * 0.15,
             alignment: FractionalOffset(0.8, 0.5),
             child: Text(
-              workLog.repeat.toString(),
+              // TODO  sum of workLog repeats
+              workLog.series.length.toString(),
               style: TextStyle(fontSize: AppTheme.fontSize),
               textAlign: TextAlign.end,
             ),
           ),
         ],
       ),
+
       ///  push workLog and bodyPartInterface to new screen to display it's details
       onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            ///  using Navigator.then to update parent state as well
-              builder: (context) => WorkLogView(workLog: workLog, bp: bp))).then((v) => bp.updateState()),
+              context,
+              MaterialPageRoute(
+
+                  ///  using Navigator.then to update parent state as well
+                  builder: (context) => WorkLogView(workLog: workLog, bp: bp)))
+          .then((v) => bp.updateState()),
     );
   }
 
   static addSeries(BodyPartInterface bp, WorkLog workLog) {
-    workLog.series += 1;
-    print("series after +1        " + workLog.series.toString());
+    //  add new series (with incremented number) to workLog with 0 repeats
+    workLog.series.putIfAbsent(workLog.series.length + 1, () => "0");
+    print("series after +1        " + workLog.series.length.toString());
     bp.updateWorkLogToDB(workLog);
   }
 
-  static Future editSeriesDialog(
-    BodyPartInterface bp,
-    BuildContext context,
-    WorkLog workLog,
-  ) {
+//  static Future editSeriesDialog(
+//    BodyPartInterface bp,
+//    BuildContext context,
+//    WorkLog workLog,
+//  ) {
+//    return showDialog(
+//      context: context,
+//      builder: (_) => SimpleDialog(
+//            title: Center(child: Text("Edit series number")),
+//            contentPadding: EdgeInsets.all(20),
+//            children: <Widget>[
+//              TextField(
+//                // use text controller to save given by user String
+//                controller: Util.textController,
+//                autofocus: true,
+//                autocorrect: true,
+//                keyboardType: TextInputType.number,
+//                decoration:
+//                    InputDecoration(hintText: (workLog.series + 1).toString()),
+//                maxLength: 4,
+//              ),
+//              Row(
+//                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                  children: <Widget>[
+//                    FlatButton(
+//                        child: const Text('SAVE'),
+//                        onPressed: () {
+//                          // TODO call setState to change in UI
+//                          workLog.series = int.parse(textController.text);
+//                          bp.updateWorkLogToDB(workLog);
+//                          Navigator.pop(context);
+//                        }),
+//                    FlatButton(
+//                        child: const Text('CANCEL'),
+//                        onPressed: () {
+//                          Navigator.pop(context);
+//                        }),
+//                  ]),
+//            ],
+//          ),
+//    );
+//  }
+
+  static Future editRepeatsDialog(
+      BodyPartInterface bp,
+      BuildContext context,
+      WorkLog workLog,
+      int set) {
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-            title: Center(child: Text("Edit series number")),
+            title: Center(child: Text("Edit repeats number")),
             contentPadding: EdgeInsets.all(20),
             children: <Widget>[
               TextField(
@@ -170,7 +219,7 @@ class Util {
                 autocorrect: true,
                 keyboardType: TextInputType.number,
                 decoration:
-                    InputDecoration(hintText: (workLog.series + 1).toString()),
+                    InputDecoration(hintText: workLog.series[set].toString()),
                 maxLength: 4,
               ),
               Row(
@@ -180,52 +229,9 @@ class Util {
                         child: const Text('SAVE'),
                         onPressed: () {
                           // TODO call setState to change in UI
-                          workLog.series = int.parse(textController.text);
+                          //  set repeat number of this set
+                          workLog.series[set] = textController.text;
                           bp.updateWorkLogToDB(workLog);
-                          Navigator.pop(context);
-                        }),
-                    FlatButton(
-                        child: const Text('CANCEL'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
-                  ]),
-            ],
-          ),
-    );
-  }
-
-  static Future editRepeatsDialog(
-    BodyPartInterface bp,
-    BuildContext context,
-    TextEditingController textController,
-    BodyPart bodyPart,
-    WorkLog worklog,
-  ) {
-    return showDialog(
-      context: context,
-      builder: (_) => SimpleDialog(
-            title: Center(child: Text("Edit repeats number")),
-            contentPadding: EdgeInsets.all(20),
-            children: <Widget>[
-              TextField(
-                // use text controller to save given by user String
-                controller: textController,
-                autofocus: true,
-                autocorrect: true,
-                keyboardType: TextInputType.number,
-                decoration:
-                    InputDecoration(hintText: worklog.repeat.toString()),
-                maxLength: 4,
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    FlatButton(
-                        child: const Text('SAVE'),
-                        onPressed: () {
-                          // TODO call setState to change in UI
-                          worklog.repeat = int.parse(textController.text);
                           Navigator.pop(context);
                         }),
                     FlatButton(

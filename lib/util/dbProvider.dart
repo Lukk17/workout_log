@@ -46,8 +46,7 @@ class DBProvider {
       //  ONE TO MANY relation
       await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOG_TABLE ("
           "id VARCHAR(32) PRIMARY KEY,"
-          "series INTEGER,"
-          "repeat INTEGER,"
+          "series BLOB,"
           "created TEXT,"
           "exercise_id VARCHAR(32),"
           "FOREIGN KEY(exercise_id) REFERENCES exercise(id)"

@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
-import 'package:intl/intl.dart';
 import 'package:workout_log/util/util.dart';
 
 part 'workLog.g.dart';
@@ -24,8 +23,8 @@ class WorkLog {
 
   //TODO series as List, where each position number is series number and value stored is repeat number
   //TODO for example: list[1]=5 > mean that in 1 series there were 5 repeats
-  int series = 0;
-  int repeat = 0;
+  Map<dynamic, String> series = Map();
+
 
   //  Date for SQLite must be in format:
   //  YYYY-MM-DD
@@ -42,19 +41,37 @@ class WorkLog {
 
   //  needed for SQLite
   factory WorkLog.fromMap(Map<String, dynamic> json, Exercise e) {
+    print('$json');
     WorkLog result = WorkLog(e);
     result.id = json["id"];
-    result.series = json["series"];
-    result.repeat = json["repeat"];
+    result.series = seriesFromString(json["series"]);
     result.created = DateTime.parse(json["created"]);
     return result;
   }
+
+  static Map<dynamic, String> seriesFromString(String series){
+
+    Map<dynamic, String> result = Map();
+
+    // TODO repair repeats
+    if(series.contains("=")) {
+      List<String> multiSet = series.split(",");
+      for (String set in multiSet) {
+        List<String> singleSet = set.split("=");
+        // singleSet[0] set
+        // singleSet[1] repeats
+        result.putIfAbsent(singleSet[0], () => singleSet[1]);
+      }
+    }
+
+    return result;
+  }
+
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "exercise_id": exercise.id,
         "series": series,
-        "repeat": repeat,
         "created": Util.formatter.format(created),
       };
 }

@@ -96,7 +96,6 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               children: <Widget>[
                 _createCategoryButton('chest', BodyPart.CHEST),
                 _spacer(),
-                //  TODO change to each body part
                 _createCategoryButton('back', BodyPart.BACK),
                 _spacer(),
                 _createCategoryButton('arm', BodyPart.ARM),

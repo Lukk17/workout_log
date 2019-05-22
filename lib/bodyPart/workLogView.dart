@@ -117,7 +117,7 @@ class _WorkLogView extends State<WorkLogView> {
 
   List<Widget> createRowsForSeries(BuildContext context) {
     List<Widget> wList = List();
-    for (int i = 1; i <= workLog.series; i++) {
+    for (int i = 1; i <= workLog.series.length; i++) {
       wList.add(
         Row(
           children: <Widget>[
@@ -131,10 +131,12 @@ class _WorkLogView extends State<WorkLogView> {
               height: MediaQuery.of(context).size.height * 0.10,
               width: MediaQuery.of(context).size.width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
+              //TODO delete button
               child: FlatButton(
-                  child: Text(workLog.series.toString()),
+                //  series number start from 1 as iteration
+                  child: Text(i.toString()),
                   onPressed: () {
-                    Util.editSeriesDialog(bp, context, workLog);
+//                    Util.editSeriesDialog(bp, context, workLog);
                   }),
             ),
             Container(
@@ -148,9 +150,11 @@ class _WorkLogView extends State<WorkLogView> {
               width: MediaQuery.of(context).size.width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
               child: FlatButton(
-                  child: Text(workLog.repeat.toString()),
+                //  get repeats number from series map
+                //  as for every series number there is associated repeat number
+                  child: Text(workLog.series[i].toString()),
                   onPressed: () {
-                    Util.editSeriesDialog(bp, context, workLog);
+                    Util.editRepeatsDialog(bp, context, workLog, i);
                   }),
             ),
           ],
