@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:workout_log/bodyPart/chest.dart';
+import 'package:workout_log/view/bodyPartLogView.dart';
 
 import 'entity/bodyPart.dart';
 
@@ -11,8 +9,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
   static const String _TITLE = "It is your time !";
-
-  static String get TITLE => _TITLE;
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +147,8 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => Chest(date: DateTime.now(), bodyPart: bodyPart),
+            builder: (context) =>
+                BodyPartLogView(date: DateTime.now(), bodyPart: bodyPart),
           ),
         );
       },

@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:workout_log/bodyPart/bodyPartInterface.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
 class WorkLogView extends StatefulWidget {
   final WorkLog workLog;
-  final BodyPartInterface bp;
 
-  WorkLogView({Key key, @required this.workLog, @required this.bp})
-      : super(key: key);
+  WorkLogView({Key key, @required this.workLog}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _WorkLogView(workLog: workLog, bp: bp);
+    return _WorkLogView(workLog: workLog);
   }
 }
 
 class _WorkLogView extends State<WorkLogView> {
   final WorkLog workLog;
-  final BodyPartInterface bp;
+  static DBProvider db = DBProvider.db;
 
-  _WorkLogView({Key key, @required this.workLog, @required this.bp});
+  _WorkLogView({Key key, @required this.workLog});
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +28,15 @@ class _WorkLogView extends State<WorkLogView> {
       appBar: AppBar(
           title: Row(
             children: <Widget>[
+              /// title of body part of exercise
               Container(
                 width: MediaQuery.of(context).size.width * 0.4,
                 child: Text(
-                  workLog.exercise.bodyPart.toString(),
+                  workLog.getBodyPart(),
                   textAlign: TextAlign.start,
                 ),
               ),
+              /// created time of this log
               Container(
                 width: MediaQuery.of(context).size.width * 0.3,
                 child: Text(
@@ -49,6 +49,7 @@ class _WorkLogView extends State<WorkLogView> {
           backgroundColor: Colors.red),
       body: Column(
         children: <Widget>[
+          /// exercise name
           Container(
             decoration: BoxDecoration(
               border: Border(
@@ -60,6 +61,7 @@ class _WorkLogView extends State<WorkLogView> {
             alignment: FractionalOffset(0.5, 0.5),
             child: Text(workLog.exercise.name),
           ),
+          /// table header
           Row(
             children: <Widget>[
               Container(
@@ -87,6 +89,7 @@ class _WorkLogView extends State<WorkLogView> {
               ),
             ],
           ),
+          /// list view builder create series
           Container(
             //  weird height because of AppBar
             height: MediaQuery.of(context).size.height * 0.596,
@@ -95,7 +98,7 @@ class _WorkLogView extends State<WorkLogView> {
               itemBuilder: (BuildContext context, int index) {
                 return wList[index];
               },
-              //  nested listview need to shrink to size of its children
+              //  nested listView need to shrink to size of its children
               //  if not shrinked it will be infinite in size and can't be render
               shrinkWrap: true,
             ),
@@ -133,7 +136,7 @@ class _WorkLogView extends State<WorkLogView> {
               alignment: FractionalOffset(0.5, 0.5),
               //TODO delete button
               child: FlatButton(
-                //  series number start from 1 as iteration
+                  ///  series number start from 1 as iteration
                   child: Text(i.toString()),
                   onPressed: () {
 //                    Util.editSeriesDialog(bp, context, workLog);
@@ -150,17 +153,17 @@ class _WorkLogView extends State<WorkLogView> {
               width: MediaQuery.of(context).size.width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
               child: FlatButton(
-                //  get repeats number from series map
-                //  as for every series number there is associated repeat number
-                  child: Text(workLog.series[i].toString()),
+                  ///  get repeats number
+                  child: Text(workLog.getReps(i.toString())),
                   onPressed: () {
-                    Util.editRepeatsDialog(bp, context, workLog, i);
+                    editRepeatsDialog(context, workLog, i.toString());
                   }),
             ),
           ],
         ),
       );
     }
+    /// add additional container at bottom for better visibility
     wList.add(
       Container(
         height: MediaQuery.of(context).size.height * 0.10,
@@ -172,7 +175,48 @@ class _WorkLogView extends State<WorkLogView> {
 
   addSeriesToWorkLog() {
     setState(() {
-      Util.addSeries(bp, workLog);
+      ///  add new series (with incremented number) to workLog with 0 repeats
+      workLog.series
+          .putIfAbsent((workLog.series.length + 1).toString(), () => "0");
+      db.updateWorkLog(workLog);
     });
+  }
+
+  Future editRepeatsDialog(BuildContext context, WorkLog workLog, String set) {
+    return showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+            title: Center(child: Text("Edit repeats number")),
+            contentPadding: EdgeInsets.all(20),
+            children: <Widget>[
+              TextField(
+                /// use text controller to save given by user String
+                controller: Util.textController,
+                autofocus: true,
+                autocorrect: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(hintText: workLog.getReps(set)),
+                maxLength: 4,
+              ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FlatButton(
+                        child: const Text('SAVE'),
+                        onPressed: () {
+                          ///  set repeat number of this set
+                          workLog.series[set] = Util.textController.text;
+                          db.updateWorkLog(workLog);
+                          Navigator.pop(context);
+                        }),
+                    FlatButton(
+                        child: const Text('CANCEL'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ]),
+            ],
+          ),
+    );
   }
 }

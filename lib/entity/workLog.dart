@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
@@ -14,17 +16,13 @@ part 'workLog.g.dart';
 
 @JsonSerializable()
 class WorkLog {
-
 //  int id; OLD
 //  ID generate based on time (UUID.v1)
   String id = Uuid().v1();
 
   Exercise exercise;
 
-  //TODO series as List, where each position number is series number and value stored is repeat number
-  //TODO for example: list[1]=5 > mean that in 1 series there were 5 repeats
-  Map<dynamic, String> series = Map();
-
+  Map<dynamic, dynamic> series = Map();
 
   //  Date for SQLite must be in format:
   //  YYYY-MM-DD
@@ -40,38 +38,35 @@ class WorkLog {
   Map<String, dynamic> toJson() => _$WorkLogToJson(this);
 
   //  needed for SQLite
-  factory WorkLog.fromMap(Map<String, dynamic> json, Exercise e) {
-    print('$json');
+  factory WorkLog.fromMap(Map<String, dynamic> map, Exercise e) {
+    print('worklog fromMap:  $map');
     WorkLog result = WorkLog(e);
-    result.id = json["id"];
-    result.series = seriesFromString(json["series"]);
-    result.created = DateTime.parse(json["created"]);
+    result.id = map["id"];
+    //  decode json, which is string from DB to series map
+    result.series = jsonDecode(map["series"]);
+    result.created = DateTime.parse(map["created"]);
     return result;
   }
-
-  static Map<dynamic, String> seriesFromString(String series){
-
-    Map<dynamic, String> result = Map();
-
-    // TODO repair repeats
-    if(series.contains("=")) {
-      List<String> multiSet = series.split(",");
-      for (String set in multiSet) {
-        List<String> singleSet = set.split("=");
-        // singleSet[0] set
-        // singleSet[1] repeats
-        result.putIfAbsent(singleSet[0], () => singleSet[1]);
-      }
-    }
-
-    return result;
-  }
-
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "exercise_id": exercise.id,
-        "series": series,
+        //  encode map as json for easy storing as text in DB
+        "series": json.encode(series),
         "created": Util.formatter.format(created),
       };
+
+  String getReps(String set) {
+    return series[set];
+  }
+
+  String getRepsSum() {
+    int sum = 0;
+    series.forEach((f, v) => {sum += int.parse(v)});
+    return sum.toString();
+  }
+
+  String getBodyPart(){
+    return exercise.bodyPart.toString().substring(exercise.bodyPart.toString().indexOf('.')+1);
+  }
 }
