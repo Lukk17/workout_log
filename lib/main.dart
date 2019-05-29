@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/bodyPartLogView.dart';
 
 import 'entity/bodyPart.dart';
@@ -37,15 +40,6 @@ class HelloWorldPage extends StatefulWidget {
 }
 
 class _HelloWorldPageState extends State<HelloWorldPage> {
-  int _counter = 0;
-
-  // update state of widget to increase count value
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -54,14 +48,10 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-          appBar: _createAppBar(),
-          body: _createBody(),
-          floatingActionButton: _createFloatingActionButton()),
+        appBar: _createAppBar(),
+        body: _createBody(),
+      ),
     );
-  }
-
-  Widget _spacer() {
-    return Container(margin: EdgeInsets.all(5));
   }
 
   Widget _createAppBar() {
@@ -82,63 +72,150 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
 
   Widget _createBody() {
     return TabBarView(children: [
-      Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                _createCategoryButton('chest', BodyPart.CHEST),
-                _spacer(),
-                _createCategoryButton('back', BodyPart.BACK),
-                _spacer(),
-                _createCategoryButton('arm', BodyPart.ARM),
-                _spacer(),
-                _createCategoryButton('leg', BodyPart.LEG),
-              ],
-            ),
-            Text(
-              'You have pushed the button this many times:',
-              style: TextStyle(color: Colors.red),
-            ),
-            Text(
-              '$_counter',
-              style:
-                  Theme.of(context).textTheme.display1.apply(color: Colors.red),
-            ),
-          ],
-        ),
+      Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              _createCategoryButton('chest', BodyPart.CHEST),
+              _spacer(15),
+              _createCategoryButton('back', BodyPart.BACK),
+              _spacer(15),
+              _createCategoryButton('arm', BodyPart.ARM),
+              _spacer(15),
+              _createCategoryButton('leg', BodyPart.LEG),
+            ],
+          )
+        ],
       ),
       Center(
           child: Text(
         'calendar',
         style: TextStyle(color: Colors.red),
       )),
-      Column(children: <Widget>[
-        Center(
-          child: Text(
-            'timer',
-            style: TextStyle(color: Colors.red),
-          ),
-        ),
-      ])
+      _createTimer(),
     ]);
   }
 
-  Widget _createFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: _incrementCounter,
-
-      // text which will be shown after long press on button
-      tooltip: 'Increment',
-
-      child: Icon(Icons.add),
-      backgroundColor: Colors.red,
-      foregroundColor: Colors.black,
+  Widget _createTimer() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        _spacer(20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            MaterialButton(
+              height: 50,
+              minWidth: 70,
+              onPressed: () {
+                _changeTimer(30);
+              },
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text("30 sec"),
+            ),
+            _spacer(10),
+            MaterialButton(
+              height: 50,
+              minWidth: 70,
+              onPressed: () {
+                _changeTimer(60);
+              },
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text("1 min"),
+            ),
+            _spacer(10),
+            MaterialButton(
+              height: 50,
+              minWidth: 70,
+              onPressed: () {
+                _changeTimer(60.0 * 3);
+              },
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text("3 min"),
+            ),
+            _spacer(10),
+            MaterialButton(
+              height: 50,
+              minWidth: 70,
+              onPressed: () {
+                _changeTimer(60.0 * 5);
+              },
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text("5 min"),
+            )
+          ],
+        ),
+        _spacer(10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            MaterialButton(
+              height: 50,
+              minWidth: 140,
+              onPressed: () {
+                _customTimer();
+              },
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text("Custom.."),
+            )
+          ],
+        ),
+        _spacer(30),
+        Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              FittedBox(
+                child: Text(
+                  (Util.timer).toStringAsFixed(1),
+                  style: TextStyle(fontSize: 100),
+                ),
+              ),
+              _spacer(30),
+              MaterialButton(
+                height: 75,
+                minWidth: 200,
+                onPressed: _startTimer,
+                textColor: Colors.white,
+                color: Colors.red,
+                child: Text("Start"),
+              )
+            ])
+      ],
     );
   }
+
+  void _startTimer() {
+    double start = Util.timer;
+    const duration = const Duration(milliseconds: 1);
+    Timer.periodic(
+      duration,
+      (Timer timer) => setState(
+            () {
+              if (Util.timer < 1) {
+                timer.cancel();
+              } else {
+                Util.timer = Util.timer - 0.001;
+              }
+            },
+          ),
+    );
+    _changeTimer(start);
+  }
+
+  void _changeTimer(double time) {
+    setState(() {
+      Util.timer = time;
+    });
+  }
+
+  
+  void _customTimer() {}
 
   Widget _createCategoryButton(String text, BodyPart bodyPart) {
     MaterialButton cb = MaterialButton(
@@ -158,5 +235,9 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
       child: Text(text),
     );
     return cb;
+  }
+
+  Widget _spacer(double size) {
+    return Container(margin: EdgeInsets.all(size));
   }
 }
