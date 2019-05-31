@@ -10,7 +10,6 @@ class Util {
 
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
-  static double timer = 0;
 
   static BodyPart recreateBodyPart(String bodyPart) {
     print("enum $bodyPart");

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/bodyPartLogView.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 import 'entity/bodyPart.dart';
 
@@ -40,6 +40,11 @@ class HelloWorldPage extends StatefulWidget {
 }
 
 class _HelloWorldPageState extends State<HelloWorldPage> {
+  int _hour = 0;
+  int _minute = 0;
+  double _sec = 0.0;
+  double timer = 0;
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -109,7 +114,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               height: 50,
               minWidth: 70,
               onPressed: () {
-                _changeTimer(30);
+                _displayTime(60 * 60 * 60 + 688.0);
               },
               textColor: Colors.white,
               color: Colors.red,
@@ -120,7 +125,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               height: 50,
               minWidth: 70,
               onPressed: () {
-                _changeTimer(60);
+                _displayTime(60);
               },
               textColor: Colors.white,
               color: Colors.red,
@@ -131,7 +136,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               height: 50,
               minWidth: 70,
               onPressed: () {
-                _changeTimer(60.0 * 3);
+                _displayTime(60.0 * 3);
               },
               textColor: Colors.white,
               color: Colors.red,
@@ -142,7 +147,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               height: 50,
               minWidth: 70,
               onPressed: () {
-                _changeTimer(60.0 * 5);
+                _displayTime(60.0 * 5);
               },
               textColor: Colors.white,
               color: Colors.red,
@@ -170,10 +175,78 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
         Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              FittedBox(
-                child: Text(
-                  (Util.timer).toStringAsFixed(1),
-                  style: TextStyle(fontSize: 100),
+              SizedBox(
+                width: 350,
+                child: FittedBox(
+                  child: Column(children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Center(
+                          child: Text(
+                            "Hours",
+                            style: TextStyle(fontSize: 50),
+                          ),
+                        ),
+                        _spacer(130),
+                        Center(
+                          child: Text(
+                            "Minutes",
+                            style: TextStyle(fontSize: 50),
+                          ),
+                        ),
+                        _spacer(130),
+                        Center(
+                          child: Text(
+                            "Seconds",
+                            style: TextStyle(fontSize: 50),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        SizedBox(
+                          width: 200,
+                          child: Center(
+                            child: Text(
+                              _hour.toString(),
+                              style: TextStyle(fontSize: 150),
+                            ),
+                          ),
+                        ),
+                        _spacer(25),
+                        Text(
+                          ":",
+                          style: TextStyle(fontSize: 150),
+                        ),
+                        _spacer(50),
+                        SizedBox(
+                          width: 200,
+                          child: Center(
+                            child: Text(
+                              _minute.toString(),
+                              style: TextStyle(fontSize: 150),
+                            ),
+                          ),
+                        ),
+                        _spacer(25),
+                        Text(
+                          ":",
+                          style: TextStyle(fontSize: 150),
+                        ),
+                        _spacer(50),
+                        SizedBox(
+                          width: 300,
+                          child: Center(
+                            child: Text(
+                              _sec.toStringAsFixed(1),
+                              style: TextStyle(fontSize: 150),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
                 ),
               ),
               _spacer(30),
@@ -190,32 +263,59 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
     );
   }
 
+  void _displayTime(double time) {
+    setState(() {
+      timer = time;
+      // check if there is more than or equal to one minute
+      if (time / 60 >= 1) {
+        // check if there is more than one hour
+        if (time / (60 * 60) > 1) {
+          _hour = (time / (60 * 60)).floor();
+          _minute = ((time - (_hour * 60 * 60)) / 60).floor();
+          _sec = (time - (_hour * 60 * 60) - (_minute * 60));
+
+          //  if less than hour:
+        } else {
+          _hour = 0;
+          _minute = (time / 60).floor();
+          _sec = (time - (_minute * 60));
+        }
+      }
+      //  if less than minute:
+      else {
+        _hour = 0;
+        _minute = 0;
+        _sec = time;
+      }
+    });
+  }
+
   void _startTimer() {
-    double start = Util.timer;
     const duration = const Duration(milliseconds: 1);
     Timer.periodic(
       duration,
-      (Timer timer) => setState(
+      (Timer t) => setState(
             () {
-              if (Util.timer < 1) {
-                timer.cancel();
+              if (timer < 1) {
+                t.cancel();
               } else {
-                Util.timer = Util.timer - 0.001;
+                setState(() {
+                  timer = timer - 0.001;
+                  _displayTime(timer);
+                });
               }
             },
           ),
     );
-    _changeTimer(start);
   }
 
-  void _changeTimer(double time) {
-    setState(() {
-      Util.timer = time;
+  void _customTimer() {
+
+    DatePicker.showTimePicker(context, onConfirm: (date) {
+      _displayTime((date.second + date.minute * 60 + date.hour *60 *60).toDouble());
     });
-  }
 
-  
-  void _customTimer() {}
+  }
 
   Widget _createCategoryButton(String text, BodyPart bodyPart) {
     MaterialButton cb = MaterialButton(
