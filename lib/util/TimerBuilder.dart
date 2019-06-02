@@ -4,8 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
-import 'notification.dart';
-
 class TimerBuilder extends StatefulWidget {
   // send back build widget
   final Function(Widget) callback;
