@@ -36,6 +36,7 @@ class _WorkLogView extends State<WorkLogView> {
                   textAlign: TextAlign.start,
                 ),
               ),
+
               /// created time of this log
               Container(
                 width: MediaQuery.of(context).size.width * 0.3,
@@ -61,6 +62,7 @@ class _WorkLogView extends State<WorkLogView> {
             alignment: FractionalOffset(0.5, 0.5),
             child: Text(workLog.exercise.name),
           ),
+
           /// table header
           Row(
             children: <Widget>[
@@ -89,6 +91,7 @@ class _WorkLogView extends State<WorkLogView> {
               ),
             ],
           ),
+
           /// list view builder create series
           Container(
             //  weird height because of AppBar
@@ -136,6 +139,7 @@ class _WorkLogView extends State<WorkLogView> {
               alignment: FractionalOffset(0.5, 0.5),
               //TODO delete button
               child: FlatButton(
+
                   ///  series number start from 1 as iteration
                   child: Text(i.toString()),
                   onPressed: () {
@@ -153,6 +157,7 @@ class _WorkLogView extends State<WorkLogView> {
               width: MediaQuery.of(context).size.width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
               child: FlatButton(
+
                   ///  get repeats number
                   child: Text(workLog.getReps(i.toString())),
                   onPressed: () {
@@ -163,6 +168,7 @@ class _WorkLogView extends State<WorkLogView> {
         ),
       );
     }
+
     /// add additional container at bottom for better visibility
     wList.add(
       Container(
@@ -183,6 +189,7 @@ class _WorkLogView extends State<WorkLogView> {
   }
 
   Future editRepeatsDialog(BuildContext context, WorkLog workLog, String set) {
+    TextEditingController textEditingController = Util.textController();
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
@@ -191,7 +198,7 @@ class _WorkLogView extends State<WorkLogView> {
             children: <Widget>[
               TextField(
                 /// use text controller to save given by user String
-                controller: Util.textController,
+                controller: textEditingController,
                 autofocus: true,
                 autocorrect: true,
                 keyboardType: TextInputType.number,
@@ -205,7 +212,9 @@ class _WorkLogView extends State<WorkLogView> {
                         child: const Text('SAVE'),
                         onPressed: () {
                           ///  set repeat number of this set
-                          workLog.series[set] = Util.textController.text;
+                          // TODO exception here if input not int
+                          workLog.series[set] =
+                              textEditingController.text as int;
                           db.updateWorkLog(workLog);
                           Navigator.pop(context);
                         }),

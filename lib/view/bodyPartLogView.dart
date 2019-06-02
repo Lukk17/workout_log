@@ -99,7 +99,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
       }
       // this is needed to refresh state even if there is no entries
       // if not artifacts from different bodyPart will appear
-      else{
+      else {
         wList = List();
       }
     });
@@ -182,6 +182,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     String hint,
     BuildContext context,
   ) {
+    TextEditingController textEditingController = Util.textController();
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
@@ -190,7 +191,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
             children: <Widget>[
               TextField(
                 // use text controller to save given by user String
-                controller: Util.textController,
+                controller: textEditingController,
                 autofocus: true,
                 autocorrect: true,
                 decoration: InputDecoration(hintText: hint),
@@ -204,7 +205,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                         onPressed: () {
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise exercise =
-                              Exercise(Util.textController.text, _bodyPart);
+                              Exercise(textEditingController.text, _bodyPart);
                           addWorkLog(exercise, _bodyPart);
                           //  after saving new record bp state need to be updated:
                           updateWorkLogFromDB();

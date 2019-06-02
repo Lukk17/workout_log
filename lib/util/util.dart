@@ -3,10 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appTheme.dart';
-import 'package:workout_log/util/dbProvider.dart';
 
 class Util {
-  static TextEditingController textController = TextEditingController();
+  static TextEditingController _textController = TextEditingController();
+
+  static TextEditingController textController() {
+    _textController.clear();
+    return _textController;
+  }
 
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
