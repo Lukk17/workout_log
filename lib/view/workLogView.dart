@@ -212,7 +212,7 @@ class _WorkLogView extends State<WorkLogView> {
                         child: const Text('SAVE'),
                         onPressed: () {
                           ///  set repeat number of this set
-                          // TODO exception here if input not int
+                          // TODO exception here if input is not int - selection property
                           workLog.series[set] =
                               textEditingController.text as int;
                           db.updateWorkLog(workLog);
