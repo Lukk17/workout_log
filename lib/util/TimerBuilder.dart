@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+
+import 'package:audioplayers/audio_cache.dart';
 
 class TimerBuilder extends StatefulWidget {
   // send back build widget
@@ -351,6 +354,8 @@ class _TimerBuilderState extends State<TimerBuilder> {
   }
 
   _startAlarm() {
-    //TODO
+    SystemSound.play(SystemSoundType.click);
+    AudioCache player = AudioCache();
+    player.play('CarHornAlarm.mp3');
   }
 }
