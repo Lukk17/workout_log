@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/util/TimerBuilder.dart';
+import 'package:workout_log/util/calendar.dart';
 import 'package:workout_log/view/bodyPartLogView.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'entity/bodyPart.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  initializeDateFormatting().then((_)=> runApp(MyApp()));
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -87,10 +91,7 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
         ],
       ),
       Center(
-          child: Text(
-        'calendar',
-        style: TextStyle(color: Colors.red),
-      )),
+          child: Calendar.create()),
       // calling builder to get callback (Widget) and send it to _buildTimer
       TimerBuilder(_buildTimer),
     ]);
