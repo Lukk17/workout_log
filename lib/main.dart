@@ -91,13 +91,17 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
         ],
       ),
       Center(
-          child: Calendar.create()),
+          child: Calendar(_buildCalendar)),
       // calling builder to get callback (Widget) and send it to _buildTimer
       TimerBuilder(_buildTimer),
     ]);
   }
 
   _buildTimer(Widget widget) {
+    return widget;
+  }
+
+  _buildCalendar(Widget widget){
     return widget;
   }
 
