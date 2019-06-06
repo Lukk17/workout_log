@@ -1,5 +1,1 @@
-
-enum BodyPart {
-  CHEST, BACK, ARM, LEG, UNDEFINED
-
-}
+enum BodyPart { CHEST, BACK, ARM, LEG, ABDOMINAL, UNDEFINED }

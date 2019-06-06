@@ -9,8 +9,8 @@ import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 
 class DBProvider {
-  final String WORKLOG_TABLE = "workLog";
-  final String EXERCISE_TABLE = "exercise";
+  final String workLogTable = "workLog";
+  final String exerciseTable = "exercise";
 
   // singleton is needed to have only one global DB provider
   DBProvider._();
@@ -35,7 +35,7 @@ class DBProvider {
     String path = join(documentsDirectory.path, "worklog.db");
     return await openDatabase(path, version: 1, onOpen: (db) {},
         onCreate: (Database db, int version) async {
-      await db.execute("CREATE TABLE IF NOT EXISTS $EXERCISE_TABLE ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $exerciseTable ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
           "bodyPart TEXT"
@@ -44,7 +44,7 @@ class DBProvider {
       //  foreign key here because workLog can have only one exercise
       //  exercise can be in many workLogs
       //  ONE TO MANY relation
-      await db.execute("CREATE TABLE IF NOT EXISTS $WORKLOG_TABLE ("
+      await db.execute("CREATE TABLE IF NOT EXISTS $workLogTable ("
           "id VARCHAR(32) PRIMARY KEY,"
           "series BLOB,"
           "created TEXT,"
@@ -59,10 +59,10 @@ class DBProvider {
 
     ///  DB when insert give back ID of created entry
     ///  (which should be same as generated in class)
-    int idFromDB = await db.insert(WORKLOG_TABLE, workLog.toMap());
+    int idFromDB = await db.insert(workLogTable, workLog.toMap());
 
     ///  need to save exercise to DB as well
-    await db.insert(EXERCISE_TABLE, workLog.exercise.toMap());
+    await db.insert(exerciseTable, workLog.exercise.toMap());
 
     return idFromDB;
   }
@@ -71,10 +71,10 @@ class DBProvider {
     final db = await database;
     print("UPDATE EXERCISE ID:      " + workLog.exercise.bodyPart.toString());
 
-    await db.update(EXERCISE_TABLE, workLog.exercise.toMap(),
+    await db.update(exerciseTable, workLog.exercise.toMap(),
         where: "id = ?", whereArgs: [workLog.exercise.id]);
 
-    int id = await db.update(WORKLOG_TABLE, workLog.toMap(),
+    int id = await db.update(workLogTable, workLog.toMap(),
         where: "id = ?", whereArgs: [workLog.id]);
 
     return id;

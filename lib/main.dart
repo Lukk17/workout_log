@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:workout_log/util/TimerBuilder.dart';
 import 'package:workout_log/util/calendar.dart';
 import 'package:workout_log/view/bodyPartLogView.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 import 'entity/bodyPart.dart';
 
 void main() {
-  initializeDateFormatting().then((_)=> runApp(MyApp()));
+  initializeDateFormatting().then((_) => runApp(MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -52,6 +52,8 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
       child: Scaffold(
         appBar: _createAppBar(),
         body: _createBody(),
+        bottomNavigationBar: _createTabBar(),
+        drawer: _openSettings(),
       ),
     );
   }
@@ -62,13 +64,34 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
       // the App.build method, and use it to set our appbar title.
       title: Text(widget.title),
       backgroundColor: Colors.red,
-      bottom: TabBar(
-        tabs: <Widget>[
-          Tab(text: "log"),
-          Tab(text: "calendar"),
-          Tab(text: "timer")
-        ],
-      ),
+      actions: <Widget>[
+        MaterialButton(
+          padding: EdgeInsets.all(5),
+          onPressed: _openCalendar,
+          child: Column(
+            children: <Widget>[
+              Icon(Icons.calendar_today),
+              Text("Calendar"),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _createTabBar() {
+    return TabBar(
+      tabs: <Widget>[
+        Tab(
+          text: "log",
+          icon: Icon(Icons.assignment),
+        ),
+        Tab(
+          text: "timer",
+          icon: Icon(Icons.timer),
+        ),
+        Tab(text: "calendar"),
+      ],
     );
   }
 
@@ -86,14 +109,17 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
               _createCategoryButton('arm', BodyPart.ARM),
               _spacer(15),
               _createCategoryButton('leg', BodyPart.LEG),
+              _spacer(15),
+              _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
+              _spacer(15),
+              _createCategoryButton('all'),
             ],
           )
         ],
       ),
-      Center(
-          child: Calendar(_buildCalendar)),
       // calling builder to get callback (Widget) and send it to _buildTimer
       TimerBuilder(_buildTimer),
+      Center(child: Calendar(_buildCalendar)),
     ]);
   }
 
@@ -101,21 +127,59 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
     return widget;
   }
 
-  _buildCalendar(Widget widget){
+  _openCalendar() {
+    print('openCalendar');
+  }
+
+  _openSettings() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            child: Text("Settings"),
+          ),
+          ListTile(
+            title: Text("close"),
+            onTap: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildCalendar(Widget widget) {
     return widget;
   }
 
-  Widget _createCategoryButton(String text, BodyPart bodyPart) {
+  /// Creates button routing to BodyPartLogView
+  ///
+  /// BodyPart is optional due to option for showing all exercises
+  /// on any body part
+  Widget _createCategoryButton(String text, [BodyPart bodyPart]) {
+    /// if method is called without [bodyPart],
+    /// then it is set to [BodyPart.UNDEFINED],
+    /// which lead to show workLogs from all body parts
+    if (bodyPart == null) bodyPart = BodyPart.UNDEFINED;
+
     MaterialButton cb = MaterialButton(
       // after pushing button, navigate to a new screen
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                BodyPartLogView(date: DateTime.now(), bodyPart: bodyPart),
-          ),
-        );
+        bodyPart == BodyPart.UNDEFINED
+            ? Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BodyPartLogView(
+                      date: DateTime.now(), bodyPart: BodyPart.UNDEFINED),
+                ),
+              )
+            : Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      BodyPartLogView(date: DateTime.now(), bodyPart: bodyPart),
+                ),
+              );
       },
       height: 60,
       minWidth: 350,

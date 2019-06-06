@@ -23,6 +23,7 @@ class _WorkLogView extends State<WorkLogView> {
 
   @override
   Widget build(BuildContext context) {
+    num screenHeight = MediaQuery.of(context).size.height;
     List<Widget> wList = createRowsForSeries(context);
     return Scaffold(
       appBar: AppBar(
@@ -93,9 +94,7 @@ class _WorkLogView extends State<WorkLogView> {
           ),
 
           /// list view builder create series
-          Container(
-            //  weird height because of AppBar
-            height: MediaQuery.of(context).size.height * 0.596,
+          Expanded(
             child: ListView.builder(
               itemCount: wList.length,
               itemBuilder: (BuildContext context, int index) {
@@ -212,9 +211,10 @@ class _WorkLogView extends State<WorkLogView> {
                         child: const Text('SAVE'),
                         onPressed: () {
                           ///  set repeat number of this set
-                          // TODO exception here if input is not int - selection property
+                          // exception here if input is not int,
+                          // preventing from saving that value
                           workLog.series[set] =
-                              textEditingController.text as int;
+                          int.parse(textEditingController.text).toString();
                           db.updateWorkLog(workLog);
                           Navigator.pop(context);
                         }),
