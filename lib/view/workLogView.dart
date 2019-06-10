@@ -214,7 +214,7 @@ class _WorkLogView extends State<WorkLogView> {
                           // exception here if input is not int,
                           // preventing from saving that value
                           workLog.series[set] =
-                          int.parse(textEditingController.text).toString();
+                              int.parse(textEditingController.text).toString();
                           db.updateWorkLog(workLog);
                           Navigator.pop(context);
                         }),

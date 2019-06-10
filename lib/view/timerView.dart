@@ -1,24 +1,23 @@
 import 'dart:async';
 
+import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
-import 'package:audioplayers/audio_cache.dart';
-
-class TimerBuilder extends StatefulWidget {
+class TimerView extends StatefulWidget {
   // send back build widget
   final Function(Widget) callback;
 
   // constructor with callback to calling view
-  TimerBuilder(this.callback);
+  TimerView(this.callback);
 
   @override
-  State<StatefulWidget> createState() => _TimerBuilderState();
+  State<StatefulWidget> createState() => _TimerViewState();
 }
 
-class _TimerBuilderState extends State<TimerBuilder> {
+class _TimerViewState extends State<TimerView> {
   int _hour = 0;
   int _minute = 0;
   double _sec = 0.0;
