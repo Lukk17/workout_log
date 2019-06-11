@@ -51,7 +51,7 @@ class _HelloWorldViewState extends State<HelloWorldView> {
               Text("Calendar"),
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -84,8 +84,9 @@ class _HelloWorldViewState extends State<HelloWorldView> {
     ]);
   }
 
-  _openCalendar() {
-    showDialog(
+  /// async to wait for dialog close and refresh state
+  _openCalendar() async {
+    await showDialog(
       context: context,
       builder: (context) => SimpleDialog(
             children: <Widget>[
@@ -93,7 +94,7 @@ class _HelloWorldViewState extends State<HelloWorldView> {
             ],
           ),
     );
-    print('openCalendar');
+    setState(() {});
   }
 
   updateDate() {}

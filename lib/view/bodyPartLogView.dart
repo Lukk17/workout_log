@@ -8,6 +8,7 @@ import 'package:workout_log/setting/appTheme.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/storage.dart';
 import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/helloWorldView.dart';
 import 'package:workout_log/view/workLogView.dart';
 
 class BodyPartLogView extends StatefulWidget {
@@ -25,7 +26,6 @@ class BodyPartLogView extends StatefulWidget {
 
 class _BodyPartLogViewState extends State<BodyPartLogView> {
   BodyPart _bodyPart;
-  DateTime _date;
   static List<Widget> wList = List();
 
   //  get DB from singleton global provider
@@ -37,7 +37,6 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
     // get date and bodyPart from forwarded variable
     this._bodyPart = widget.bodyPart;
-    this._date = widget.date;
     updateWorkLogFromDB();
   }
 
@@ -96,10 +95,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     List<WorkLog> workLogList;
 
     if (_bodyPart == BodyPart.UNDEFINED || _bodyPart == null) {
-      workLogList = await db.getAllWorkLogs();
+      workLogList = await db.getDateAllWorkLogs();
     } else {
-      workLogList =
-          await db.getWorkLogs(Util.formatter.format(_date), _bodyPart);
+      workLogList = await db.getWorkLogs(_bodyPart);
     }
     setState(() {
       if (workLogList != null && workLogList.isNotEmpty) {
@@ -228,6 +226,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   addWorkLog(Exercise exercise, BodyPart bodyPart) {
     WorkLog workLog = WorkLog(exercise);
     workLog.exercise.bodyPart = bodyPart;
+    workLog.created = HelloWorldView.date;
     String json = jsonEncode(workLog);
     print("add worklog: " + json);
 

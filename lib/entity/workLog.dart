@@ -44,6 +44,7 @@ class WorkLog {
     result.id = map["id"];
     //  decode json, which is string from DB to series map
     result.series = jsonDecode(map["series"]);
+
     result.created = DateTime.parse(map["created"]);
     return result;
   }
@@ -66,7 +67,9 @@ class WorkLog {
     return sum.toString();
   }
 
-  String getBodyPart(){
-    return exercise.bodyPart.toString().substring(exercise.bodyPart.toString().indexOf('.')+1);
+  String getBodyPart() {
+    return exercise.bodyPart
+        .toString()
+        .substring(exercise.bodyPart.toString().indexOf('.') + 1);
   }
 }

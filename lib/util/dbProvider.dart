@@ -7,6 +7,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
+import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/helloWorldView.dart';
 
 class DBProvider {
   final String workLogTable = "workLog";
@@ -105,6 +107,21 @@ class DBProvider {
     return workLogList;
   }
 
+  Future<List<WorkLog>> getDateAllWorkLogs() async {
+    String date = Util.formatter.format(HelloWorldView.date);
+    List<WorkLog> workLogList = new List();
+    final db = await database;
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
+    for (var l in res) {
+      ///  exercise need to be pulled from DB
+      /// and pushed to WorkLog.fromMap method
+      Exercise exercise = await getExerciseByID(l["exercise_id"]);
+      WorkLog dbLog = WorkLog.fromMap(l, exercise);
+      workLogList.add(dbLog);
+    }
+    return workLogList;
+  }
+
   Future<Exercise> getExerciseByID(String id) async {
     Exercise exercise;
     final db = await database;
@@ -122,9 +139,10 @@ class DBProvider {
     return exercise;
   }
 
-  Future<List<WorkLog>> getWorkLogs(String date, BodyPart part) async {
+  Future<List<WorkLog>> getWorkLogs(BodyPart part) async {
     List<WorkLog> workLogList = List();
     final db = await database;
+    String date = Util.formatter.format(HelloWorldView.date);
 
     // pull every workLog from given date
     var res =
@@ -137,12 +155,12 @@ class DBProvider {
       WorkLog dbLog = WorkLog.fromMap(l, exercise);
 
       // save only entries with given BodyPart
-      // TODO repair this to add only records with given body part
       if (dbLog.exercise.bodyPart == part) {
 
         workLogList.add(dbLog);
       }
     }
+    
     print('getWorklogs : $part  and ${workLogList.toString()}');
 
     return workLogList;

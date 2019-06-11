@@ -30,6 +30,9 @@ class Util {
       case "ARM":
         return BodyPart.ARM;
 
+      case "CARDIO":
+        return BodyPart.CARDIO;
+
       default:
         return BodyPart.UNDEFINED;
     }

@@ -11,10 +11,10 @@ class CalendarView extends StatefulWidget {
   CalendarView(this.callback);
 
   @override
-  State<StatefulWidget> createState() => _Calendar();
+  State<StatefulWidget> createState() => _CalendarViewState();
 }
 
-class _Calendar extends State<CalendarView> {
+class _CalendarViewState extends State<CalendarView> {
   DateTime _selected = HelloWorldView.date;
 
   @override
@@ -87,14 +87,14 @@ class _Calendar extends State<CalendarView> {
 
   _setDate() {
     DatePicker.showDatePicker(context,
-        currentTime: DateTime.now(), onConfirm: (date) => _saveDate(date));
+        currentTime: DateTime.now(), onConfirm: (date) => _pickDate(date));
   }
 
   _today() {
-    _saveDate(DateTime.now());
+    _pickDate(DateTime.now());
   }
 
-  _saveDate(DateTime date) {
+  _pickDate(DateTime date) {
     setState(() {
       _selected = date;
     });

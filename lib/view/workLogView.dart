@@ -23,7 +23,6 @@ class _WorkLogView extends State<WorkLogView> {
 
   @override
   Widget build(BuildContext context) {
-    num screenHeight = MediaQuery.of(context).size.height;
     List<Widget> wList = createRowsForSeries(context);
     return Scaffold(
       appBar: AppBar(

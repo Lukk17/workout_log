@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/bodyPart.dart';
+import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/helloWorldView.dart';
 
 import 'bodyPartLogView.dart';
 
@@ -23,21 +25,48 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        Column(
-          children: <Widget>[
-            _createCategoryButton('chest', BodyPart.CHEST),
-            _spacer(15),
-            _createCategoryButton('back', BodyPart.BACK),
-            _spacer(15),
-            _createCategoryButton('arm', BodyPart.ARM),
-            _spacer(15),
-            _createCategoryButton('leg', BodyPart.LEG),
-            _spacer(15),
-            _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-            _spacer(15),
-            _createCategoryButton('all'),
+        Text(Util.formatter.format(HelloWorldView.date) ==
+                Util.formatter.format(DateTime.now())
+            ? "Today"
+            : Util.formatter.format(HelloWorldView.date)),
+        Table(
+          columnWidths: {
+            0: FixedColumnWidth(130),
+            1: FixedColumnWidth(50),
+            2: FixedColumnWidth(130)
+          },
+          defaultColumnWidth: FixedColumnWidth(130),
+          children: [
+            TableRow(
+              children: <Widget>[
+                _createCategoryButton('chest', BodyPart.CHEST),
+                _spacer(5),
+                _createCategoryButton('back', BodyPart.BACK),
+              ],
+            ),
+            TableRow(
+              children: <Widget>[_spacer(10), _spacer(5), _spacer(10)],
+            ),
+            TableRow(
+              children: <Widget>[
+                _createCategoryButton('arm', BodyPart.ARM),
+                _spacer(5),
+                _createCategoryButton('leg', BodyPart.LEG),
+              ],
+            ),
+            TableRow(
+              children: <Widget>[_spacer(10), _spacer(10), _spacer(10)],
+            ),
+            TableRow(
+              children: <Widget>[
+                _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
+                _spacer(5),
+                _createCategoryButton('cardio', BodyPart.CARDIO),
+              ],
+            )
           ],
-        )
+        ),
+        _createCategoryButton('all'),
       ],
     );
   }
