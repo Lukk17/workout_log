@@ -134,12 +134,20 @@ class _TimerViewState extends State<TimerView> {
                     ),
                     Row(
                       children: <Widget>[
-                        SizedBox(
-                          width: 200,
-                          child: Center(
-                            child: Text(
-                              _hour.toString(),
-                              style: TextStyle(fontSize: 150),
+                        GestureDetector(
+                          onVerticalDragStart: (data) {
+                            print('drag start ${data.globalPosition}');
+                          },
+                          onVerticalDragEnd: (data) {
+                            print('drag stop at ${data.primaryVelocity}');
+                          },
+                          child: SizedBox(
+                            width: 200,
+                            child: Center(
+                              child: Text(
+                                _hour.toString(),
+                                style: TextStyle(fontSize: 150),
+                              ),
                             ),
                           ),
                         ),

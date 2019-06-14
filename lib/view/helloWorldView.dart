@@ -18,20 +18,24 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView> {
+class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProviderStateMixin{
+  TabController _tabController;
+  @override
+  void initState() {
+    _tabController = new TabController(length: 3, vsync: this);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
+    return Scaffold(
         appBar: _createAppBar(),
         body: _createBody(),
         bottomNavigationBar: _createTabBar(),
         drawer: _openSettings(),
-      ),
     );
   }
 
@@ -58,6 +62,7 @@ class _HelloWorldViewState extends State<HelloWorldView> {
 
   Widget _createTabBar() {
     return TabBar(
+      controller: _tabController,
       tabs: <Widget>[
         Tab(
           text: "log",
@@ -76,7 +81,9 @@ class _HelloWorldViewState extends State<HelloWorldView> {
   }
 
   Widget _createBody() {
-    return TabBarView(children: [
+    return TabBarView(
+        controller: _tabController,
+        children: [
       // calling builder to get callback (Widget)
       WorkLogPageView((widget) => {}, HelloWorldView.date),
       TimerView((widget) => {}),
