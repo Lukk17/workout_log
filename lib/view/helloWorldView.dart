@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/util/appBuilder.dart';
 import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/timerView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
 class HelloWorldView extends StatefulWidget {
   static DateTime date = DateTime.now();
+  final Function(Widget) callback;
 
-  HelloWorldView({Key key, this.title}) : super(key: key);
+  HelloWorldView({Key key, @required this.title, @required this.callback})
+      : super(key: key);
 
   // This widget is the home page of your application.
   // Fields in a Widget subclass are always marked "final".
@@ -18,8 +23,11 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProviderStateMixin{
+class _HelloWorldViewState extends State<HelloWorldView>
+    with SingleTickerProviderStateMixin {
   TabController _tabController;
+  SharedPreferences prefs;
+
   @override
   void initState() {
     _tabController = new TabController(length: 3, vsync: this);
@@ -30,12 +38,20 @@ class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProvid
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
-    //
-    return Scaffold(
+
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(AppThemeSettings.background),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
         appBar: _createAppBar(),
         body: _createBody(),
         bottomNavigationBar: _createTabBar(),
         drawer: _openSettings(),
+      ),
     );
   }
 
@@ -43,16 +59,26 @@ class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProvid
     return AppBar(
       // Here we take the value from the MyHomePage object that was created by
       // the App.build method, and use it to set our appbar title.
-      title: Text(widget.title),
-      backgroundColor: Colors.red,
+      title: Text(
+        widget.title,
+        style: TextStyle(color: AppThemeSettings.titleColor),
+      ),
+      backgroundColor: AppThemeSettings.appBarColor,
+
       actions: <Widget>[
         MaterialButton(
           padding: EdgeInsets.all(5),
           onPressed: _openCalendar,
           child: Column(
             children: <Widget>[
-              Icon(Icons.calendar_today),
-              Text("Calendar"),
+              Icon(
+                Icons.calendar_today,
+                color: AppThemeSettings.calendarIconColor,
+              ),
+              Text(
+                "Calendar",
+                style: TextStyle(color: AppThemeSettings.calendarIconColor),
+              ),
             ],
           ),
         ),
@@ -61,34 +87,41 @@ class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProvid
   }
 
   Widget _createTabBar() {
-    return TabBar(
-      controller: _tabController,
-      tabs: <Widget>[
-        Tab(
-          text: "log",
-          icon: Icon(Icons.assignment),
-        ),
-        Tab(
-          text: "timer",
-          icon: Icon(Icons.timer),
-        ),
-        Tab(
-          text: "statistic",
-          icon: Icon(Icons.assessment),
-        ),
-      ],
+    return Container(
+      color: AppThemeSettings.backgroundColor,
+      child: TabBar(
+        indicatorColor: AppThemeSettings.indicatorColor,
+        labelColor: AppThemeSettings.tabBarColor,
+        controller: _tabController,
+        tabs: <Widget>[
+          Tab(
+            text: "log",
+            icon: Icon(Icons.assignment),
+          ),
+          Tab(
+            text: "timer",
+            icon: Icon(Icons.timer),
+          ),
+          Tab(
+            text: "statistic",
+            icon: Icon(Icons.assessment),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _createBody() {
     return TabBarView(
+        // disable scrolling tabView by dragging
+        physics: NeverScrollableScrollPhysics(),
         controller: _tabController,
         children: [
-      // calling builder to get callback (Widget)
-      WorkLogPageView((widget) => {}, HelloWorldView.date),
-      TimerView((widget) => {}),
-      Center(),
-    ]);
+          // calling builder to get callback (Widget)
+          WorkLogPageView((widget) => {}, HelloWorldView.date),
+          TimerView((widget) => {}),
+          Center(),
+        ]);
   }
 
   /// async to wait for dialog close and refresh state
@@ -104,22 +137,62 @@ class _HelloWorldViewState extends State<HelloWorldView> with SingleTickerProvid
     setState(() {});
   }
 
-  updateDate() {}
+  updateDate() async {}
 
   _openSettings() {
+    updateDate();
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            child: Text("Settings"),
-          ),
-          ListTile(
-            title: Text("close"),
-            onTap: () => Navigator.pop(context),
-          ),
-        ],
+      child: Container(
+        color: AppThemeSettings.drawerColor,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            Center(
+              child: DrawerHeader(
+                child: Text(
+                  "Settings",
+                  style: TextStyle(
+                      color: AppThemeSettings.textColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 30),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Dark mode:"),
+                Switch(
+                    value: AppThemeSettings.theme == ThemeData.dark(),
+                    onChanged: (isDark) => _changeTheme(isDark))
+              ],
+            ),
+            ListTile(
+              title: Text(
+                "close",
+                style: TextStyle(
+                    color: AppThemeSettings.textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  _changeTheme(bool isDark) async {
+    prefs = await SharedPreferences.getInstance();
+
+    if (isDark) {
+      prefs.setBool("isDark", true);
+      AppThemeSettings.theme = AppThemeSettings.themeD;
+    } else {
+      prefs.setBool("isDark", false);
+      AppThemeSettings.theme = AppThemeSettings.themeL;
+    }
+    AppBuilder.of(context).rebuild();
   }
 }

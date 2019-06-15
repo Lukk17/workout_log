@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/bodyPart.dart';
+import 'package:workout_log/setting/appTheme.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
@@ -22,52 +23,65 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        Text(Util.formatter.format(HelloWorldView.date) ==
-                Util.formatter.format(DateTime.now())
-            ? "Today"
-            : Util.formatter.format(HelloWorldView.date)),
-        Table(
-          columnWidths: {
-            0: FixedColumnWidth(130),
-            1: FixedColumnWidth(50),
-            2: FixedColumnWidth(130)
-          },
-          defaultColumnWidth: FixedColumnWidth(130),
-          children: [
-            TableRow(
-              children: <Widget>[
-                _createCategoryButton('chest', BodyPart.CHEST),
-                _spacer(5),
-                _createCategoryButton('back', BodyPart.BACK),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[_spacer(10), _spacer(5), _spacer(10)],
-            ),
-            TableRow(
-              children: <Widget>[
-                _createCategoryButton('arm', BodyPart.ARM),
-                _spacer(5),
-                _createCategoryButton('leg', BodyPart.LEG),
-              ],
-            ),
-            TableRow(
-              children: <Widget>[_spacer(10), _spacer(10), _spacer(10)],
-            ),
-            TableRow(
-              children: <Widget>[
-                _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-                _spacer(5),
-                _createCategoryButton('cardio', BodyPart.CARDIO),
-              ],
-            )
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(AppThemeSettings.background),
+          fit: BoxFit.cover,
         ),
-        _createCategoryButton('all'),
-      ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Text(
+            Util.formatter.format(HelloWorldView.date) ==
+                    Util.formatter.format(DateTime.now())
+                ? "Today"
+                : Util.formatter.format(HelloWorldView.date),
+            textScaleFactor: 3,
+            style: TextStyle(
+                color: AppThemeSettings.textColor, fontWeight: FontWeight.bold),
+          ),
+          Table(
+            columnWidths: {
+              0: FixedColumnWidth(130),
+              1: FixedColumnWidth(50),
+              2: FixedColumnWidth(130)
+            },
+            defaultColumnWidth: FixedColumnWidth(130),
+            children: [
+              TableRow(
+                children: <Widget>[
+                  _createCategoryButton('chest', BodyPart.CHEST),
+                  _spacer(5),
+                  _createCategoryButton('back', BodyPart.BACK),
+                ],
+              ),
+              TableRow(
+                children: <Widget>[_spacer(10), _spacer(5), _spacer(10)],
+              ),
+              TableRow(
+                children: <Widget>[
+                  _createCategoryButton('arm', BodyPart.ARM),
+                  _spacer(5),
+                  _createCategoryButton('leg', BodyPart.LEG),
+                ],
+              ),
+              TableRow(
+                children: <Widget>[_spacer(10), _spacer(10), _spacer(10)],
+              ),
+              TableRow(
+                children: <Widget>[
+                  _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
+                  _spacer(5),
+                  _createCategoryButton('cardio', BodyPart.CARDIO),
+                ],
+              )
+            ],
+          ),
+          _createCategoryButton('all'),
+        ],
+      ),
     );
   }
 
@@ -102,7 +116,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
       },
       height: 60,
       minWidth: 350,
-      color: Colors.red,
+      color: AppThemeSettings.buttonColor,
+      splashColor: AppThemeSettings.buttonSplashColor,
+      textColor: AppThemeSettings.buttonTextColor,
       child: Text(text),
     );
     return cb;

@@ -4,7 +4,7 @@ import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:workout_log/setting/appTheme.dart';
 
 class TimerView extends StatefulWidget {
   // send back build widget
@@ -25,10 +25,20 @@ class _TimerViewState extends State<TimerView> {
   double timerCache = 0;
   bool run = false;
   bool pause = false;
+  double position = 0;
+  bool dragUp = true;
 
   @override
   Widget build(BuildContext context) {
-    return _createTimer();
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(AppThemeSettings.timerBackground),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: _createTimer(),
+    );
   }
 
   Widget _createTimer() {
@@ -43,10 +53,10 @@ class _TimerViewState extends State<TimerView> {
               height: 50,
               minWidth: 70,
               onPressed: () {
-                _displayTime(5);
+                _displayTime(30);
               },
-              textColor: Colors.white,
-              color: Colors.red,
+              textColor: AppThemeSettings.buttonTextColor,
+              color: AppThemeSettings.buttonColor,
               child: Text("30 sec"),
             ),
             _spacer(10),
@@ -56,8 +66,8 @@ class _TimerViewState extends State<TimerView> {
               onPressed: () {
                 _displayTime(60);
               },
-              textColor: Colors.white,
-              color: Colors.red,
+              textColor: AppThemeSettings.buttonTextColor,
+              color: AppThemeSettings.buttonColor,
               child: Text("1 min"),
             ),
             _spacer(10),
@@ -67,8 +77,8 @@ class _TimerViewState extends State<TimerView> {
               onPressed: () {
                 _displayTime(60.0 * 3);
               },
-              textColor: Colors.white,
-              color: Colors.red,
+              textColor: AppThemeSettings.buttonTextColor,
+              color: AppThemeSettings.buttonColor,
               child: Text("3 min"),
             ),
             _spacer(10),
@@ -78,106 +88,167 @@ class _TimerViewState extends State<TimerView> {
               onPressed: () {
                 _displayTime(60.0 * 5);
               },
-              textColor: Colors.white,
-              color: Colors.red,
+              textColor: AppThemeSettings.buttonTextColor,
+              color: AppThemeSettings.buttonColor,
               child: Text("5 min"),
             )
           ],
         ),
-        _spacer(10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            MaterialButton(
-              height: 50,
-              minWidth: 140,
-              onPressed: () {
-                _customTimer();
-              },
-              textColor: Colors.white,
-              color: Colors.red,
-              child: Text("Custom.."),
-            )
-          ],
-        ),
-        _spacer(30),
+        _spacer(40),
         Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(
-                width: 350,
+                width: 300,
                 child: FittedBox(
                   child: Column(children: <Widget>[
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Center(
                           child: Text(
-                            "Hours",
-                            style: TextStyle(fontSize: 50),
+                            "H",
+                            style: TextStyle(
+                                fontSize: 50,
+                                color: AppThemeSettings.timerColor),
                           ),
                         ),
-                        _spacer(130),
+                        _spacer(100),
                         Center(
                           child: Text(
-                            "Minutes",
-                            style: TextStyle(fontSize: 50),
+                            "M",
+                            style: TextStyle(
+                                fontSize: 50,
+                                color: AppThemeSettings.timerColor),
                           ),
                         ),
-                        _spacer(130),
+                        _spacer(100),
                         Center(
                           child: Text(
-                            "Seconds",
-                            style: TextStyle(fontSize: 50),
+                            "S",
+                            style: TextStyle(
+                                fontSize: 50,
+                                color: AppThemeSettings.timerColor),
                           ),
                         ),
                       ],
                     ),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         GestureDetector(
+                          //  compare start dy position with updated one
                           onVerticalDragStart: (data) {
-                            print('drag start ${data.globalPosition}');
+                            position = data.globalPosition.dy;
+                          },
+                          onVerticalDragUpdate: (data) {
+                            if (position > data.globalPosition.dy) {
+                              dragUp = true;
+                            } else {
+                              dragUp = false;
+                            }
                           },
                           onVerticalDragEnd: (data) {
-                            print('drag stop at ${data.primaryVelocity}');
+                            // when dragging end read final dragUp bool and make action
+                            _hour = _changeHour(time: _hour, dragUp: dragUp);
+                            setState(() {
+                              _timer = _hour * 60.0 * 60.0;
+                            });
                           },
                           child: SizedBox(
                             width: 200,
                             child: Center(
                               child: Text(
                                 _hour.toString(),
-                                style: TextStyle(fontSize: 150),
+                                style: TextStyle(
+                                    fontSize: 150,
+                                    color: AppThemeSettings.timerColor),
                               ),
                             ),
                           ),
                         ),
-                        _spacer(25),
+                        _spacer(0),
                         Text(
                           ":",
-                          style: TextStyle(fontSize: 150),
+                          style: TextStyle(
+                              fontSize: 150,
+                              color: AppThemeSettings.timerColor),
                         ),
-                        _spacer(50),
-                        SizedBox(
-                          width: 200,
-                          child: Center(
-                            child: Text(
-                              _minute.toString(),
-                              style: TextStyle(fontSize: 150),
+                        _spacer(0),
+                        GestureDetector(
+                          //  compare start dy position with updated one
+                          onVerticalDragStart: (data) {
+                            position = data.globalPosition.dy;
+                          },
+                          onVerticalDragUpdate: (data) {
+                            if (position > data.globalPosition.dy) {
+                              dragUp = true;
+                            } else {
+                              dragUp = false;
+                            }
+                          },
+                          onVerticalDragEnd: (data) {
+                            // when dragging end read final dragUp bool and make action
+                            _minute =
+                                _changeTime(time: _minute, dragUp: dragUp);
+                            setState(() {
+                              _timer = _minute * 60.0;
+                            });
+                          },
+                          child: SizedBox(
+                            width: 200,
+                            child: Center(
+                              child: Text(
+                                _minute.toString(),
+                                style: TextStyle(
+                                    fontSize: 150,
+                                    color: AppThemeSettings.timerColor),
+                              ),
                             ),
                           ),
                         ),
-                        _spacer(25),
+                        _spacer(0),
                         Text(
                           ":",
-                          style: TextStyle(fontSize: 150),
+                          style: TextStyle(
+                              fontSize: 150,
+                              color: AppThemeSettings.timerColor),
                         ),
-                        _spacer(50),
-                        SizedBox(
-                          width: 300,
-                          child: Center(
-                            child: Text(
-                              _sec.toStringAsFixed(1),
-                              style: TextStyle(fontSize: 150),
+                        _spacer(15),
+                        GestureDetector(
+                          //  compare start dy position with updated one
+                          onVerticalDragStart: (data) {
+                            position = data.globalPosition.dy;
+                          },
+                          onVerticalDragUpdate: (data) {
+                            if (position > data.globalPosition.dy) {
+                              dragUp = true;
+                            } else {
+                              dragUp = false;
+                            }
+                          },
+                          onVerticalDragEnd: (data) {
+                            // when dragging end read final dragUp bool and make action
+                            _sec =
+                                _changeTime(time: _sec.toInt(), dragUp: dragUp)
+                                    .floorToDouble();
+                            setState(() {
+                              _timer = _sec;
+                            });
+                          },
+                          child: SizedBox(
+                            width: 300,
+                            child: Center(
+                              child: Row(
+                                children: <Widget>[
+                                  Text(
+                                    _sec.toStringAsFixed(1),
+                                    style: TextStyle(
+                                        fontSize: 150,
+                                        color: AppThemeSettings.timerColor),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -205,8 +276,8 @@ class _TimerViewState extends State<TimerView> {
                 minWidth: 150,
                 //  if timer is running pause it if not start it
                 onPressed: run ? _pauseTimer : _startTimer,
-                textColor: Colors.white,
-                color: Colors.red,
+                textColor: AppThemeSettings.buttonTextColor,
+                color: AppThemeSettings.buttonColor,
                 child: Text("Continue"),
               ),
               _spacer(20),
@@ -214,8 +285,8 @@ class _TimerViewState extends State<TimerView> {
                 height: 75,
                 minWidth: 150,
                 onPressed: _resetTimer,
-                textColor: Colors.white,
-                color: Colors.red,
+                textColor: AppThemeSettings.buttonTextColor,
+                color: AppThemeSettings.buttonColor,
                 child: Text("Reset"),
               )
             ],
@@ -234,8 +305,8 @@ class _TimerViewState extends State<TimerView> {
                           height: 75,
                           minWidth: 150,
                           onPressed: _pauseTimer,
-                          textColor: Colors.white,
-                          color: Colors.red,
+                          textColor: AppThemeSettings.buttonTextColor,
+                          color: AppThemeSettings.buttonColor,
                           child: Text("Pause"),
                         ),
                         _spacer(20),
@@ -243,8 +314,8 @@ class _TimerViewState extends State<TimerView> {
                           height: 75,
                           minWidth: 150,
                           onPressed: _stopTimer,
-                          textColor: Colors.white,
-                          color: Colors.red,
+                          textColor: AppThemeSettings.buttonTextColor,
+                          color: AppThemeSettings.buttonColor,
                           child: Text("Stop"),
                         )
                       ],
@@ -255,21 +326,12 @@ class _TimerViewState extends State<TimerView> {
                       height: 75,
                       minWidth: 150,
                       onPressed: _startTimer,
-                      textColor: Colors.white,
-                      color: Colors.red,
+                      textColor: AppThemeSettings.buttonTextColor,
+                      color: AppThemeSettings.buttonColor,
                       child: Text("Start"),
                     ),
             ],
           );
-  }
-
-  void _customTimer() {
-    //  parse string date without time to get 0 h, 0 min, 0 sec in time picker
-    DatePicker.showTimePicker(context, currentTime: DateTime.parse("20120227"),
-        onConfirm: (date) {
-      _displayTime(
-          (date.second + date.minute * 60 + date.hour * 60 * 60).toDouble());
-    });
   }
 
   Widget _spacer(double size) {
@@ -310,7 +372,7 @@ class _TimerViewState extends State<TimerView> {
     }
     run = true;
     pause = false;
-    const duration = const Duration(milliseconds: 1);
+    const duration = const Duration(milliseconds: 100);
 
     Timer.periodic(
       duration,
@@ -326,7 +388,7 @@ class _TimerViewState extends State<TimerView> {
                 } else {
                   setState(
                     () {
-                      _timer = _timer - 0.001;
+                      _timer = _timer - 0.1;
                       _displayTime(_timer);
                     },
                   );
@@ -364,5 +426,39 @@ class _TimerViewState extends State<TimerView> {
     SystemSound.play(SystemSoundType.click);
     AudioCache player = AudioCache();
     player.play('CarHornAlarm.mp3');
+  }
+
+  int _changeTime({@required int time, @required bool dragUp}) {
+    if (dragUp) {
+      if (time == 59) {
+        time = 0;
+      } else {
+        time++;
+      }
+    } else {
+      if (time == 0) {
+        time = 59;
+      } else {
+        time--;
+      }
+    }
+    return time;
+  }
+
+  int _changeHour({@required int time, @required bool dragUp}) {
+    if (dragUp) {
+      if (time == 99) {
+        time = 0;
+      } else {
+        time++;
+      }
+    } else {
+      if (time == 0) {
+        time = 99;
+      } else {
+        time--;
+      }
+    }
+    return time;
   }
 }

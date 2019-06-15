@@ -50,9 +50,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-  #  - images/a_dot_burr.jpeg
-  #  - images/a_dot_ham.jpeg
-   - assets/CarHornAlarm.mp3
+    #  - images/a_dot_burr.jpeg
+    #  - images/a_dot_ham.jpeg
+    - assets/CarHornAlarm.mp3
+    - graphics/background.png
+    - graphics/bg-leaves.png
+    - graphics/bg-cosmos.png
+    - graphics/bg-niagara.png
+    - graphics/lightBackground.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

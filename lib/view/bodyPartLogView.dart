@@ -42,52 +42,62 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
+    return Scaffold(
+      appBar: AppBar(
+
           /// title of selected body part
           /// if null or undefined showing all exercises
           title: (_bodyPart == BodyPart.UNDEFINED || _bodyPart == null)
-              ? Text("all")
-              : Text(_bodyPart
-                  .toString()
-                  .substring(_bodyPart.toString().indexOf('.') + 1)
-                  .toLowerCase()),
-          backgroundColor: Colors.red,
-        ),
-        body: Container(
-          /// ListView of every workLog entry in given bodyParty
-          child: ListView(
-            children: <Widget>[
-              Column(
-                children: wList,
-              ),
-              //  container at bottom which make it possible to scroll down
-              //  and see last workLog fully
-              Container(
-                height: MediaQuery.of(context).size.height * 0.15,
-              ),
-            ],
+              ? Text(
+                  "all",
+                  style: TextStyle(color: AppThemeSettings.titleColor),
+                )
+              : Text(
+                  _bodyPart
+                      .toString()
+                      .substring(_bodyPart.toString().indexOf('.') + 1)
+                      .toLowerCase(),
+                  style: TextStyle(color: AppThemeSettings.titleColor),
+                ),
+          backgroundColor: AppThemeSettings.appBarColor),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppThemeSettings.background),
+            fit: BoxFit.cover,
           ),
         ),
-        floatingActionButton:
 
-            /// if null or undefined do not show FAB
-            (_bodyPart == BodyPart.UNDEFINED || _bodyPart == null)
-                ? null
-                : FloatingActionButton(
-                    // text which will be shown after long press on button
-                    tooltip: 'Add exercise',
-
-                    // open pop-up on button press to add new exercise
-                    onPressed: () =>
-                        showAddWorkLogDialog('Exercise', 'eg. pushup', context),
-                    child: Icon(Icons.add),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.black,
-                  ),
+        /// ListView of every workLog entry in given bodyParty
+        child: ListView(
+          children: <Widget>[
+            Column(
+              children: wList,
+            ),
+            //  container at bottom which make it possible to scroll down
+            //  and see last workLog fully
+            Container(
+              height: MediaQuery.of(context).size.height * 0.15,
+            ),
+          ],
+        ),
       ),
+      floatingActionButton:
+
+          /// if null or undefined do not show FAB
+          (_bodyPart == BodyPart.UNDEFINED || _bodyPart == null)
+              ? null
+              : FloatingActionButton(
+                  // text which will be shown after long press on button
+                  tooltip: 'Add exercise',
+
+                  // open pop-up on button press to add new exercise
+                  onPressed: () =>
+                      showAddWorkLogDialog('Exercise', 'eg. pushup', context),
+                  child: Icon(Icons.add),
+                  backgroundColor: AppThemeSettings.primaryColor,
+                  foregroundColor: AppThemeSettings.secondaryColor,
+                ),
     );
   }
 
@@ -126,7 +136,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     BuildContext context,
   ) {
     return Card(
-      color: Colors.red,
+      color: AppThemeSettings.primaryColor,
       margin: EdgeInsets.only(bottom: 20, top: 20),
       elevation: 8,
       child: ListTile(
@@ -134,7 +144,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
           margin: EdgeInsets.all(20),
           child: Text(
             workLog.exercise.name,
-            style: TextStyle(fontSize: AppTheme.fontSize),
+            style: TextStyle(
+                fontSize: AppThemeSettings.fontSize,
+                color: AppThemeSettings.buttonTextColor),
             textAlign: TextAlign.center,
           ),
         ),
@@ -146,7 +158,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
               margin: EdgeInsets.only(right: 20, bottom: 10),
               child: Text(
                 "Series: ${workLog.series.length.toString()}",
-                style: TextStyle(fontSize: AppTheme.fontSize),
+                style: TextStyle(
+                    fontSize: AppThemeSettings.fontSize,
+                    color: AppThemeSettings.textColor),
               ),
             ),
 
@@ -155,14 +169,19 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
               margin: EdgeInsets.only(left: 20, bottom: 10),
               child: Text(
                 "Reps: ${workLog.getRepsSum()}",
-                style: TextStyle(fontSize: AppTheme.fontSize),
+                style: TextStyle(
+                    fontSize: AppThemeSettings.fontSize,
+                    color: AppThemeSettings.textColor),
                 textAlign: TextAlign.end,
               ),
             ),
           ],
         ),
         trailing: Container(
-          child: Icon(Icons.arrow_forward),
+          child: Icon(
+            Icons.arrow_forward,
+            color: AppThemeSettings.secondaryColor,
+          ),
           margin: EdgeInsets.only(top: 20),
         ),
 

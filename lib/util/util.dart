@@ -84,7 +84,7 @@ class Util {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: AppTheme.borderColor),
+          bottom: BorderSide(color: AppThemeSettings.borderColor),
         ),
       ),
     );
@@ -94,7 +94,7 @@ class Util {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          right: BorderSide(color: AppTheme.borderColor),
+          right: BorderSide(color: AppThemeSettings.borderColor),
         ),
       ),
     );

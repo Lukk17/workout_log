@@ -34,6 +34,7 @@ class _WorkLogView extends State<WorkLogView> {
                 child: Text(
                   workLog.getBodyPart(),
                   textAlign: TextAlign.start,
+                  style: TextStyle(color: AppThemeSettings.titleColor),
                 ),
               ),
 
@@ -43,68 +44,94 @@ class _WorkLogView extends State<WorkLogView> {
                 child: Text(
                   workLog.created.toIso8601String().substring(0, 10),
                   textAlign: TextAlign.end,
+                  style: TextStyle(color: AppThemeSettings.titleColor),
                 ),
               ),
             ],
           ),
-          backgroundColor: Colors.red),
-      body: Column(
-        children: <Widget>[
-          /// exercise name
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: AppTheme.borderColor),
+          backgroundColor: AppThemeSettings.appBarColor),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppThemeSettings.workLogBackground),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            /// exercise name
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                      color: AppThemeSettings.borderColor,
+                      width: AppThemeSettings.tableHeaderBorderWidth),
+                ),
+              ),
+              height: MediaQuery.of(context).size.height * 0.20,
+              width: MediaQuery.of(context).size.width,
+              alignment: FractionalOffset(0.5, 0.5),
+              child: Text(
+                workLog.exercise.name,
+                style: TextStyle(color: AppThemeSettings.specialTextColor),
               ),
             ),
-            height: MediaQuery.of(context).size.height * 0.20,
-            width: MediaQuery.of(context).size.width,
-            alignment: FractionalOffset(0.5, 0.5),
-            child: Text(workLog.exercise.name),
-          ),
 
-          /// table header
-          Row(
-            children: <Widget>[
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppTheme.borderColor),
+            /// table header
+            Row(
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                    ),
+                  ),
+                  height: MediaQuery.of(context).size.height * 0.10,
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: Text(
+                    "series",
+                    style: TextStyle(color: AppThemeSettings.specialTextColor),
                   ),
                 ),
-                height: MediaQuery.of(context).size.height * 0.10,
-                width: MediaQuery.of(context).size.width * 0.5,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Text("series"),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppTheme.borderColor),
-                    left: BorderSide(color: AppTheme.borderColor),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                      left: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                    ),
+                  ),
+                  height: MediaQuery.of(context).size.height * 0.10,
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: Text(
+                    "repeats",
+                    style: TextStyle(color: AppThemeSettings.specialTextColor),
                   ),
                 ),
-                height: MediaQuery.of(context).size.height * 0.10,
-                width: MediaQuery.of(context).size.width * 0.5,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Text("repeats"),
-              ),
-            ],
-          ),
-
-          /// list view builder create series
-          Expanded(
-            child: ListView.builder(
-              itemCount: wList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return wList[index];
-              },
-              //  nested listView need to shrink to size of its children
-              //  if not shrinked it will be infinite in size and can't be render
-              shrinkWrap: true,
+              ],
             ),
-          ),
-        ],
+
+            /// list view builder create series
+            Expanded(
+              child: ListView.builder(
+                itemCount: wList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return wList[index];
+                },
+                //  nested listView need to shrink to size of its children
+                //  if not shrinked it will be infinite in size and can't be render
+                shrinkWrap: true,
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         // text which will be shown after long press on button
@@ -113,8 +140,8 @@ class _WorkLogView extends State<WorkLogView> {
         // open pop-up on button press to add new exercise
         onPressed: () => addSeriesToWorkLog(),
         child: Icon(Icons.add),
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.black,
+        backgroundColor: AppThemeSettings.primaryColor,
+        foregroundColor: AppThemeSettings.secondaryColor,
       ),
     );
   }
@@ -128,8 +155,9 @@ class _WorkLogView extends State<WorkLogView> {
             Container(
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppTheme.borderColor),
-                  left: BorderSide(color: AppTheme.borderColor),
+                  bottom: BorderSide(
+                      color: AppThemeSettings.borderColor,
+                      width: AppThemeSettings.tableCellBorderWidth),
                 ),
               ),
               height: MediaQuery.of(context).size.height * 0.10,
@@ -139,7 +167,10 @@ class _WorkLogView extends State<WorkLogView> {
               child: FlatButton(
 
                   ///  series number start from 1 as iteration
-                  child: Text(i.toString()),
+                  child: Text(
+                    i.toString(),
+                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+                  ),
                   onPressed: () {
 //                    Util.editSeriesDialog(bp, context, workLog);
                   }),
@@ -147,8 +178,12 @@ class _WorkLogView extends State<WorkLogView> {
             Container(
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppTheme.borderColor),
-                  left: BorderSide(color: AppTheme.borderColor),
+                  bottom: BorderSide(
+                      color: AppThemeSettings.borderColor,
+                      width: AppThemeSettings.tableCellBorderWidth),
+                  left: BorderSide(
+                      color: AppThemeSettings.borderColor,
+                      width: AppThemeSettings.tableCellBorderWidth),
                 ),
               ),
               height: MediaQuery.of(context).size.height * 0.10,
@@ -157,7 +192,10 @@ class _WorkLogView extends State<WorkLogView> {
               child: FlatButton(
 
                   ///  get repeats number
-                  child: Text(workLog.getReps(i.toString())),
+                  child: Text(
+                    workLog.getReps(i.toString()),
+                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+                  ),
                   onPressed: () {
                     editRepeatsDialog(context, workLog, i.toString());
                   }),
@@ -203,26 +241,33 @@ class _WorkLogView extends State<WorkLogView> {
                 decoration: InputDecoration(hintText: workLog.getReps(set)),
                 maxLength: 4,
               ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    FlatButton(
-                        child: const Text('SAVE'),
-                        onPressed: () {
-                          ///  set repeat number of this set
-                          // exception here if input is not int,
-                          // preventing from saving that value
-                          workLog.series[set] =
-                              int.parse(textEditingController.text).toString();
-                          db.updateWorkLog(workLog);
-                          Navigator.pop(context);
-                        }),
-                    FlatButton(
-                        child: const Text('CANCEL'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
-                  ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <
+                  Widget>[
+                FlatButton(
+                    color: AppThemeSettings.greenButtonColor,
+                    child: Text(
+                      'SAVE',
+                      style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                    ),
+                    onPressed: () {
+                      ///  set repeat number of this set
+                      // exception here if input is not int,
+                      // preventing from saving that value
+                      workLog.series[set] =
+                          int.parse(textEditingController.text).toString();
+                      db.updateWorkLog(workLog);
+                      Navigator.pop(context);
+                    }),
+                FlatButton(
+                    color: AppThemeSettings.cancelButtonColor,
+                    child: Text(
+                      'CANCEL',
+                      style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ]),
             ],
           ),
     );

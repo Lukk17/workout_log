@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:workout_log/setting/appTheme.dart';
 
 import 'helloWorldView.dart';
 
@@ -36,8 +37,11 @@ class _CalendarViewState extends State<CalendarView> {
                   height: 50,
                   minWidth: 75,
                   onPressed: _setDate,
-                  color: Colors.red,
-                  child: Text("Go to date.."),
+                  color: AppThemeSettings.buttonColor,
+                  child: Text(
+                    "Go to date..",
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                  ),
                 ),
               ),
               _spacer(10),
@@ -46,8 +50,11 @@ class _CalendarViewState extends State<CalendarView> {
                   height: 50,
                   minWidth: 75,
                   onPressed: _today,
-                  color: Colors.red,
-                  child: Text("Go to today"),
+                  color: AppThemeSettings.buttonColor,
+                  child: Text(
+                    "Go to today",
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                  ),
                 ),
               ),
             ],
@@ -62,11 +69,11 @@ class _CalendarViewState extends State<CalendarView> {
               headerStyle: HeaderStyle(
                   leftChevronIcon: Icon(
                     Icons.arrow_back,
-                    color: Colors.red,
+                    color: AppThemeSettings.previousButton,
                   ),
                   rightChevronIcon: Icon(
                     Icons.arrow_forward,
-                    color: Colors.red,
+                    color: AppThemeSettings.nextButton,
                   ),
                   formatButtonVisible: false),
             ),
@@ -76,8 +83,11 @@ class _CalendarViewState extends State<CalendarView> {
               height: 50,
               minWidth: 150,
               onPressed: _save,
-              color: Colors.red,
-              child: Text("Save"),
+              color: AppThemeSettings.greenButtonColor,
+              child: Text(
+                "Save",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
             ),
           ),
         ],
