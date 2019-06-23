@@ -42,226 +42,242 @@ class _TimerViewState extends State<TimerView> {
   }
 
   Widget _createTimer() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        _spacer(20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return OrientationBuilder(builder: (context, orientation) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            MaterialButton(
-              height: 50,
-              minWidth: 70,
-              onPressed: () {
-                _displayTime(30);
-              },
-              textColor: AppThemeSettings.buttonTextColor,
-              color: AppThemeSettings.buttonColor,
-              child: Text("30 sec"),
+//            _spacer(MediaQuery.of(context).size.height * 0.03),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                MaterialButton(
+                  height: MediaQuery.of(context).size.height * 0.06,
+                  minWidth: MediaQuery.of(context).size.width * 0.09,
+                  onPressed: () {
+                    _displayTime(30);
+                  },
+                  textColor: AppThemeSettings.buttonTextColor,
+                  color: AppThemeSettings.buttonColor,
+                  child: Text("30 sec"),
+                ),
+                MaterialButton(
+                  height: MediaQuery.of(context).size.height * 0.06,
+                  minWidth: MediaQuery.of(context).size.width * 0.09,
+                  onPressed: () {
+                    _displayTime(60);
+                  },
+                  textColor: AppThemeSettings.buttonTextColor,
+                  color: AppThemeSettings.buttonColor,
+                  child: Text("1 min"),
+                ),
+                MaterialButton(
+                  height: MediaQuery.of(context).size.height * 0.06,
+                  minWidth: MediaQuery.of(context).size.width * 0.09,
+                  onPressed: () {
+                    _displayTime(60.0 * 3);
+                  },
+                  textColor: AppThemeSettings.buttonTextColor,
+                  color: AppThemeSettings.buttonColor,
+                  child: Text("3 min"),
+                ),
+                MaterialButton(
+                  height: MediaQuery.of(context).size.height * 0.06,
+                  minWidth: MediaQuery.of(context).size.width * 0.09,
+                  onPressed: () {
+                    _displayTime(60.0 * 5);
+                  },
+                  textColor: AppThemeSettings.buttonTextColor,
+                  color: AppThemeSettings.buttonColor,
+                  child: Text("5 min"),
+                )
+              ],
             ),
-            _spacer(10),
-            MaterialButton(
-              height: 50,
-              minWidth: 70,
-              onPressed: () {
-                _displayTime(60);
-              },
-              textColor: AppThemeSettings.buttonTextColor,
-              color: AppThemeSettings.buttonColor,
-              child: Text("1 min"),
-            ),
-            _spacer(10),
-            MaterialButton(
-              height: 50,
-              minWidth: 70,
-              onPressed: () {
-                _displayTime(60.0 * 3);
-              },
-              textColor: AppThemeSettings.buttonTextColor,
-              color: AppThemeSettings.buttonColor,
-              child: Text("3 min"),
-            ),
-            _spacer(10),
-            MaterialButton(
-              height: 50,
-              minWidth: 70,
-              onPressed: () {
-                _displayTime(60.0 * 5);
-              },
-              textColor: AppThemeSettings.buttonTextColor,
-              color: AppThemeSettings.buttonColor,
-              child: Text("5 min"),
-            )
+            Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+
+                  FittedBox(
+                    child: Column(children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          _spacerSelectable(
+                              left: MediaQuery.of(context).size.width * 0.4),
+                          Center(
+                            child: Text(
+                              "H",
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  color: AppThemeSettings.timerColor),
+                            ),
+                          ),
+                          _spacerSelectable(
+                              left: MediaQuery.of(context).size.width * 0.4),
+                          Center(
+                            child: Text(
+                              "M",
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  color: AppThemeSettings.timerColor),
+                            ),
+                          ),
+                          _spacerSelectable(
+                              left: MediaQuery.of(context).size.width * 0.5),
+                          Center(
+                            child: Text(
+                              "S",
+                              style: TextStyle(
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  color: AppThemeSettings.timerColor),
+                            ),
+                          ),
+                          _spacerSelectable(
+                              left: MediaQuery.of(context).size.width * 0.6),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          _spacer(MediaQuery.of(context).size.width * 0.04),
+                          GestureDetector(
+                            //  compare start dy position with updated one
+                            onVerticalDragStart: (data) {
+                              position = data.globalPosition.dy;
+                            },
+                            onVerticalDragUpdate: (data) {
+                              if (position > data.globalPosition.dy) {
+                                dragUp = true;
+                              } else {
+                                dragUp = false;
+                              }
+                            },
+                            onVerticalDragEnd: (data) {
+                              // when dragging end read final dragUp bool and make action
+                              _hour = _changeHour(time: _hour, dragUp: dragUp);
+                              setState(() {
+                                _timer = _hour * 60.0 * 60.0;
+                              });
+                            },
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: Center(
+                                child: Text(
+                                  _hour.toString(),
+                                  style: TextStyle(
+                                      fontSize:
+                                          MediaQuery.of(context).size.width *
+                                              0.4,
+                                      color: AppThemeSettings.timerColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            ":",
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.4,
+                                color: AppThemeSettings.timerColor),
+                          ),
+                          GestureDetector(
+                            //  compare start dy position with updated one
+                            onVerticalDragStart: (data) {
+                              position = data.globalPosition.dy;
+                            },
+                            onVerticalDragUpdate: (data) {
+                              if (position > data.globalPosition.dy) {
+                                dragUp = true;
+                              } else {
+                                dragUp = false;
+                              }
+                            },
+                            onVerticalDragEnd: (data) {
+                              // when dragging end read final dragUp bool and make action
+                              _minute =
+                                  _changeTime(time: _minute, dragUp: dragUp);
+                              setState(() {
+                                _timer = _minute * 60.0;
+                              });
+                            },
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              child: Center(
+                                child: Text(
+                                  _minute.toString(),
+                                  style: TextStyle(
+                                      fontSize:
+                                          MediaQuery.of(context).size.width *
+                                              0.4,
+                                      color: AppThemeSettings.timerColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            ":",
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.4,
+                                color: AppThemeSettings.timerColor),
+                          ),
+                          _spacer(15),
+                          GestureDetector(
+                            //  compare start dy position with updated one
+                            onVerticalDragStart: (data) {
+                              position = data.globalPosition.dy;
+                            },
+                            onVerticalDragUpdate: (data) {
+                              if (position > data.globalPosition.dy) {
+                                dragUp = true;
+                              } else {
+                                dragUp = false;
+                              }
+                            },
+                            onVerticalDragEnd: (data) {
+                              // when dragging end read final dragUp bool and make action
+                              _sec = _changeTime(
+                                      time: _sec.toInt(), dragUp: dragUp)
+                                  .floorToDouble();
+                              setState(() {
+                                _timer = _sec;
+                              });
+                            },
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: Center(
+                                child: Row(
+                                  children: <Widget>[
+                                    Text(
+                                      _sec.toStringAsFixed(1),
+                                      style: TextStyle(
+                                        fontSize:
+                                            MediaQuery.of(context).size.width *
+                                                0.4,
+                                        color: AppThemeSettings.timerColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    ),
+                  ),
+                  _spacer(MediaQuery.of(context).size.height * 0.05),
+                  createControlButtons(),
+                ])
           ],
         ),
-        _spacer(40),
-        Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                width: 300,
-                child: FittedBox(
-                  child: Column(children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Center(
-                          child: Text(
-                            "H",
-                            style: TextStyle(
-                                fontSize: 50,
-                                color: AppThemeSettings.timerColor),
-                          ),
-                        ),
-                        _spacer(100),
-                        Center(
-                          child: Text(
-                            "M",
-                            style: TextStyle(
-                                fontSize: 50,
-                                color: AppThemeSettings.timerColor),
-                          ),
-                        ),
-                        _spacer(100),
-                        Center(
-                          child: Text(
-                            "S",
-                            style: TextStyle(
-                                fontSize: 50,
-                                color: AppThemeSettings.timerColor),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        GestureDetector(
-                          //  compare start dy position with updated one
-                          onVerticalDragStart: (data) {
-                            position = data.globalPosition.dy;
-                          },
-                          onVerticalDragUpdate: (data) {
-                            if (position > data.globalPosition.dy) {
-                              dragUp = true;
-                            } else {
-                              dragUp = false;
-                            }
-                          },
-                          onVerticalDragEnd: (data) {
-                            // when dragging end read final dragUp bool and make action
-                            _hour = _changeHour(time: _hour, dragUp: dragUp);
-                            setState(() {
-                              _timer = _hour * 60.0 * 60.0;
-                            });
-                          },
-                          child: SizedBox(
-                            width: 200,
-                            child: Center(
-                              child: Text(
-                                _hour.toString(),
-                                style: TextStyle(
-                                    fontSize: 150,
-                                    color: AppThemeSettings.timerColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                        _spacer(0),
-                        Text(
-                          ":",
-                          style: TextStyle(
-                              fontSize: 150,
-                              color: AppThemeSettings.timerColor),
-                        ),
-                        _spacer(0),
-                        GestureDetector(
-                          //  compare start dy position with updated one
-                          onVerticalDragStart: (data) {
-                            position = data.globalPosition.dy;
-                          },
-                          onVerticalDragUpdate: (data) {
-                            if (position > data.globalPosition.dy) {
-                              dragUp = true;
-                            } else {
-                              dragUp = false;
-                            }
-                          },
-                          onVerticalDragEnd: (data) {
-                            // when dragging end read final dragUp bool and make action
-                            _minute =
-                                _changeTime(time: _minute, dragUp: dragUp);
-                            setState(() {
-                              _timer = _minute * 60.0;
-                            });
-                          },
-                          child: SizedBox(
-                            width: 200,
-                            child: Center(
-                              child: Text(
-                                _minute.toString(),
-                                style: TextStyle(
-                                    fontSize: 150,
-                                    color: AppThemeSettings.timerColor),
-                              ),
-                            ),
-                          ),
-                        ),
-                        _spacer(0),
-                        Text(
-                          ":",
-                          style: TextStyle(
-                              fontSize: 150,
-                              color: AppThemeSettings.timerColor),
-                        ),
-                        _spacer(15),
-                        GestureDetector(
-                          //  compare start dy position with updated one
-                          onVerticalDragStart: (data) {
-                            position = data.globalPosition.dy;
-                          },
-                          onVerticalDragUpdate: (data) {
-                            if (position > data.globalPosition.dy) {
-                              dragUp = true;
-                            } else {
-                              dragUp = false;
-                            }
-                          },
-                          onVerticalDragEnd: (data) {
-                            // when dragging end read final dragUp bool and make action
-                            _sec =
-                                _changeTime(time: _sec.toInt(), dragUp: dragUp)
-                                    .floorToDouble();
-                            setState(() {
-                              _timer = _sec;
-                            });
-                          },
-                          child: SizedBox(
-                            width: 300,
-                            child: Center(
-                              child: Row(
-                                children: <Widget>[
-                                  Text(
-                                    _sec.toStringAsFixed(1),
-                                    style: TextStyle(
-                                        fontSize: 150,
-                                        color: AppThemeSettings.timerColor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ]),
-                ),
-              ),
-              _spacer(30),
-              createControlButtons(),
-            ])
-      ],
-    );
+      );
+    });
   }
 
   Widget createControlButtons() {
@@ -336,6 +352,15 @@ class _TimerViewState extends State<TimerView> {
 
   Widget _spacer(double size) {
     return Container(margin: EdgeInsets.all(size));
+  }
+
+  Widget _spacerSelectable(
+      {double top, double bottom, double left, double right}) {
+    if (top == null) top = 0;
+    if (bottom == null) bottom = 0;
+    if (left == null) left = 0;
+    if (right == null) right = 0;
+    return Container(margin: EdgeInsets.fromLTRB(left, top, right, bottom));
   }
 
   void _displayTime(double time) {

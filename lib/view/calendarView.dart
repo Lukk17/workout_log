@@ -26,11 +26,13 @@ class _CalendarViewState extends State<CalendarView> {
   Widget _create(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.6,
-      child: Column(
+      height: MediaQuery.of(context).size.height * 0.7,
+      child:
+      Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               Center(
                 child: MaterialButton(
@@ -60,8 +62,8 @@ class _CalendarViewState extends State<CalendarView> {
             ],
           ),
           _spacer(10),
-          Expanded(
-            child: TableCalendar(
+            Expanded(child:
+            TableCalendar(
               locale: 'en_US',
               selectedDay: _selected,
               onDaySelected: (day, list) => {_selectedDate(day)},
@@ -76,8 +78,7 @@ class _CalendarViewState extends State<CalendarView> {
                     color: AppThemeSettings.nextButton,
                   ),
                   formatButtonVisible: false),
-            ),
-          ),
+            ),),
           Center(
             child: MaterialButton(
               height: 50,
@@ -89,10 +90,10 @@ class _CalendarViewState extends State<CalendarView> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
             ),
-          ),
+          )
         ],
       ),
-    );
+   );
   }
 
   _setDate() {

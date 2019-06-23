@@ -230,7 +230,7 @@ class _WorkLogView extends State<WorkLogView> {
       context: context,
       builder: (_) => SimpleDialog(
             title: Center(child: Text("Edit repeats number")),
-            contentPadding: EdgeInsets.all(20),
+            contentPadding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
             children: <Widget>[
               TextField(
                 /// use text controller to save given by user String

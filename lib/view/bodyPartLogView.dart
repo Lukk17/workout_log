@@ -137,11 +137,11 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   ) {
     return Card(
       color: AppThemeSettings.primaryColor,
-      margin: EdgeInsets.only(bottom: 20, top: 20),
+      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02, top: MediaQuery.of(context).size.height * 0.02),
       elevation: 8,
       child: ListTile(
         title: Container(
-          margin: EdgeInsets.all(20),
+          margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
           child: Text(
             workLog.exercise.name,
             style: TextStyle(
@@ -155,7 +155,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
           children: <Widget>[
             ///  sum of workLog series
             Container(
-              margin: EdgeInsets.only(right: 20, bottom: 10),
+              margin: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
               child: Text(
                 "Series: ${workLog.series.length.toString()}",
                 style: TextStyle(
@@ -166,7 +166,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
             ///  sum of workLog reps in set
             Container(
-              margin: EdgeInsets.only(left: 20, bottom: 10),
+              margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
               child: Text(
                 "Reps: ${workLog.getRepsSum()}",
                 style: TextStyle(
@@ -182,7 +182,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
             Icons.arrow_forward,
             color: AppThemeSettings.secondaryColor,
           ),
-          margin: EdgeInsets.only(top: 20),
+          margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
         ),
 
         ///  push workLog and bodyPartInterface to new screen to display it's details
@@ -207,7 +207,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
       context: context,
       builder: (_) => SimpleDialog(
             title: Center(child: Text(title)),
-            contentPadding: EdgeInsets.all(20),
+            contentPadding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
             children: <Widget>[
               TextField(
                 // use text controller to save given by user String

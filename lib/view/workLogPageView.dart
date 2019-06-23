@@ -44,11 +44,12 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
           ),
           Table(
             columnWidths: {
-              0: FixedColumnWidth(130),
-              1: FixedColumnWidth(50),
-              2: FixedColumnWidth(130)
+              0: FixedColumnWidth(MediaQuery.of(context).size.height * 0.2),
+              1: FixedColumnWidth(MediaQuery.of(context).size.height * 0.1),
+              2: FixedColumnWidth(MediaQuery.of(context).size.height * 0.2)
             },
-            defaultColumnWidth: FixedColumnWidth(130),
+            defaultColumnWidth:
+                FixedColumnWidth(MediaQuery.of(context).size.width * 0.3),
             children: [
               TableRow(
                 children: <Widget>[
@@ -58,7 +59,11 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 ],
               ),
               TableRow(
-                children: <Widget>[_spacer(10), _spacer(5), _spacer(10)],
+                children: <Widget>[
+                  _spacer(MediaQuery.of(context).size.height * 0.01),
+                  _spacer(MediaQuery.of(context).size.height * 0.005),
+                  _spacer(MediaQuery.of(context).size.height * 0.01)
+                ],
               ),
               TableRow(
                 children: <Widget>[
@@ -68,12 +73,16 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 ],
               ),
               TableRow(
-                children: <Widget>[_spacer(10), _spacer(10), _spacer(10)],
+                children: <Widget>[
+                  _spacer(MediaQuery.of(context).size.height * 0.01),
+                  _spacer(MediaQuery.of(context).size.height * 0.01),
+                  _spacer(MediaQuery.of(context).size.height * 0.01)
+                ],
               ),
               TableRow(
                 children: <Widget>[
                   _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-                  _spacer(5),
+                  _spacer(MediaQuery.of(context).size.height * 0.005),
                   _createCategoryButton('cardio', BodyPart.CARDIO),
                 ],
               )
@@ -114,8 +123,8 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 ),
               );
       },
-      height: 60,
-      minWidth: 350,
+      height: MediaQuery.of(context).size.height * 0.06,
+      minWidth: MediaQuery.of(context).size.height * 0.3,
       color: AppThemeSettings.buttonColor,
       splashColor: AppThemeSettings.buttonSplashColor,
       textColor: AppThemeSettings.buttonTextColor,
