@@ -27,6 +27,10 @@ class _HelloWorldViewState extends State<HelloWorldView>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
   SharedPreferences prefs;
+  Orientation screenOrientation;
+
+  //  creating key to change drawer icon
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -38,51 +42,74 @@ class _HelloWorldViewState extends State<HelloWorldView>
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
-
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(AppThemeSettings.background),
-          fit: BoxFit.cover,
+    return OrientationBuilder(builder: (context, orientation) {
+      screenOrientation = orientation;
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppThemeSettings.background),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
-      child: Scaffold(
-        appBar: _createAppBar(),
-        body: _createBody(),
-        bottomNavigationBar: _createTabBar(),
-        drawer: _openSettings(),
-      ),
-    );
+        child: Scaffold(
+          key: _scaffoldKey,
+          appBar: _createAppBar(),
+          body: _createBody(),
+          bottomNavigationBar: _createTabBar(),
+          drawer: _openSettings(),
+        ),
+      );
+    });
   }
 
   Widget _createAppBar() {
-    return AppBar(
-      // Here we take the value from the MyHomePage object that was created by
-      // the App.build method, and use it to set our appbar title.
-      title: Text(
-        widget.title,
-        style: TextStyle(color: AppThemeSettings.titleColor),
-      ),
-      backgroundColor: AppThemeSettings.appBarColor,
+    return PreferredSize(
+      preferredSize: Size.fromHeight((screenOrientation == Orientation.portrait)
+          ? MediaQuery.of(context).size.height * 0.08
+          : MediaQuery.of(context).size.width * 0.05),
+      child: AppBar(
+        //  changing drawer icon
+        leading: new IconButton(
+            icon: new Icon(Icons.settings),
+            onPressed: () => _scaffoldKey.currentState.openDrawer()),
 
-      actions: <Widget>[
-        MaterialButton(
-          padding: EdgeInsets.all(5),
-          onPressed: _openCalendar,
-          child: Column(
-            children: <Widget>[
-              Icon(
-                Icons.calendar_today,
-                color: AppThemeSettings.calendarIconColor,
-              ),
-              Text(
-                "Calendar",
-                style: TextStyle(color: AppThemeSettings.calendarIconColor),
-              ),
-            ],
-          ),
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(
+          widget.title,
+          style: TextStyle(
+              color: AppThemeSettings.titleColor,
+              fontSize: (screenOrientation == Orientation.portrait)
+                  ? MediaQuery.of(context).size.height * 0.03
+                  : MediaQuery.of(context).size.width * 0.03),
         ),
-      ],
+        backgroundColor: AppThemeSettings.appBarColor,
+        centerTitle: (screenOrientation == Orientation.portrait) ? false : true,
+        actions: <Widget>[
+          MaterialButton(
+            padding: EdgeInsets.all(5),
+            onPressed: _openCalendar,
+            child: (screenOrientation == Orientation.portrait)
+                ? Column(
+                    children: <Widget>[
+                      Icon(
+                        Icons.calendar_today,
+                        color: AppThemeSettings.calendarIconColor,
+                      ),
+                      Text(
+                        "Calendar",
+                        style: TextStyle(
+                            color: AppThemeSettings.calendarIconColor),
+                      ),
+                    ],
+                  )
+                : Icon(
+                    Icons.calendar_today,
+                    color: AppThemeSettings.calendarIconColor,
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -95,15 +122,17 @@ class _HelloWorldViewState extends State<HelloWorldView>
         controller: _tabController,
         tabs: <Widget>[
           Tab(
-            text: "log",
+            text: (screenOrientation == Orientation.portrait) ? "log" : null,
             icon: Icon(Icons.assignment),
           ),
           Tab(
-            text: "timer",
+            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
             icon: Icon(Icons.timer),
           ),
           Tab(
-            text: "statistic",
+            text: (screenOrientation == Orientation.portrait)
+                ? "statistic"
+                : null,
             icon: Icon(Icons.assessment),
           ),
         ],
@@ -130,7 +159,8 @@ class _HelloWorldViewState extends State<HelloWorldView>
       context: context,
       builder: (context) => SimpleDialog(
             children: <Widget>[
-              CalendarView((widget) => {}),
+              //  send screen orientation to dialog creator
+              CalendarView((widget) => {}, screenOrientation),
             ],
           ),
     );

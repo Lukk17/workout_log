@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appTheme.dart';
@@ -29,12 +28,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //  Lock to portrait orientation
-//    SystemChrome.setPreferredOrientations([
-//      DeviceOrientation.portraitUp,
-//      DeviceOrientation.portraitDown,
-//    ]);
-
     return AppBuilder(builder: (context) {
       return MaterialApp(
         title: 'Private WorkLog',

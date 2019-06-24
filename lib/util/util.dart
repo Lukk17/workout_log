@@ -99,4 +99,17 @@ class Util {
       ),
     );
   }
+
+  static Widget spacer(double size) {
+    return Container(margin: EdgeInsets.all(size));
+  }
+
+  static Widget spacerSelectable(
+      {double top, double bottom, double left, double right}) {
+    if (top == null) top = 0;
+    if (bottom == null) bottom = 0;
+    if (left == null) left = 0;
+    if (right == null) right = 0;
+    return Container(margin: EdgeInsets.fromLTRB(left, top, right, bottom));
+  }
 }

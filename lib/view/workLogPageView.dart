@@ -18,80 +18,154 @@ class WorkLogPageView extends StatefulWidget {
 
 class _WorkLogPageViewState extends State<WorkLogPageView> {
   final DateTime date;
+  Orientation screenOrientation;
 
   _WorkLogPageViewState(this.date);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(AppThemeSettings.background),
-          fit: BoxFit.cover,
+    return OrientationBuilder(builder: (context, orientation) {
+      screenOrientation = orientation;
+      return Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(AppThemeSettings.background),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Text(
-            Util.formatter.format(HelloWorldView.date) ==
-                    Util.formatter.format(DateTime.now())
-                ? "Today"
-                : Util.formatter.format(HelloWorldView.date),
-            textScaleFactor: 3,
-            style: TextStyle(
-                color: AppThemeSettings.textColor, fontWeight: FontWeight.bold),
-          ),
-          Table(
-            columnWidths: {
-              0: FixedColumnWidth(MediaQuery.of(context).size.height * 0.2),
-              1: FixedColumnWidth(MediaQuery.of(context).size.height * 0.1),
-              2: FixedColumnWidth(MediaQuery.of(context).size.height * 0.2)
-            },
-            defaultColumnWidth:
-                FixedColumnWidth(MediaQuery.of(context).size.width * 0.3),
-            children: [
-              TableRow(
-                children: <Widget>[
-                  _createCategoryButton('chest', BodyPart.CHEST),
-                  _spacer(5),
-                  _createCategoryButton('back', BodyPart.BACK),
-                ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Container(
+              alignment: Alignment(-0.7, 0),
+              child: Text(
+                Util.formatter.format(HelloWorldView.date) ==
+                        Util.formatter.format(DateTime.now())
+                    ? "Today"
+                    : Util.formatter.format(HelloWorldView.date),
+                textScaleFactor: 3,
+                style: TextStyle(
+                    color: AppThemeSettings.textColor,
+                    fontWeight: FontWeight.bold),
               ),
-              TableRow(
-                children: <Widget>[
-                  _spacer(MediaQuery.of(context).size.height * 0.01),
-                  _spacer(MediaQuery.of(context).size.height * 0.005),
-                  _spacer(MediaQuery.of(context).size.height * 0.01)
-                ],
-              ),
-              TableRow(
-                children: <Widget>[
-                  _createCategoryButton('arm', BodyPart.ARM),
-                  _spacer(5),
-                  _createCategoryButton('leg', BodyPart.LEG),
-                ],
-              ),
-              TableRow(
-                children: <Widget>[
-                  _spacer(MediaQuery.of(context).size.height * 0.01),
-                  _spacer(MediaQuery.of(context).size.height * 0.01),
-                  _spacer(MediaQuery.of(context).size.height * 0.01)
-                ],
-              ),
-              TableRow(
-                children: <Widget>[
-                  _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-                  _spacer(MediaQuery.of(context).size.height * 0.005),
-                  _createCategoryButton('cardio', BodyPart.CARDIO),
-                ],
-              )
-            ],
-          ),
-          _createCategoryButton('all'),
-        ],
-      ),
-    );
+            ),
+            (orientation == Orientation.portrait)
+
+                //  for portrait orientation
+                ? Table(
+                    columnWidths: {
+                      0: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.35),
+                      1: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.175),
+                      2: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.35)
+                    },
+                    defaultColumnWidth: FixedColumnWidth(
+                        MediaQuery.of(context).size.width * 0.3),
+                    children: [
+                      TableRow(
+                        children: <Widget>[
+                          _createCategoryButton('chest', BodyPart.CHEST),
+                          Util.spacer(5),
+                          _createCategoryButton('back', BodyPart.BACK),
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.005),
+                          Util.spacer(MediaQuery.of(context).size.height * 0.01)
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          _createCategoryButton('arm', BodyPart.ARM),
+                          Util.spacer(5),
+                          _createCategoryButton('leg', BodyPart.LEG),
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                          Util.spacer(MediaQuery.of(context).size.height * 0.01)
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          _createCategoryButton(
+                              'abdominal', BodyPart.ABDOMINAL),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.005),
+                          _createCategoryButton('cardio', BodyPart.CARDIO),
+                        ],
+                      )
+                    ],
+                  )
+
+                //  for landscape orientation
+                : Table(
+                    columnWidths: {
+                      0: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.2),
+                      1: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.1),
+                      2: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.2),
+                      3: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.1),
+                      4: FixedColumnWidth(
+                          MediaQuery.of(context).size.width * 0.2),
+                    },
+                    defaultColumnWidth: FixedColumnWidth(
+                        MediaQuery.of(context).size.width * 0.3),
+                    children: [
+                      TableRow(
+                        children: <Widget>[
+                          _createCategoryButton('chest', BodyPart.CHEST),
+                          Util.spacer(5),
+                          _createCategoryButton('back', BodyPart.BACK),
+                          Util.spacer(5),
+                          _createCategoryButton('arm', BodyPart.ARM),
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.005),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.005),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.01),
+                        ],
+                      ),
+                      TableRow(
+                        children: <Widget>[
+                          _createCategoryButton('leg', BodyPart.LEG),
+                          Util.spacer(5),
+                          _createCategoryButton(
+                              'abdominal', BodyPart.ABDOMINAL),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.005),
+                          _createCategoryButton('cardio', BodyPart.CARDIO),
+                        ],
+                      ),
+                    ],
+                  ),
+            _createCategoryButton('all'),
+          ],
+        ),
+      );
+    });
   }
 
   /// Creates button routing to BodyPartLogView
@@ -123,17 +197,17 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 ),
               );
       },
-      height: MediaQuery.of(context).size.height * 0.06,
-      minWidth: MediaQuery.of(context).size.height * 0.3,
+      height: (screenOrientation == Orientation.portrait)
+          ? MediaQuery.of(context).size.height * 0.06
+          : MediaQuery.of(context).size.height * 0.1,
+      minWidth: (screenOrientation == Orientation.portrait)
+          ? MediaQuery.of(context).size.width * 0.5
+          : MediaQuery.of(context).size.width * 0.3,
       color: AppThemeSettings.buttonColor,
       splashColor: AppThemeSettings.buttonSplashColor,
       textColor: AppThemeSettings.buttonTextColor,
       child: Text(text),
     );
     return cb;
-  }
-
-  Widget _spacer(double size) {
-    return Container(margin: EdgeInsets.all(size));
   }
 }
