@@ -135,7 +135,7 @@ class _WorkLogView extends State<WorkLogView> {
       ),
       floatingActionButton: FloatingActionButton(
         // text which will be shown after long press on button
-        tooltip: 'Add exercise',
+        tooltip: 'Add series',
 
         // open pop-up on button press to add new exercise
         onPressed: () => addSeriesToWorkLog(),

@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/util/util.dart';
 
 part 'exercise.g.dart';
 
@@ -20,9 +19,9 @@ class Exercise {
   //  initialize name to avoid nullPointer when user will not add any name
   String name = "";
 
-  BodyPart bodyPart;
+  Set<BodyPart> bodyParts;
 
-  Exercise(this.name, this.bodyPart);
+  Exercise(this.name, this.bodyParts);
 
   // for Json serializable
   // auto-create addition files for file XXX.dart - XXX.g.dart
@@ -33,14 +32,14 @@ class Exercise {
 
   //  needed for SQLite
   factory Exercise.fromMap(Map<String, dynamic> json) {
-
-    BodyPart bp = Util.recreateBodyPart(json["bodyPart"]);
+    Set<BodyPart> bp = recreateBodyPart(json["bodyPart"]);
 
     Exercise e = Exercise(
       //  get from given map
       json["name"],
       bp,
     );
+
     ///  id needed to be saved as it is in json,
     ///  otherwise id will again generated,
     ///  which will be incoherent with DB entry
@@ -51,8 +50,54 @@ class Exercise {
   Map<String, dynamic> toMap() => {
         "id": id,
         "name": name,
-        "bodyPart":
-            bodyPart.toString().substring(bodyPart.toString().indexOf('.') + 1),
+        "bodyPart": bodyPartsToString(),
       };
 
+  String bodyPartsToString() {
+    StringBuffer result = StringBuffer();
+
+    for (var b in bodyParts) {
+      result.write(b.toString().substring(b.toString().indexOf('.') + 1));
+      result.write("&");
+    }
+    return result.toString();
+  }
+
+  static Set<BodyPart> recreateBodyPart(String bodyPart) {
+    Set<BodyPart> result = Set();
+    //  BodyParts are divided by "&" symbol
+    //  need to split by it and compare with enum types
+    List<String> bodyParts = bodyPart.split("&");
+
+    for (var s in bodyParts) {
+      if (s.isNotEmpty) {
+        switch (s) {
+          case "CHEST":
+            result.add(BodyPart.CHEST);
+            break;
+
+          case "BACK":
+            result.add(BodyPart.BACK);
+            break;
+
+          case "LEG":
+            result.add(BodyPart.LEG);
+            break;
+
+          case "ARM":
+            result.add(BodyPart.ARM);
+            break;
+
+          case "CARDIO":
+            result.add(BodyPart.CARDIO);
+            break;
+
+          default:
+            result.add(BodyPart.UNDEFINED);
+            break;
+        }
+      }
+    }
+    return result;
+  }
 }

@@ -27,6 +27,7 @@ class BodyPartLogView extends StatefulWidget {
 class _BodyPartLogViewState extends State<BodyPartLogView> {
   BodyPart _bodyPart;
   static List<Widget> wList = List();
+  List<MaterialButton> exerciseList = List();
 
   //  get DB from singleton global provider
   DBProvider db = DBProvider.db;
@@ -92,8 +93,10 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                   tooltip: 'Add exercise',
 
                   // open pop-up on button press to add new exercise
-                  onPressed: () =>
-                      showAddWorkLogDialog('Exercise', 'eg. pushup', context),
+                  onPressed: () => {
+                        getExercises(),
+                        showAddExerciseDialog(),
+                      },
                   child: Icon(Icons.add),
                   backgroundColor: AppThemeSettings.primaryColor,
                   foregroundColor: AppThemeSettings.secondaryColor,
@@ -137,7 +140,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   ) {
     return Card(
       color: AppThemeSettings.primaryColor,
-      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02, top: MediaQuery.of(context).size.height * 0.02),
+      margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height * 0.02,
+          top: MediaQuery.of(context).size.height * 0.02),
       elevation: 8,
       child: ListTile(
         title: Container(
@@ -155,7 +160,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
           children: <Widget>[
             ///  sum of workLog series
             Container(
-              margin: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+              margin: EdgeInsets.only(
+                  right: MediaQuery.of(context).size.width * 0.02,
+                  bottom: MediaQuery.of(context).size.height * 0.01),
               child: Text(
                 "Series: ${workLog.series.length.toString()}",
                 style: TextStyle(
@@ -166,7 +173,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
             ///  sum of workLog reps in set
             Container(
-              margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+              margin: EdgeInsets.only(
+                  left: MediaQuery.of(context).size.width * 0.02,
+                  bottom: MediaQuery.of(context).size.height * 0.01),
               child: Text(
                 "Reps: ${workLog.getRepsSum()}",
                 style: TextStyle(
@@ -182,7 +191,8 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
             Icons.arrow_forward,
             color: AppThemeSettings.secondaryColor,
           ),
-          margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+          margin:
+              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
         ),
 
         ///  push workLog and bodyPartInterface to new screen to display it's details
@@ -197,17 +207,107 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     );
   }
 
-  Future showAddWorkLogDialog(
+  Future showAddExerciseDialog() {
+    return showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+            title: Text(
+              "Select exercise",
+              textAlign: TextAlign.center,
+            ),
+            children: <Widget>[
+              Util.addHorizontalLine(),
+              Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Container(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        width: MediaQuery.of(context).size.width * 0.7,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: exerciseList.length,
+                          itemBuilder: (context, index) => exerciseList[index],
+                        ),
+                      ),
+                      Column(
+                        children: <Widget>[
+                          Icon(Icons.arrow_upward),
+                          Util.spacerSelectable(
+                              top: MediaQuery.of(context).size.height * 0.3,
+                              bottom: 0,
+                              left: 0,
+                              right: 0),
+                          Icon(Icons.arrow_downward),
+                        ],
+                      )
+                    ],
+                  ),
+                  Util.addHorizontalLine(),
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.1,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        MaterialButton(
+                            color: AppThemeSettings.greenButtonColor,
+                            child: Text("New"),
+                            onPressed: () => {
+                                  Navigator.pop(context),
+                                  showNewExerciseDialog(
+                                      'Exercise', 'eg. pushup'),
+                                }),
+                        MaterialButton(
+                            color: AppThemeSettings.cancelButtonColor,
+                            child: const Text('CANCEL'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
+  }
+
+  void getExercises() async {
+    List<MaterialButton> result = List();
+    List<Exercise> exercises = await db.getAllExercise();
+
+    for (Exercise e in exercises) {
+      print('EXERCISE =========== >  ${e.id}');
+      result.add(MaterialButton(
+        onPressed: () {
+          Exercise exercise = Exercise(
+            e.name,
+            // bodyPart as Set()
+            {_bodyPart},
+          );
+          addWorkLog(exercise, _bodyPart);
+          //  after saving new record bp state need to be updated:
+          updateWorkLogFromDB();
+          Navigator.pop(context);
+        },
+        child: Text(e.name),
+      ));
+    }
+    exerciseList = result;
+  }
+
+  Future showNewExerciseDialog(
     String title,
     String hint,
-    BuildContext context,
   ) {
     TextEditingController textEditingController = Util.textController();
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
             title: Center(child: Text(title)),
-            contentPadding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+            contentPadding:
+                EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
             children: <Widget>[
               TextField(
                 // use text controller to save given by user String
@@ -220,18 +320,23 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    FlatButton(
+                    MaterialButton(
+                        color: AppThemeSettings.greenButtonColor,
                         child: const Text('SAVE'),
                         onPressed: () {
                           // text is forwarded by controller from SimpleDialog text field
-                          Exercise exercise =
-                              Exercise(textEditingController.text, _bodyPart);
+                          Exercise exercise = Exercise(
+                            textEditingController.text,
+                            // bodyPart as Set()
+                            {_bodyPart},
+                          );
                           addWorkLog(exercise, _bodyPart);
                           //  after saving new record bp state need to be updated:
                           updateWorkLogFromDB();
                           Navigator.pop(context);
                         }),
-                    FlatButton(
+                    MaterialButton(
+                        color: AppThemeSettings.cancelButtonColor,
                         child: const Text('CANCEL'),
                         onPressed: () {
                           Navigator.pop(context);
@@ -244,7 +349,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
   addWorkLog(Exercise exercise, BodyPart bodyPart) {
     WorkLog workLog = WorkLog(exercise);
-    workLog.exercise.bodyPart = bodyPart;
+    workLog.exercise.bodyParts = {bodyPart}; // bodyPart as Set()
     workLog.created = HelloWorldView.date;
     String json = jsonEncode(workLog);
     print("add worklog: " + json);

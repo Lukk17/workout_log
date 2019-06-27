@@ -68,8 +68,8 @@ class WorkLog {
   }
 
   String getBodyPart() {
-    return exercise.bodyPart
+    return exercise.bodyParts
         .toString()
-        .substring(exercise.bodyPart.toString().indexOf('.') + 1);
+        .substring(exercise.bodyParts.toString().indexOf('.') + 1);
   }
 }

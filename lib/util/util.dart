@@ -15,29 +15,6 @@ class Util {
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
 
-  static BodyPart recreateBodyPart(String bodyPart) {
-    print("enum $bodyPart");
-    switch (bodyPart) {
-      case "CHEST":
-        return BodyPart.CHEST;
-
-      case "BACK":
-        return BodyPart.BACK;
-
-      case "LEG":
-        return BodyPart.LEG;
-
-      case "ARM":
-        return BodyPart.ARM;
-
-      case "CARDIO":
-        return BodyPart.CARDIO;
-
-      default:
-        return BodyPart.UNDEFINED;
-    }
-  }
-
   //  TODO use it
   static Future editExerciseNameDialog(
     BuildContext context,
