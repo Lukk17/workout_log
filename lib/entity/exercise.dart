@@ -100,4 +100,18 @@ class Exercise {
     }
     return result;
   }
+
+  String toString(){
+    StringBuffer result = StringBuffer();
+
+    result.write(" EXERCISE: \t");
+    result.write(" ID: ");
+    result.write(this.id);
+    result.write(" NAME: ");
+    result.write(this.name);
+    result.write(" BODY PARTS: ");
+    result.write(this.bodyParts.toString());
+
+    return result.toString();
+  }
 }

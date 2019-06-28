@@ -53,6 +53,19 @@ class DBProvider {
           "exercise_id VARCHAR(32),"
           "FOREIGN KEY(exercise_id) REFERENCES exercise(id)"
           ")");
+
+      //  adding some basic exercises to db
+      List<Exercise> exercises = List();
+
+      exercises.add(Exercise("Push Up", {BodyPart.CHEST, BodyPart.ARM}));
+      exercises.add(Exercise("Pull Up", {BodyPart.BACK, BodyPart.ARM}));
+      exercises.add(
+          Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG, BodyPart.ARM}));
+      exercises.add(Exercise("Running", {BodyPart.CARDIO}));
+
+      exercises.forEach(
+        (exercise) => db.insert(exerciseTable, exercise.toMap()),
+      );
     });
   }
 
@@ -63,40 +76,79 @@ class DBProvider {
     bool unique = true;
 
     List<Exercise> allExercises = await getAllExercise();
-    for (var e in allExercises) {
-      if (e.name == workLog.exercise.name) {
+
+    for (var dbExercise in allExercises) {
+      if (dbExercise.name == workLog.exercise.name) {
         //  add to DB only if there is no identical workLog entry
         //  (with same exercise and bodyPart)
-        if (!e.bodyParts.contains(workLog.exercise.bodyParts.first)) {
+        if (!dbExercise.bodyParts.contains(workLog.exercise.bodyParts.first)) {
           ///  if workLog is adding exercise which name already exist
           ///  but user added this exercise to another bodyPart
           ///  add this new bodyPart to exercise's bp list and update db
-          e.bodyParts.addAll(workLog.exercise.bodyParts);
-          db.update(exerciseTable, e.toMap(),
-              where: "id = ?", whereArgs: [e.id]);
-
-          //  db exercise as workLog exercise (to save one with correct ID)
-          workLog.exercise = e;
+          dbExercise.bodyParts.addAll(workLog.exercise.bodyParts);
+          db.update(exerciseTable, dbExercise.toMap(),
+              where: "id = ?", whereArgs: [dbExercise.id]);
+          print(
+              "\n [newWorkLog] UPDATING EXERCISE : ============>  ${dbExercise.toString()} \n ");
         }
+
+        //  if there is worklog with same exercise name in given
+//        var res = await db.query("worklog", where: "exercise_id = ?", whereArgs: [dbExercise.id]);
+//        for() {
+//          if (){
+//
+//          }
+//        }
+
+        //  db exercise as workLog exercise (to save one with correct ID)
+        workLog.exercise = dbExercise;
+        idFromDB = await db.insert(workLogTable, workLog.toMap());
+
+        print(
+            "\n ADDING NEW WORKLOG: ============>  ${workLog.toString()} \n ");
+
         //  when name and body part is identical change flag to false
-        //  and do not save workLog
+        //  and do not save workLog again
         unique = false;
       }
     }
 
     /// if it is new exercise save it to DB as well
     if (unique) {
-      int eID = await db.insert(exerciseTable, workLog.exercise.toMap());
+      print(
+          "\n ADDING NEW WORKLOG AND NEW EXERCISE: ============>  ${workLog.toString()} \n ");
 
+      await db.insert(exerciseTable, workLog.exercise.toMap());
       idFromDB = await db.insert(workLogTable, workLog.toMap());
     }
 
     return idFromDB;
   }
 
+  Future<int> updateExercise(Exercise exercise) async {
+    final db = await database;
+    int id = -1;
+
+    List<Exercise> allExercises = await getAllExercise();
+    // check if in db on that day is workLog with same exercise name but different bodypart
+    //  if so save this exercise new body part
+
+    for (var dbExercise in allExercises) {
+      if (dbExercise.name == exercise.name) {
+        dbExercise.bodyParts.addAll(exercise.bodyParts);
+        id = await db.update(exerciseTable, dbExercise.toMap(),
+            where: "id = ?", whereArgs: [dbExercise.id]);
+
+        print(
+            "\n UPDATE EXERCISE: ============>  ${dbExercise.toString()} \n ");
+      }
+    }
+    return id;
+  }
+
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
-    print("UPDATE EXERCISE ID:      " + workLog.exercise.bodyParts.toString());
+    print("\n UPDATE WORKLOG: ============>  ${workLog.toString()} \n ");
 
     await db.update(exerciseTable, workLog.exercise.toMap(),
         where: "id = ?", whereArgs: [workLog.exercise.id]);
@@ -176,7 +228,7 @@ class DBProvider {
     return result;
   }
 
-  Future<List<WorkLog>> getWorkLogs(BodyPart part) async {
+  Future<List<WorkLog>> getDateBodypartWorkLogs(BodyPart part) async {
     List<WorkLog> workLogList = List();
     final db = await database;
     String date = Util.formatter.format(HelloWorldView.date);

@@ -39,7 +39,6 @@ class WorkLog {
 
   //  needed for SQLite
   factory WorkLog.fromMap(Map<String, dynamic> map, Exercise e) {
-    print('worklog fromMap:  $map');
     WorkLog result = WorkLog(e);
     result.id = map["id"];
     //  decode json, which is string from DB to series map
@@ -72,4 +71,23 @@ class WorkLog {
         .toString()
         .substring(exercise.bodyParts.toString().indexOf('.') + 1);
   }
+
+  String toString(){
+    StringBuffer result = StringBuffer();
+
+    result.write(" WORKLOG \t");
+    result.write(" ID: ");
+    result.write(this.id);
+    result.write(" CREATED: ");
+    result.write(this.created);
+    result.write(" SERIES: ");
+    result.write(this.series.toString());
+    result.write("\t\t");
+    result.write(this.exercise.toString());
+
+    return result.toString();
+
+  }
+
+
 }

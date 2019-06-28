@@ -110,7 +110,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     if (_bodyPart == BodyPart.UNDEFINED || _bodyPart == null) {
       workLogList = await db.getDateAllWorkLogs();
     } else {
-      workLogList = await db.getWorkLogs(_bodyPart);
+      workLogList = await db.getDateBodypartWorkLogs(_bodyPart);
     }
     setState(() {
       if (workLogList != null && workLogList.isNotEmpty) {
@@ -208,6 +208,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   }
 
   Future showAddExerciseDialog() {
+    getExercises();
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
@@ -256,6 +257,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                                   Navigator.pop(context),
                                   showNewExerciseDialog(
                                       'Exercise', 'eg. pushup'),
+                                  updateState(),
                                 }),
                         MaterialButton(
                             color: AppThemeSettings.cancelButtonColor,
@@ -278,7 +280,6 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     List<Exercise> exercises = await db.getAllExercise();
 
     for (Exercise e in exercises) {
-      print('EXERCISE =========== >  ${e.id}');
       result.add(MaterialButton(
         onPressed: () {
           Exercise exercise = Exercise(
@@ -332,7 +333,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                           );
                           addWorkLog(exercise, _bodyPart);
                           //  after saving new record bp state need to be updated:
-                          updateWorkLogFromDB();
+                          updateState();
                           Navigator.pop(context);
                         }),
                     MaterialButton(
@@ -347,12 +348,28 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     );
   }
 
-  addWorkLog(Exercise exercise, BodyPart bodyPart) {
+  addWorkLog(Exercise exercise, BodyPart bodyPart) async {
+    //  get all workLogs from that day
+    List<WorkLog> workLogList = await db.getDateAllWorkLogs();
+
+    //  check if workLogs have same exercise name
+    for (var w in workLogList) {
+      if (w.exercise.name == exercise.name) {
+        //  if there is workLog with that exercise name on this day,
+        //  but with different bodypart
+        //  update db with this new body part
+        w.exercise.bodyParts.addAll(exercise.bodyParts);
+        db.updateExercise(w.exercise);
+        print("\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
+        return;
+      }
+    }
     WorkLog workLog = WorkLog(exercise);
     workLog.exercise.bodyParts = {bodyPart}; // bodyPart as Set()
     workLog.created = HelloWorldView.date;
     String json = jsonEncode(workLog);
-    print("add worklog: " + json);
+
+    print("\n [addworklog] ADDING NEW WORKLOG  : ============>  ${workLog.toString()}\n ");
 
     /// save to json
     Storage.writeToFile(json);
