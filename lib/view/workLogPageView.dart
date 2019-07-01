@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 

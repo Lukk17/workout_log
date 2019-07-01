@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 

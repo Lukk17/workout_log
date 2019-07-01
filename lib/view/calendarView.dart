@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/util.dart';
 
 import 'helloWorldView.dart';

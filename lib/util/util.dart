@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/setting/appThemeSettings.dart';
 
 class Util {
   static TextEditingController _textController = TextEditingController();

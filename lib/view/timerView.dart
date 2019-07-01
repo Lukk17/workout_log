@@ -4,7 +4,7 @@ import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:workout_log/setting/appTheme.dart';
+import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/util.dart';
 
 class TimerView extends StatefulWidget {
@@ -176,7 +176,8 @@ class _TimerViewState extends State<TimerView> {
                   width: MediaQuery.of(context).size.width * 0.5 * scale,
                   child: Center(
                     child: Text(
-                      _hour.toString(),
+                      //  padLeft to add additional 0 to be always same length of string
+                      _hour.toString().padLeft(2, "0"),
                       style: TextStyle(
                           fontSize:
                               MediaQuery.of(context).size.width * 0.4 * scale,
@@ -214,7 +215,8 @@ class _TimerViewState extends State<TimerView> {
                   width: MediaQuery.of(context).size.width * 0.5 * scale,
                   child: Center(
                     child: Text(
-                      _minute.toString(),
+                      //  padLeft to add additional 0 to be always same length of string
+                      _minute.toString().padLeft(2, "0"),
                       style: TextStyle(
                           fontSize:
                               MediaQuery.of(context).size.width * 0.4 * scale,
@@ -256,7 +258,9 @@ class _TimerViewState extends State<TimerView> {
                     child: Row(
                       children: <Widget>[
                         Text(
-                          _sec.toStringAsFixed(1),
+                          //  padLeft to add additional 0 to be always same length of string
+                          //  because of this number is not int the lenght of pad is different than 2
+                        _sec.toStringAsFixed(1).padLeft(4, "0"),
                           style: TextStyle(
                             fontSize:
                                 MediaQuery.of(context).size.width * 0.4 * scale,
@@ -414,7 +418,7 @@ class _TimerViewState extends State<TimerView> {
       (Timer t) => setState(
             () {
               if (run) {
-                if (_timer < 0.1) {
+                if (_timer < 0.2) {
                   _timer = 0;
                   run = false;
                   _displayTime(_timer);

@@ -89,6 +89,10 @@ class AppThemeSettings {
 
   static double tableHeaderBorderWidth = 5;
   static double tableCellBorderWidth = 3;
+  static double timerCircleWidth = 5;
+
+  static StrokeCap strokeCap = StrokeCap.round;
+  static PaintingStyle paintingStyle = PaintingStyle.fill;
 
   static String background = "graphics/background.png";
   static String timerBackground = "graphics/bg-leaves.png";
