@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,17 +16,43 @@ class TimerView extends StatefulWidget {
   State<StatefulWidget> createState() => _TimerViewState();
 }
 
-class _TimerViewState extends State<TimerView> {
+class _TimerViewState extends State<TimerView>
+    with SingleTickerProviderStateMixin {
   int _hour = 0;
   int _minute = 0;
-  double _sec = 0.0;
-  double _timer = 0;
-  double timerCache = 0;
+  int _sec = 0;
+  int _milliseconds = 0;
+
+  int timerCache = 0;
   bool run = false;
   bool pause = false;
   double position = 0;
   bool dragUp = true;
   Orientation screenOrientation;
+  AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(
+          hours: _hour,
+          minutes: _minute,
+          seconds: _sec,
+          milliseconds: _milliseconds),
+    );
+    controller.addListener(() => {
+          _displayTime(
+              (controller.duration.inMilliseconds * controller.value).toInt()),
+          if (controller.value == 0)
+            {
+              _startAlarm(),
+              _stopTimer(),
+            }
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +82,8 @@ class _TimerViewState extends State<TimerView> {
                 children: <Widget>[
                   createTimeButton(timeText: "30 sec", seconds: 30),
                   createTimeButton(timeText: "1 min", seconds: 60),
-                  createTimeButton(timeText: "3 min", seconds: 60.0 * 3),
-                  createTimeButton(timeText: "5 min", seconds: 60.0 * 5),
+                  createTimeButton(timeText: "3 min", seconds: 60 * 3),
+                  createTimeButton(timeText: "5 min", seconds: 60 * 5),
                 ],
               ),
               Column(
@@ -85,13 +109,13 @@ class _TimerViewState extends State<TimerView> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     createTimeButton(timeText: "30 sec", seconds: 30),
-                    createTimeButton(timeText: "3 min", seconds: 60.0 * 3),
+                    createTimeButton(timeText: "3 min", seconds: 60 * 3),
                   ]),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   createTimeButton(timeText: "1 min", seconds: 60),
-                  createTimeButton(timeText: "5 min", seconds: 60.0 * 5),
+                  createTimeButton(timeText: "5 min", seconds: 60 * 5),
                 ],
               ),
               Column(
@@ -168,9 +192,7 @@ class _TimerViewState extends State<TimerView> {
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
                   _hour = _changeHour(time: _hour, dragUp: dragUp);
-                  setState(() {
-                    _timer = _hour * 60.0 * 60.0;
-                  });
+                  setState(() {});
                 },
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.5 * scale,
@@ -207,9 +229,7 @@ class _TimerViewState extends State<TimerView> {
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
                   _minute = _changeTime(time: _minute, dragUp: dragUp);
-                  setState(() {
-                    _timer = _minute * 60.0;
-                  });
+                  setState(() {});
                 },
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.5 * scale,
@@ -246,11 +266,8 @@ class _TimerViewState extends State<TimerView> {
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  _sec = _changeTime(time: _sec.toInt(), dragUp: dragUp)
-                      .floorToDouble();
-                  setState(() {
-                    _timer = _sec;
-                  });
+                  _sec = _changeTime(time: _sec, dragUp: dragUp);
+                  setState(() {});
                 },
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width * 0.8 * scale,
@@ -260,7 +277,7 @@ class _TimerViewState extends State<TimerView> {
                         Text(
                           //  padLeft to add additional 0 to be always same length of string
                           //  because of this number is not int the lenght of pad is different than 2
-                        _sec.toStringAsFixed(1).padLeft(4, "0"),
+                          _sec.toStringAsFixed(1).padLeft(4, "0"),
                           style: TextStyle(
                             fontSize:
                                 MediaQuery.of(context).size.width * 0.4 * scale,
@@ -279,15 +296,14 @@ class _TimerViewState extends State<TimerView> {
     );
   }
 
-  Widget createTimeButton(
-      {@required String timeText, @required double seconds}) {
+  Widget createTimeButton({@required String timeText, @required int seconds}) {
     return MaterialButton(
       height: (screenOrientation == Orientation.portrait)
           ? MediaQuery.of(context).size.height * 0.06
           : MediaQuery.of(context).size.height * 0.15,
       minWidth: MediaQuery.of(context).size.width * 0.15,
       onPressed: () {
-        _displayTime(seconds);
+        _displayTime(seconds * 1000);
       },
       textColor: AppThemeSettings.buttonTextColor,
       color: AppThemeSettings.buttonColor,
@@ -308,7 +324,7 @@ class _TimerViewState extends State<TimerView> {
                     : MediaQuery.of(context).size.height * 0.15,
                 minWidth: MediaQuery.of(context).size.width * 0.4 * scale,
                 //  if timer is running pause it if not start it
-                onPressed: run ? _pauseTimer : _startTimer,
+                onPressed: _startTimer,
                 textColor: AppThemeSettings.buttonTextColor,
                 color: AppThemeSettings.buttonColor,
                 child: Text("Continue"),
@@ -377,88 +393,112 @@ class _TimerViewState extends State<TimerView> {
           );
   }
 
-  void _displayTime(double time) {
+  void _displayTime(int milliseconds) {
     setState(() {
-      _timer = time;
-      // check if there is more than or equal to one minute
-      if (time / 60 >= 1) {
-        // check if there is more than one hour
-        if (time / (60 * 60) >= 1) {
-          _hour = (time / (60 * 60)).floor();
-          _minute = ((time - (_hour * 60 * 60)) / 60).floor();
-          _sec = (time - (_hour * 60 * 60) - (_minute * 60));
+      //  if less than second
+      if (milliseconds / 1000 >= 1) {
+        // check if there is more than or equal to one minute
+        if (milliseconds / (60 * 1000) >= 1) {
+          // check if there is more than one hour
+          if (milliseconds / (60 * 60 * 1000) >= 1) {
+            _hour = (milliseconds / (60 * 60 * 1000)).floor();
+            _minute = ((milliseconds - (_hour * 60 * 60 * 1000)) / (60 * 1000))
+                .floor();
+            _sec = ((milliseconds -
+                        (_hour * 60 * 60 * 1000) -
+                        (_minute * 60 * 1000)) /
+                    1000)
+                .floor();
+            _milliseconds = ((milliseconds -
+                        (_hour * 60 * 60 * 1000) -
+                        (_minute * 60 * 1000)) -
+                    _sec / 1000)
+                .floor();
 
-          //  if less than hour:
-        } else {
-          _hour = 0;
-          _minute = (time / 60).floor();
-          _sec = (time - (_minute * 60));
+            //  if less than hour:
+          } else {
+            _hour = 0;
+            _minute = (milliseconds / (60 * 1000)).floor();
+            _sec = ((milliseconds - (_minute * 60 * 1000)) / 1000).floor();
+            _milliseconds =
+                ((milliseconds - (_minute * 60 * 1000)) - _sec / 1000).floor();
+          }
         }
-      }
-      //  if less than minute:
-      else {
+        //  if less than minute:
+        else {
+          _hour = 0;
+          _minute = 0;
+          _sec = (milliseconds / 1000).floor();
+          _milliseconds = milliseconds - (_sec * 1000);
+        }
+      } else {
         _hour = 0;
         _minute = 0;
-        _sec = time;
+        _sec = 0;
+        _milliseconds = milliseconds;
       }
     });
   }
 
   int _startTimer() {
+    print('==========================>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
+    controller.duration = Duration(
+        hours: _hour,
+        minutes: _minute,
+        seconds: _sec,
+        milliseconds: _milliseconds);
+
     //  if paused do not save time to cache
-    if (!pause) {
-      timerCache = _timer;
+    if (pause) {
+      controller.duration = Duration(milliseconds: timerCache);
+    } else {
+      timerCache = controller.duration.inMilliseconds;
     }
     run = true;
     pause = false;
-    const duration = const Duration(milliseconds: 100);
 
-    Timer.periodic(
-      duration,
-      (Timer t) => setState(
-            () {
-              if (run) {
-                if (_timer < 0.2) {
-                  _timer = 0;
-                  run = false;
-                  _displayTime(_timer);
-                  _startAlarm();
-                  t.cancel();
-                } else {
-                  setState(
-                    () {
-                      _timer = _timer - 0.1;
-                      _displayTime(_timer);
-                    },
-                  );
-                }
-              } else {
-                t.cancel();
-              }
-            },
-          ),
-    );
+    print('==========================>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
+
+    controller.reverse(from: controller.value == 0.0 ? 1.0 : controller.value);
+
     return 0;
   }
 
   void _stopTimer() {
-    run = false;
-    _timer = timerCache;
-    _displayTime(_timer);
+    setState(() {
+      run = false;
+      controller.duration = Duration(milliseconds: timerCache);
+      _displayTime(timerCache);
+
+      controller.stop();
+      controller.value = 1;
+    });
+    print('============ stop ==============>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
+
   }
 
   void _resetTimer() {
-    //  reset start button text to "Start" (from "Continue")
-    pause = false;
+    setState(() {
+      //  reset start button text to "Start" (from "Continue")
+      pause = false;
+      run = false;
+      controller.duration = Duration(milliseconds: timerCache);
+      _displayTime(controller.duration.inMilliseconds);
 
-    run = false;
-    _timer = timerCache;
-    _displayTime(_timer);
+      controller.value = 1;
+    });
+    print('============= reset =============>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
+
   }
 
   void _pauseTimer() {
-    run = false;
-    pause = true;
+    setState(() {
+      run = false;
+      pause = true;
+      controller.stop();
+    });
+    print('=============== pause ===========>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
+
   }
 
   _startAlarm() {
