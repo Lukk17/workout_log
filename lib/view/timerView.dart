@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
+import 'package:workout_log/util/timerPainter.dart';
 import 'package:workout_log/util/util.dart';
 
 class TimerView extends StatefulWidget {
@@ -24,18 +25,17 @@ class _TimerViewState extends State<TimerView>
   int _milliseconds = 0;
 
   int timerCache = 0;
-  bool run = false;
   bool pause = false;
   double position = 0;
   bool dragUp = true;
   Orientation screenOrientation;
-  AnimationController controller;
+  AnimationController animationController;
 
   @override
   void initState() {
     super.initState();
 
-    controller = AnimationController(
+    animationController = AnimationController(
       vsync: this,
       duration: Duration(
           hours: _hour,
@@ -43,13 +43,14 @@ class _TimerViewState extends State<TimerView>
           seconds: _sec,
           milliseconds: _milliseconds),
     );
-    controller.addListener(() => {
-          _displayTime(
-              (controller.duration.inMilliseconds * controller.value).toInt()),
-          if (controller.value == 0)
+    animationController.addListener(() => {
+          _displayTime((animationController.duration.inMilliseconds *
+                  animationController.value)
+              .toInt()),
+          if (animationController.value == 0)
             {
-              _startAlarm(),
               _stopTimer(),
+              _startAlarm(),
             }
         });
   }
@@ -73,30 +74,71 @@ class _TimerViewState extends State<TimerView>
       if (orientation == Orientation.portrait) {
         //  portrait
         //  orientation
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  createTimeButton(timeText: "30 sec", seconds: 30),
-                  createTimeButton(timeText: "1 min", seconds: 60),
-                  createTimeButton(timeText: "3 min", seconds: 60 * 3),
-                  createTimeButton(timeText: "5 min", seconds: 60 * 5),
-                ],
-              ),
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+        if (animationController.isAnimating || pause) {
+          return Center(
+            child: Stack(
+              children: <Widget>[
+                Positioned.fill(
+                    child: AnimatedBuilder(
+                        animation: animationController,
+                        builder: (BuildContext context, Widget child) {
+                          return CustomPaint(
+                            painter: TimerCirclePainter(
+                                animation: animationController),
+                          );
+                        })),
+                Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    createTimer(scale: 1),
-                    Util.spacer(MediaQuery.of(context).size.height * 0.05),
-                    createControlButtons(scale: 1),
-                  ])
-            ],
-          ),
-        );
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        createTimeButtonMock(),
+                        createTimeButtonMock(),
+                        createTimeButtonMock(),
+                        createTimeButtonMock(),
+                      ],
+                    ),
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          createTimer(scale: 1),
+                          Util.spacer(
+                              MediaQuery.of(context).size.height * 0.05),
+                          createControlButtons(scale: 1),
+                        ])
+                  ],
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    createTimeButton(timeText: "30 sec", seconds: 30),
+                    createTimeButton(timeText: "1 min", seconds: 60),
+                    createTimeButton(timeText: "3 min", seconds: 60 * 3),
+                    createTimeButton(timeText: "5 min", seconds: 60 * 5),
+                  ],
+                ),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      createTimer(scale: 1),
+                      Util.spacer(MediaQuery.of(context).size.height * 0.05),
+                      createControlButtons(scale: 1),
+                    ])
+              ],
+            ),
+          );
+        }
 
         // landscape
         // orientation
@@ -311,6 +353,15 @@ class _TimerViewState extends State<TimerView>
     );
   }
 
+  Widget createTimeButtonMock() {
+    return Container(
+      height: (screenOrientation == Orientation.portrait)
+          ? MediaQuery.of(context).size.height * 0.06
+          : MediaQuery.of(context).size.height * 0.15,
+      width: MediaQuery.of(context).size.width * 0.15,
+    );
+  }
+
   Widget createControlButtons({@required double scale}) {
     return pause
         ?
@@ -347,7 +398,7 @@ class _TimerViewState extends State<TimerView>
         Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              run
+              animationController.isAnimating
                   ?
                   //  if running show "Pause" and "Stop" buttons
                   Row(
@@ -384,7 +435,10 @@ class _TimerViewState extends State<TimerView>
                           ? MediaQuery.of(context).size.height * 0.08
                           : MediaQuery.of(context).size.height * 0.15,
                       minWidth: MediaQuery.of(context).size.width * 0.6 * scale,
-                      onPressed: _startTimer,
+                      onPressed: () => {
+                            timerCache = getDuration().inMilliseconds,
+                            _startTimer(),
+                          },
                       textColor: AppThemeSettings.buttonTextColor,
                       color: AppThemeSettings.buttonColor,
                       child: Text("Start"),
@@ -410,10 +464,9 @@ class _TimerViewState extends State<TimerView>
                     1000)
                 .floor();
             _milliseconds = ((milliseconds -
-                        (_hour * 60 * 60 * 1000) -
-                        (_minute * 60 * 1000)) -
-                    _sec / 1000)
-                .floor();
+                    (_hour * 60 * 60 * 1000) -
+                    (_minute * 60 * 1000)) -
+                _sec * 1000);
 
             //  if less than hour:
           } else {
@@ -421,7 +474,7 @@ class _TimerViewState extends State<TimerView>
             _minute = (milliseconds / (60 * 1000)).floor();
             _sec = ((milliseconds - (_minute * 60 * 1000)) / 1000).floor();
             _milliseconds =
-                ((milliseconds - (_minute * 60 * 1000)) - _sec / 1000).floor();
+                ((milliseconds - (_minute * 60 * 1000)) - _sec * 1000);
           }
         }
         //  if less than minute:
@@ -440,65 +493,52 @@ class _TimerViewState extends State<TimerView>
     });
   }
 
-  int _startTimer() {
-    print('==========================>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
-    controller.duration = Duration(
+  Duration getDuration() {
+    return Duration(
         hours: _hour,
         minutes: _minute,
         seconds: _sec,
         milliseconds: _milliseconds);
+  }
+
+  int _startTimer() {
+    animationController.duration = getDuration();
 
     //  if paused do not save time to cache
     if (pause) {
-      controller.duration = Duration(milliseconds: timerCache);
-    } else {
-      timerCache = controller.duration.inMilliseconds;
+      animationController.duration = Duration(milliseconds: timerCache);
     }
-    run = true;
     pause = false;
 
-    print('==========================>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
-
-    controller.reverse(from: controller.value == 0.0 ? 1.0 : controller.value);
+    animationController.reverse(
+        from:
+            animationController.value == 0.0 ? 1.0 : animationController.value);
 
     return 0;
   }
 
   void _stopTimer() {
     setState(() {
-      run = false;
-      controller.duration = Duration(milliseconds: timerCache);
       _displayTime(timerCache);
-
-      controller.stop();
-      controller.value = 1;
+      animationController.stop();
+      animationController.value = 1;
     });
-    print('============ stop ==============>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
-
   }
 
   void _resetTimer() {
     setState(() {
       //  reset start button text to "Start" (from "Continue")
       pause = false;
-      run = false;
-      controller.duration = Duration(milliseconds: timerCache);
-      _displayTime(controller.duration.inMilliseconds);
-
-      controller.value = 1;
+      _displayTime(timerCache);
+      animationController.value = 1;
     });
-    print('============= reset =============>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
-
   }
 
   void _pauseTimer() {
     setState(() {
-      run = false;
       pause = true;
-      controller.stop();
+      animationController.stop();
     });
-    print('=============== pause ===========>>>>>>>>>>>> hour $_hour minut $_minute second $_sec');
-
   }
 
   _startAlarm() {

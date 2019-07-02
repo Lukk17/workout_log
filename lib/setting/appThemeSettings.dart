@@ -75,6 +75,9 @@ class AppThemeSettings {
   static Color borderColor = Colors.red;
   static Color drawerColor = Colors.black38;
 
+  static Color circleColor = Colors.blueAccent;
+  static Color arcColor = Colors.red;
+
   static Color greenButtonColor = Colors.green;
   static Color cancelButtonColor = Colors.red;
   static Color nextButton = Colors.red;
@@ -89,10 +92,10 @@ class AppThemeSettings {
 
   static double tableHeaderBorderWidth = 5;
   static double tableCellBorderWidth = 3;
-  static double timerCircleWidth = 5;
+  static double timerCircleWidth = 1;
 
   static StrokeCap strokeCap = StrokeCap.round;
-  static PaintingStyle paintingStyle = PaintingStyle.fill;
+  static PaintingStyle paintingStyle = PaintingStyle.stroke;
 
   static String background = "graphics/background.png";
   static String timerBackground = "graphics/bg-leaves.png";
