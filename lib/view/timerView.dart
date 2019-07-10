@@ -51,7 +51,7 @@ class _TimerViewState extends State<TimerView>
             {
               _stopTimer(),
               _startAlarm(),
-            }
+            },
         });
   }
 
@@ -90,15 +90,7 @@ class _TimerViewState extends State<TimerView>
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        createTimeButtonMock(),
-                        createTimeButtonMock(),
-                        createTimeButtonMock(),
-                        createTimeButtonMock(),
-                      ],
-                    ),
+                    Util.spacer(MediaQuery.of(context).size.height * 0.035),
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -317,9 +309,7 @@ class _TimerViewState extends State<TimerView>
                     child: Row(
                       children: <Widget>[
                         Text(
-                          //  padLeft to add additional 0 to be always same length of string
-                          //  because of this number is not int the lenght of pad is different than 2
-                          _sec.toStringAsFixed(1).padLeft(4, "0"),
+                          getDecimalSeconds(),
                           style: TextStyle(
                             fontSize:
                                 MediaQuery.of(context).size.width * 0.4 * scale,
@@ -350,15 +340,6 @@ class _TimerViewState extends State<TimerView>
       textColor: AppThemeSettings.buttonTextColor,
       color: AppThemeSettings.buttonColor,
       child: Text(timeText),
-    );
-  }
-
-  Widget createTimeButtonMock() {
-    return Container(
-      height: (screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.06
-          : MediaQuery.of(context).size.height * 0.15,
-      width: MediaQuery.of(context).size.width * 0.15,
     );
   }
 
@@ -447,11 +428,17 @@ class _TimerViewState extends State<TimerView>
           );
   }
 
+  @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
   void _displayTime(int milliseconds) {
     setState(() {
-      //  if less than second
+      //  if more than second
       if (milliseconds / 1000 >= 1) {
-        // check if there is more than or equal to one minute
+        // check if there is more than one minute
         if (milliseconds / (60 * 1000) >= 1) {
           // check if there is more than one hour
           if (milliseconds / (60 * 60 * 1000) >= 1) {
@@ -503,7 +490,6 @@ class _TimerViewState extends State<TimerView>
 
   int _startTimer() {
     animationController.duration = getDuration();
-
     //  if paused do not save time to cache
     if (pause) {
       animationController.duration = Duration(milliseconds: timerCache);
@@ -579,5 +565,21 @@ class _TimerViewState extends State<TimerView>
       }
     }
     return time;
+  }
+
+  String getDecimalSeconds() {
+    //  padLeft to add additional 0 to be always same length of string
+    //  because of this number is not int the length of pad is different than 2
+    String secs = _sec.toStringAsFixed(0).padLeft(2, "0");
+
+    String milis = (_milliseconds / 100).toStringAsFixed(0);
+
+    //  check needed because of toStringAsFixed(0)
+    //  which sometimes cast millis to be 10 and crash UI
+    if (milis == "10") {
+      milis = "9";
+    }
+
+    return "$secs.$milis";
   }
 }

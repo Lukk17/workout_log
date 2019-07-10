@@ -92,7 +92,7 @@ class AppThemeSettings {
 
   static double tableHeaderBorderWidth = 5;
   static double tableCellBorderWidth = 3;
-  static double timerCircleWidth = 1;
+  static double timerCircleWidth = 15;
 
   static StrokeCap strokeCap = StrokeCap.round;
   static PaintingStyle paintingStyle = PaintingStyle.stroke;
