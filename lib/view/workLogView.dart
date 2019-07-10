@@ -4,6 +4,11 @@ import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
+/// This is most detailed view for each WorkLog.
+///
+/// In Tab bar there is body part name and date.
+/// Main view have name of exercise,
+/// below it series and repeats in each series shown as table.
 class WorkLogView extends StatefulWidget {
   final WorkLog workLog;
 
@@ -230,7 +235,8 @@ class _WorkLogView extends State<WorkLogView> {
       context: context,
       builder: (_) => SimpleDialog(
             title: Center(child: Text("Edit repeats number")),
-            contentPadding: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+            contentPadding:
+                EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
             children: <Widget>[
               TextField(
                 /// use text controller to save given by user String

@@ -11,6 +11,11 @@ import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 import 'package:workout_log/view/workLogView.dart';
 
+/// This view show all exercises in selected body part.
+///
+/// Exercises are shown as cards.
+/// Each card have exercise name,
+/// series number and sum of repeats through all series
 class BodyPartLogView extends StatefulWidget {
   final DateTime date;
   final BodyPart bodyPart;
@@ -94,8 +99,10 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
                   // open pop-up on button press to add new exercise
                   onPressed: () => {
-                        getExercises(),
-                        showAddExerciseDialog(),
+                        showAddExerciseDialog().then((_) => {
+                              // TODO ugly fix for not rebuild state
+                              Navigator.pop(context),
+                            }),
                       },
                   child: Icon(Icons.add),
                   backgroundColor: AppThemeSettings.primaryColor,
@@ -138,77 +145,86 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     WorkLog workLog,
     BuildContext context,
   ) {
-    return Card(
-      color: AppThemeSettings.primaryColor,
-      margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height * 0.02,
-          top: MediaQuery.of(context).size.height * 0.02),
-      elevation: 8,
-      child: ListTile(
-        title: Container(
-          margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
-          child: Text(
-            workLog.exercise.name,
-            style: TextStyle(
-                fontSize: AppThemeSettings.fontSize,
-                color: AppThemeSettings.buttonTextColor),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        subtitle: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ///  sum of workLog series
-            Container(
-              margin: EdgeInsets.only(
-                  right: MediaQuery.of(context).size.width * 0.02,
-                  bottom: MediaQuery.of(context).size.height * 0.01),
-              child: Text(
-                "Series: ${workLog.series.length.toString()}",
-                style: TextStyle(
-                    fontSize: AppThemeSettings.fontSize,
-                    color: AppThemeSettings.textColor),
-              ),
+    return GestureDetector(
+      onHorizontalDragUpdate: (d) => {
+            if (d.delta.dx < -10)
+              {
+                deleteWorkLog(workLog),
+              }
+          },
+      child: Card(
+        color: AppThemeSettings.primaryColor,
+        margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).size.height * 0.02,
+            top: MediaQuery.of(context).size.height * 0.02),
+        elevation: 8,
+        child: ListTile(
+          title: Container(
+            margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+            child: Text(
+              workLog.exercise.name,
+              style: TextStyle(
+                  fontSize: AppThemeSettings.fontSize,
+                  color: AppThemeSettings.buttonTextColor),
+              textAlign: TextAlign.center,
             ),
-
-            ///  sum of workLog reps in set
-            Container(
-              margin: EdgeInsets.only(
-                  left: MediaQuery.of(context).size.width * 0.02,
-                  bottom: MediaQuery.of(context).size.height * 0.01),
-              child: Text(
-                "Reps: ${workLog.getRepsSum()}",
-                style: TextStyle(
-                    fontSize: AppThemeSettings.fontSize,
-                    color: AppThemeSettings.textColor),
-                textAlign: TextAlign.end,
-              ),
-            ),
-          ],
-        ),
-        trailing: Container(
-          child: Icon(
-            Icons.arrow_forward,
-            color: AppThemeSettings.secondaryColor,
           ),
-          margin:
-              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+          subtitle: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ///  sum of workLog series
+              Container(
+                margin: EdgeInsets.only(
+                    right: MediaQuery.of(context).size.width * 0.02,
+                    bottom: MediaQuery.of(context).size.height * 0.01),
+                child: Text(
+                  "Series: ${workLog.series.length.toString()}",
+                  style: TextStyle(
+                      fontSize: AppThemeSettings.fontSize,
+                      color: AppThemeSettings.textColor),
+                ),
+              ),
+
+              ///  sum of workLog reps in set
+              Container(
+                margin: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.02,
+                    bottom: MediaQuery.of(context).size.height * 0.01),
+                child: Text(
+                  "Reps: ${workLog.getRepsSum()}",
+                  style: TextStyle(
+                      fontSize: AppThemeSettings.fontSize,
+                      color: AppThemeSettings.textColor),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+          trailing: Container(
+            child: Icon(
+              Icons.arrow_forward,
+              color: AppThemeSettings.secondaryColor,
+            ),
+            margin:
+                EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+          ),
+
+          ///  push workLog and bodyPartInterface to new screen to display it's details
+          onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+
+                      ///  using Navigator.then to update parent state as well
+                      builder: (context) => WorkLogView(workLog: workLog)))
+              .then((v) => updateState()),
         ),
-
-        ///  push workLog and bodyPartInterface to new screen to display it's details
-        onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-
-                    ///  using Navigator.then to update parent state as well
-                    builder: (context) => WorkLogView(workLog: workLog)))
-            .then((v) => updateState()),
       ),
     );
   }
 
   Future showAddExerciseDialog() {
     getExercises();
+    updateState();
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
@@ -254,10 +270,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                             color: AppThemeSettings.greenButtonColor,
                             child: Text("New"),
                             onPressed: () => {
-                                  Navigator.pop(context),
                                   showNewExerciseDialog(
-                                      'Exercise', 'eg. pushup'),
-                                  updateState(),
+                                          'Exercise', 'eg. pushup')
+                                      .then((_) => {Navigator.pop(context)}),
                                 }),
                         MaterialButton(
                             color: AppThemeSettings.cancelButtonColor,
@@ -289,7 +304,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
           );
           addWorkLog(exercise, _bodyPart);
           //  after saving new record bp state need to be updated:
-          updateWorkLogFromDB();
+          updateState();
           Navigator.pop(context);
         },
         child: Text(e.name),
@@ -360,7 +375,8 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
         //  update db with this new body part
         w.exercise.bodyParts.addAll(exercise.bodyParts);
         db.updateExercise(w.exercise);
-        print("\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
+        print(
+            "\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
         return;
       }
     }
@@ -369,7 +385,8 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     workLog.created = HelloWorldView.date;
     String json = jsonEncode(workLog);
 
-    print("\n [addworklog] ADDING NEW WORKLOG  : ============>  ${workLog.toString()}\n ");
+    print(
+        "\n [addworklog] ADDING NEW WORKLOG  : ============>  ${workLog.toString()}\n ");
 
     /// save to json
     Storage.writeToFile(json);
@@ -382,5 +399,10 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     setState(() {
       updateWorkLogFromDB();
     });
+  }
+
+  deleteWorkLog(WorkLog workLog) {
+    db.deleteWorkLog(workLog);
+    updateState();
   }
 }

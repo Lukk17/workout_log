@@ -6,6 +6,10 @@ import 'package:workout_log/view/helloWorldView.dart';
 
 import 'bodyPartLogView.dart';
 
+/// This is main WorkLog view.
+///
+/// It show actual date, and buttons with body parts.
+/// Each buttons leads to BodyPartLogView page of selected body part.
 class WorkLogPageView extends StatefulWidget {
   final Function(Widget) callback;
   final DateTime date;

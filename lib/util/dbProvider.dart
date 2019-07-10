@@ -254,5 +254,11 @@ class DBProvider {
     return workLogList;
   }
 
+  void deleteWorkLog(WorkLog workLog) async {
+    final db = await database;
+    print("DELETE WORKLOG:    " + workLog.toString());
+    db.delete(workLogTable, where: "id = ?", whereArgs: [workLog.id]);
+  }
+
   Future close() async => _database.close();
 }

@@ -6,6 +6,9 @@ import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/timerView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
+/// Main page of application.
+///
+/// Contains links to settings, calendar, workLogs and timer.
 class HelloWorldView extends StatefulWidget {
   static DateTime date = DateTime.now();
   final Function(Widget) callback;
