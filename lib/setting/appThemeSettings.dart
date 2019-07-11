@@ -13,7 +13,7 @@ class AppThemeSettings {
     iconColor = Colors.black;
     appBarColor = Colors.redAccent;
     tabBarColor = Colors.white;
-    timerColor = Colors.white;
+    timerColor = Colors.cyanAccent;
     buttonTextColor = Colors.white;
     textColor = Colors.white;
     specialTextColor = Colors.amber;
@@ -27,7 +27,7 @@ class AppThemeSettings {
     drawerColor = Colors.grey[800];
 
     background = "graphics/background.png";
-    workLogBackground = "graphics/bg-cosmos.png";
+    bodyPartBackground = "graphics/bg-leaves.png";
 
     return _themeD;
   }
@@ -38,7 +38,7 @@ class AppThemeSettings {
     iconColor = Colors.black;
     appBarColor = Colors.blue;
     tabBarColor = Colors.black;
-    timerColor = Colors.white;
+    timerColor = Colors.amberAccent;
     buttonTextColor = Colors.white;
     textColor = Colors.black;
     specialTextColor = Colors.black;
@@ -52,7 +52,7 @@ class AppThemeSettings {
     drawerColor = Colors.blueAccent[100];
 
     background = "graphics/lightBackground.png";
-    workLogBackground = "graphics/bg-niagara.png";
+    bodyPartBackground = "graphics/bg-niagara.png";
 
     return _themeL;
   }
@@ -62,7 +62,7 @@ class AppThemeSettings {
   static Color iconColor = Colors.white;
   static Color appBarColor = Colors.red;
   static Color tabBarColor = Colors.white;
-  static Color timerColor = Colors.white;
+  static Color timerColor = Colors.amber;
   static Color buttonTextColor = Colors.white;
   static Color textColor = Colors.white;
   static Color specialTextColor = Colors.amber;
@@ -77,6 +77,8 @@ class AppThemeSettings {
 
   static Color circleColor = Colors.blueAccent;
   static Color arcColor = Colors.red;
+
+  static Color shadowColor = Colors.black;
 
   static Color greenButtonColor = Colors.green;
   static Color cancelButtonColor = Colors.red;
@@ -98,6 +100,24 @@ class AppThemeSettings {
   static PaintingStyle paintingStyle = PaintingStyle.stroke;
 
   static String background = "graphics/background.png";
-  static String timerBackground = "graphics/bg-leaves.png";
-  static String workLogBackground = "graphics/bg-cosmos.png";
+  static String bodyPartBackground = "graphics/bg-leaves.png";
+
+  static List<Shadow> textBorder = [
+    Shadow(
+        // bottomLeft
+        offset: Offset(-2, -2),
+        color: shadowColor),
+    Shadow(
+        // bottomRight
+        offset: Offset(2, -2),
+        color: shadowColor),
+    Shadow(
+        // topRight
+        offset: Offset(2, 2),
+        color: shadowColor),
+    Shadow(
+        // topLeft
+        offset: Offset(-2, 2),
+        color: shadowColor),
+  ];
 }

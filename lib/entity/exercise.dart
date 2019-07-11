@@ -92,6 +92,10 @@ class Exercise {
             result.add(BodyPart.CARDIO);
             break;
 
+          case "ABDOMINAL":
+            result.add(BodyPart.ABDOMINAL);
+            break;
+
           default:
             result.add(BodyPart.UNDEFINED);
             break;

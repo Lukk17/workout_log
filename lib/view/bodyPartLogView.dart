@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:workout_log/entity/bodyPart.dart';
@@ -69,23 +70,26 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(AppThemeSettings.background),
-            fit: BoxFit.cover,
+            image: AssetImage(AppThemeSettings.bodyPartBackground),
+            fit: BoxFit.fitHeight,
           ),
         ),
 
         /// ListView of every workLog entry in given bodyParty
-        child: ListView(
-          children: <Widget>[
-            Column(
-              children: wList,
-            ),
-            //  container at bottom which make it possible to scroll down
-            //  and see last workLog fully
-            Container(
-              height: MediaQuery.of(context).size.height * 0.15,
-            ),
-          ],
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+          child: ListView(
+            children: <Widget>[
+              Column(
+                children: wList,
+              ),
+              //  container at bottom which make it possible to scroll down
+              //  and see last workLog fully
+              Container(
+                height: MediaQuery.of(context).size.height * 0.15,
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton:
@@ -99,10 +103,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
                   // open pop-up on button press to add new exercise
                   onPressed: () => {
-                        showAddExerciseDialog().then((_) => {
-                              // TODO ugly fix for not rebuild state
-                              Navigator.pop(context),
-                            }),
+                        showAddExerciseDialog(),
                       },
                   child: Icon(Icons.add),
                   backgroundColor: AppThemeSettings.primaryColor,
@@ -296,21 +297,25 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
     for (Exercise e in exercises) {
       result.add(MaterialButton(
-        onPressed: () {
+        onPressed: () async {
           Exercise exercise = Exercise(
             e.name,
             // bodyPart as Set()
             {_bodyPart},
           );
-          addWorkLog(exercise, _bodyPart);
-          //  after saving new record bp state need to be updated:
-          updateState();
+          //  save workLog to db
+          WorkLog workLog = await addWorkLog(exercise, _bodyPart);
+          setState(() {
+            wList.add(createWorkLogRowWidget(workLog, context));
+          });
           Navigator.pop(context);
         },
         child: Text(e.name),
       ));
     }
-    exerciseList = result;
+    setState(() {
+      exerciseList = result;
+    });
   }
 
   Future showNewExerciseDialog(
@@ -339,16 +344,19 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
                     MaterialButton(
                         color: AppThemeSettings.greenButtonColor,
                         child: const Text('SAVE'),
-                        onPressed: () {
+                        onPressed: () async {
                           // text is forwarded by controller from SimpleDialog text field
                           Exercise exercise = Exercise(
                             textEditingController.text,
                             // bodyPart as Set()
                             {_bodyPart},
                           );
-                          addWorkLog(exercise, _bodyPart);
+                          WorkLog workLog =
+                              await addWorkLog(exercise, _bodyPart);
                           //  after saving new record bp state need to be updated:
-                          updateState();
+                          setState(() {
+                            wList.add(createWorkLogRowWidget(workLog, context));
+                          });
                           Navigator.pop(context);
                         }),
                     MaterialButton(
@@ -363,7 +371,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     );
   }
 
-  addWorkLog(Exercise exercise, BodyPart bodyPart) async {
+  Future<WorkLog> addWorkLog(Exercise exercise, BodyPart bodyPart) async {
     //  get all workLogs from that day
     List<WorkLog> workLogList = await db.getDateAllWorkLogs();
 
@@ -377,7 +385,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
         db.updateExercise(w.exercise);
         print(
             "\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
-        return;
+        return w;
       }
     }
     WorkLog workLog = WorkLog(exercise);
@@ -393,6 +401,8 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
     ///  save workLog to DB
     db.newWorkLog(workLog);
+
+    return workLog;
   }
 
   updateState() {

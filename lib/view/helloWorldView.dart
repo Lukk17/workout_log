@@ -1,10 +1,15 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/timerView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
+
+import 'exerciseListView.dart';
 
 /// Main page of application.
 ///
@@ -47,20 +52,12 @@ class _HelloWorldViewState extends State<HelloWorldView>
     // by the _incrementCounter method above.
     return OrientationBuilder(builder: (context, orientation) {
       screenOrientation = orientation;
-      return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppThemeSettings.background),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Scaffold(
-          key: _scaffoldKey,
-          appBar: _createAppBar(),
-          body: _createBody(),
-          bottomNavigationBar: _createTabBar(),
-          drawer: _openSettings(),
-        ),
+      return Scaffold(
+        key: _scaffoldKey,
+        appBar: _createAppBar(),
+        body: _createBody(),
+        bottomNavigationBar: _createTabBar(),
+        drawer: _openSettings(),
       );
     });
   }
@@ -144,16 +141,27 @@ class _HelloWorldViewState extends State<HelloWorldView>
   }
 
   Widget _createBody() {
-    return TabBarView(
-        // disable scrolling tabView by dragging
-        physics: NeverScrollableScrollPhysics(),
-        controller: _tabController,
-        children: [
-          // calling builder to get callback (Widget)
-          WorkLogPageView((widget) => {}, HelloWorldView.date),
-          TimerView((widget) => {}),
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(AppThemeSettings.background),
+          fit: BoxFit.fitHeight,
+        ),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+        child: TabBarView(
+            // disable scrolling tabView by dragging
+            physics: NeverScrollableScrollPhysics(),
+            controller: _tabController,
+            children: [
+              // calling builder to get callback (Widget)
+              WorkLogPageView((widget) => {}, HelloWorldView.date),
+              TimerView((widget) => {}),
 //          Center(),
-        ]);
+            ]),
+      ),
+    );
   }
 
   /// async to wait for dialog close and refresh state
@@ -187,28 +195,45 @@ class _HelloWorldViewState extends State<HelloWorldView>
                   style: TextStyle(
                       color: AppThemeSettings.textColor,
                       fontWeight: FontWeight.bold,
-                      fontSize: 30),
+                      fontSize: AppThemeSettings.headerSize),
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Column(
               children: <Widget>[
-                Text("Dark mode:"),
-                Switch(
-                    value: AppThemeSettings.theme == ThemeData.dark(),
-                    onChanged: (isDark) => _changeTheme(isDark))
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Dark mode:",
+                      style: TextStyle(
+                        fontSize: AppThemeSettings.fontSize,
+                      ),
+                    ),
+                    Switch(
+                        value: AppThemeSettings.theme == ThemeData.dark(),
+                        onChanged: (isDark) => _changeTheme(isDark))
+                  ],
+                ),
+                (screenOrientation == Orientation.portrait)
+                    ? Util.spacerSelectable(
+                        top: MediaQuery.of(context).size.height * 0.3)
+                    : Util.spacerSelectable(
+                        top: MediaQuery.of(context).size.height * 0.1),
+                MaterialButton(
+                  color: AppThemeSettings.buttonColor,
+                  child: Text(
+                    "Edit Exercises",
+                    style: TextStyle(
+                        color: AppThemeSettings.textColor,
+                        fontSize: AppThemeSettings.fontSize),
+                  ),
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ExerciseListView())),
+                ),
               ],
-            ),
-            ListTile(
-              title: Text(
-                "close",
-                style: TextStyle(
-                    color: AppThemeSettings.textColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20),
-              ),
-              onTap: () => Navigator.pop(context),
             ),
           ],
         ),

@@ -57,15 +57,7 @@ class _TimerViewState extends State<TimerView>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(AppThemeSettings.timerBackground),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: _createTimer(),
-    );
+    return _createTimer();
   }
 
   Widget _createTimer() {
@@ -179,8 +171,10 @@ class _TimerViewState extends State<TimerView>
                 child: Text(
                   "H",
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
-                      color: AppThemeSettings.timerColor),
+                    color: AppThemeSettings.timerColor,
+                    fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
+                    shadows: AppThemeSettings.textBorder,
+                  ),
                 ),
               ),
               Util.spacerSelectable(
@@ -189,8 +183,10 @@ class _TimerViewState extends State<TimerView>
                 child: Text(
                   "M",
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
-                      color: AppThemeSettings.timerColor),
+                    fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
+                    color: AppThemeSettings.timerColor,
+                    shadows: AppThemeSettings.textBorder,
+                  ),
                 ),
               ),
               Util.spacerSelectable(
@@ -199,8 +195,10 @@ class _TimerViewState extends State<TimerView>
                 child: Text(
                   "S",
                   style: TextStyle(
-                      fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
-                      color: AppThemeSettings.timerColor),
+                    fontSize: MediaQuery.of(context).size.width * 0.2 * scale,
+                    color: AppThemeSettings.timerColor,
+                    shadows: AppThemeSettings.textBorder,
+                  ),
                 ),
               ),
               Util.spacerSelectable(
@@ -235,9 +233,11 @@ class _TimerViewState extends State<TimerView>
                       //  padLeft to add additional 0 to be always same length of string
                       _hour.toString().padLeft(2, "0"),
                       style: TextStyle(
-                          fontSize:
-                              MediaQuery.of(context).size.width * 0.4 * scale,
-                          color: AppThemeSettings.timerColor),
+                        fontSize:
+                            MediaQuery.of(context).size.width * 0.4 * scale,
+                        color: AppThemeSettings.timerColor,
+                        shadows: AppThemeSettings.textBorder,
+                      ),
                     ),
                   ),
                 ),
@@ -245,8 +245,10 @@ class _TimerViewState extends State<TimerView>
               Text(
                 ":",
                 style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
-                    color: AppThemeSettings.timerColor),
+                  fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
+                  color: AppThemeSettings.timerColor,
+                  shadows: AppThemeSettings.textBorder,
+                ),
               ),
               GestureDetector(
                 //  compare start dy position with updated one
@@ -272,9 +274,11 @@ class _TimerViewState extends State<TimerView>
                       //  padLeft to add additional 0 to be always same length of string
                       _minute.toString().padLeft(2, "0"),
                       style: TextStyle(
-                          fontSize:
-                              MediaQuery.of(context).size.width * 0.4 * scale,
-                          color: AppThemeSettings.timerColor),
+                        fontSize:
+                            MediaQuery.of(context).size.width * 0.4 * scale,
+                        color: AppThemeSettings.timerColor,
+                        shadows: AppThemeSettings.textBorder,
+                      ),
                     ),
                   ),
                 ),
@@ -282,8 +286,10 @@ class _TimerViewState extends State<TimerView>
               Text(
                 ":",
                 style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
-                    color: AppThemeSettings.timerColor),
+                  fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
+                  color: AppThemeSettings.timerColor,
+                  shadows: AppThemeSettings.textBorder,
+                ),
               ),
               Util.spacer(15),
               GestureDetector(
@@ -314,6 +320,7 @@ class _TimerViewState extends State<TimerView>
                             fontSize:
                                 MediaQuery.of(context).size.width * 0.4 * scale,
                             color: AppThemeSettings.timerColor,
+                            shadows: AppThemeSettings.textBorder,
                           ),
                         ),
                       ],

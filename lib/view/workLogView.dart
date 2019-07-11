@@ -39,7 +39,9 @@ class _WorkLogView extends State<WorkLogView> {
                 child: Text(
                   workLog.getBodyPart(),
                   textAlign: TextAlign.start,
-                  style: TextStyle(color: AppThemeSettings.titleColor),
+                  style: TextStyle(
+                    color: AppThemeSettings.titleColor,
+                  ),
                 ),
               ),
 
@@ -55,88 +57,92 @@ class _WorkLogView extends State<WorkLogView> {
             ],
           ),
           backgroundColor: AppThemeSettings.appBarColor),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppThemeSettings.workLogBackground),
-            fit: BoxFit.cover,
+      body: Column(
+        children: <Widget>[
+          /// exercise name
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                    color: AppThemeSettings.borderColor,
+                    width: AppThemeSettings.tableHeaderBorderWidth),
+              ),
+            ),
+            height: MediaQuery.of(context).size.height * 0.20,
+            width: MediaQuery.of(context).size.width,
+            alignment: FractionalOffset(0.5, 0.5),
+            child: Text(
+              workLog.exercise.name,
+              style: TextStyle(
+                color: AppThemeSettings.specialTextColor,
+                fontSize: AppThemeSettings.headerSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
-        child: Column(
-          children: <Widget>[
-            /// exercise name
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                      color: AppThemeSettings.borderColor,
-                      width: AppThemeSettings.tableHeaderBorderWidth),
-                ),
-              ),
-              height: MediaQuery.of(context).size.height * 0.20,
-              width: MediaQuery.of(context).size.width,
-              alignment: FractionalOffset(0.5, 0.5),
-              child: Text(
-                workLog.exercise.name,
-                style: TextStyle(color: AppThemeSettings.specialTextColor),
-              ),
-            ),
 
-            /// table header
-            Row(
-              children: <Widget>[
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                    ),
-                  ),
-                  height: MediaQuery.of(context).size.height * 0.10,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Text(
-                    "series",
-                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+          /// table header
+          Row(
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableHeaderBorderWidth),
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                      left: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                    ),
-                  ),
-                  height: MediaQuery.of(context).size.height * 0.10,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Text(
-                    "repeats",
-                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+                height: MediaQuery.of(context).size.height * 0.10,
+                width: MediaQuery.of(context).size.width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: Text(
+                  "series",
+                  style: TextStyle(
+                    color: AppThemeSettings.specialTextColor,
+                    fontSize: AppThemeSettings.fontSize,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
-            ),
-
-            /// list view builder create series
-            Expanded(
-              child: ListView.builder(
-                itemCount: wList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return wList[index];
-                },
-                //  nested listView need to shrink to size of its children
-                //  if not shrinked it will be infinite in size and can't be render
-                shrinkWrap: true,
               ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableHeaderBorderWidth),
+                    left: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableHeaderBorderWidth),
+                  ),
+                ),
+                height: MediaQuery.of(context).size.height * 0.10,
+                width: MediaQuery.of(context).size.width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: Text(
+                  "repeats",
+                  style: TextStyle(
+                    color: AppThemeSettings.specialTextColor,
+                    fontSize: AppThemeSettings.fontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          /// list view builder create series
+          Expanded(
+            child: ListView.builder(
+              itemCount: wList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return wList[index];
+              },
+              //  nested listView need to shrink to size of its children
+              //  if not shrinked it will be infinite in size and can't be render
+              shrinkWrap: true,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         // text which will be shown after long press on button
@@ -174,7 +180,10 @@ class _WorkLogView extends State<WorkLogView> {
                   ///  series number start from 1 as iteration
                   child: Text(
                     i.toString(),
-                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+                    style: TextStyle(
+                      color: AppThemeSettings.specialTextColor,
+                      fontSize: AppThemeSettings.fontSize,
+                    ),
                   ),
                   onPressed: () {
 //                    Util.editSeriesDialog(bp, context, workLog);
@@ -199,7 +208,10 @@ class _WorkLogView extends State<WorkLogView> {
                   ///  get repeats number
                   child: Text(
                     workLog.getReps(i.toString()),
-                    style: TextStyle(color: AppThemeSettings.specialTextColor),
+                    style: TextStyle(
+                      color: AppThemeSettings.specialTextColor,
+                      fontSize: AppThemeSettings.fontSize,
+                    ),
                   ),
                   onPressed: () {
                     editRepeatsDialog(context, workLog, i.toString());
