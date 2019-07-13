@@ -1,10 +1,11 @@
-import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/timerPainter.dart';
+import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/util/util.dart';
+
+import '../main.dart';
 
 class TimerView extends StatefulWidget {
   // send back build widget
@@ -19,40 +20,19 @@ class TimerView extends StatefulWidget {
 
 class _TimerViewState extends State<TimerView>
     with SingleTickerProviderStateMixin {
-  int _hour = 0;
-  int _minute = 0;
-  int _sec = 0;
-  int _milliseconds = 0;
-
-  int timerCache = 0;
-  bool pause = false;
   double position = 0;
   bool dragUp = true;
   Orientation screenOrientation;
-  AnimationController animationController;
+
+  TimerService timerService = MyApp.timerService;
 
   @override
   void initState() {
     super.initState();
-
-    animationController = AnimationController(
-      vsync: this,
-      duration: Duration(
-          hours: _hour,
-          minutes: _minute,
-          seconds: _sec,
-          milliseconds: _milliseconds),
-    );
-    animationController.addListener(() => {
-          _displayTime((animationController.duration.inMilliseconds *
-                  animationController.value)
-              .toInt()),
-          if (animationController.value == 0)
-            {
-              _stopTimer(),
-              _startAlarm(),
-            },
-        });
+    //  timerService need to know view to callback method in right view
+    timerService.initTimerView(_displayTime);
+    //  this flag inform timerService that he can call _displayTime() method
+    timerService.isTimerOnView = true;
   }
 
   @override
@@ -66,17 +46,19 @@ class _TimerViewState extends State<TimerView>
       if (orientation == Orientation.portrait) {
         //  portrait
         //  orientation
-        if (animationController.isAnimating || pause) {
+        if (timerService.isAnimating() ||
+            timerService.pause ||
+            timerService.running) {
           return Center(
             child: Stack(
               children: <Widget>[
                 Positioned.fill(
                     child: AnimatedBuilder(
-                        animation: animationController,
+                        animation: timerService.animationController,
                         builder: (BuildContext context, Widget child) {
                           return CustomPaint(
                             painter: TimerCirclePainter(
-                                animation: animationController),
+                                animation: timerService.animationController),
                           );
                         })),
                 Column(
@@ -223,7 +205,8 @@ class _TimerViewState extends State<TimerView>
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  _hour = _changeHour(time: _hour, dragUp: dragUp);
+                  timerService.changeHour(
+                      time: timerService.hour, dragUp: dragUp);
                   setState(() {});
                 },
                 child: SizedBox(
@@ -231,7 +214,7 @@ class _TimerViewState extends State<TimerView>
                   child: Center(
                     child: Text(
                       //  padLeft to add additional 0 to be always same length of string
-                      _hour.toString().padLeft(2, "0"),
+                      timerService.hour.toString().padLeft(2, "0"),
                       style: TextStyle(
                         fontSize:
                             MediaQuery.of(context).size.width * 0.4 * scale,
@@ -264,7 +247,8 @@ class _TimerViewState extends State<TimerView>
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  _minute = _changeTime(time: _minute, dragUp: dragUp);
+                  timerService.changeMinute(
+                      time: timerService.minute, dragUp: dragUp);
                   setState(() {});
                 },
                 child: SizedBox(
@@ -272,7 +256,7 @@ class _TimerViewState extends State<TimerView>
                   child: Center(
                     child: Text(
                       //  padLeft to add additional 0 to be always same length of string
-                      _minute.toString().padLeft(2, "0"),
+                      timerService.minute.toString().padLeft(2, "0"),
                       style: TextStyle(
                         fontSize:
                             MediaQuery.of(context).size.width * 0.4 * scale,
@@ -306,7 +290,7 @@ class _TimerViewState extends State<TimerView>
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  _sec = _changeTime(time: _sec, dragUp: dragUp);
+                  timerService.changeSec(time: timerService.sec, dragUp: dragUp);
                   setState(() {});
                 },
                 child: SizedBox(
@@ -315,7 +299,7 @@ class _TimerViewState extends State<TimerView>
                     child: Row(
                       children: <Widget>[
                         Text(
-                          getDecimalSeconds(),
+                          timerService.getDecimalSeconds(),
                           style: TextStyle(
                             fontSize:
                                 MediaQuery.of(context).size.width * 0.4 * scale,
@@ -351,7 +335,7 @@ class _TimerViewState extends State<TimerView>
   }
 
   Widget createControlButtons({@required double scale}) {
-    return pause
+    return timerService.pause
         ?
         //  if paused show "Continue" and "Reset" buttons
         Row(
@@ -386,7 +370,7 @@ class _TimerViewState extends State<TimerView>
         Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              animationController.isAnimating
+              timerService.isAnimating()
                   ?
                   //  if running show "Pause" and "Stop" buttons
                   Row(
@@ -424,7 +408,8 @@ class _TimerViewState extends State<TimerView>
                           : MediaQuery.of(context).size.height * 0.15,
                       minWidth: MediaQuery.of(context).size.width * 0.6 * scale,
                       onPressed: () => {
-                            timerCache = getDuration().inMilliseconds,
+                            timerService.timerCache =
+                                getDuration().inMilliseconds,
                             _startTimer(),
                           },
                       textColor: AppThemeSettings.buttonTextColor,
@@ -434,159 +419,45 @@ class _TimerViewState extends State<TimerView>
             ],
           );
   }
-
-  @override
-  void dispose() {
-    animationController.dispose();
-    super.dispose();
-  }
-
+  /// Updates the state of this widget
+  /// with correct time values and animation state
   void _displayTime(int milliseconds) {
     setState(() {
-      //  if more than second
-      if (milliseconds / 1000 >= 1) {
-        // check if there is more than one minute
-        if (milliseconds / (60 * 1000) >= 1) {
-          // check if there is more than one hour
-          if (milliseconds / (60 * 60 * 1000) >= 1) {
-            _hour = (milliseconds / (60 * 60 * 1000)).floor();
-            _minute = ((milliseconds - (_hour * 60 * 60 * 1000)) / (60 * 1000))
-                .floor();
-            _sec = ((milliseconds -
-                        (_hour * 60 * 60 * 1000) -
-                        (_minute * 60 * 1000)) /
-                    1000)
-                .floor();
-            _milliseconds = ((milliseconds -
-                    (_hour * 60 * 60 * 1000) -
-                    (_minute * 60 * 1000)) -
-                _sec * 1000);
-
-            //  if less than hour:
-          } else {
-            _hour = 0;
-            _minute = (milliseconds / (60 * 1000)).floor();
-            _sec = ((milliseconds - (_minute * 60 * 1000)) / 1000).floor();
-            _milliseconds =
-                ((milliseconds - (_minute * 60 * 1000)) - _sec * 1000);
-          }
-        }
-        //  if less than minute:
-        else {
-          _hour = 0;
-          _minute = 0;
-          _sec = (milliseconds / 1000).floor();
-          _milliseconds = milliseconds - (_sec * 1000);
-        }
-      } else {
-        _hour = 0;
-        _minute = 0;
-        _sec = 0;
-        _milliseconds = milliseconds;
-      }
+      timerService.computeTime(milliseconds);
     });
   }
 
   Duration getDuration() {
-    return Duration(
-        hours: _hour,
-        minutes: _minute,
-        seconds: _sec,
-        milliseconds: _milliseconds);
+    return timerService.getDuration();
   }
 
-  int _startTimer() {
-    animationController.duration = getDuration();
-    //  if paused do not save time to cache
-    if (pause) {
-      animationController.duration = Duration(milliseconds: timerCache);
-    }
-    pause = false;
-
-    animationController.reverse(
-        from:
-            animationController.value == 0.0 ? 1.0 : animationController.value);
-
-    return 0;
+  _startTimer() {
+    timerService.startTimer();
   }
 
   void _stopTimer() {
     setState(() {
-      _displayTime(timerCache);
-      animationController.stop();
-      animationController.value = 1;
+      timerService.stopTimer();
     });
   }
 
   void _resetTimer() {
     setState(() {
-      //  reset start button text to "Start" (from "Continue")
-      pause = false;
-      _displayTime(timerCache);
-      animationController.value = 1;
+      timerService.resetTimer();
     });
   }
 
   void _pauseTimer() {
     setState(() {
-      pause = true;
-      animationController.stop();
+      timerService.pauseTimer();
     });
   }
 
-  _startAlarm() {
-    SystemSound.play(SystemSoundType.click);
-    AudioCache player = AudioCache();
-    player.play('CarHornAlarm.mp3');
-  }
-
-  int _changeTime({@required int time, @required bool dragUp}) {
-    if (dragUp) {
-      if (time == 59) {
-        time = 0;
-      } else {
-        time++;
-      }
-    } else {
-      if (time == 0) {
-        time = 59;
-      } else {
-        time--;
-      }
-    }
-    return time;
-  }
-
-  int _changeHour({@required int time, @required bool dragUp}) {
-    if (dragUp) {
-      if (time == 99) {
-        time = 0;
-      } else {
-        time++;
-      }
-    } else {
-      if (time == 0) {
-        time = 99;
-      } else {
-        time--;
-      }
-    }
-    return time;
-  }
-
-  String getDecimalSeconds() {
-    //  padLeft to add additional 0 to be always same length of string
-    //  because of this number is not int the length of pad is different than 2
-    String secs = _sec.toStringAsFixed(0).padLeft(2, "0");
-
-    String milis = (_milliseconds / 100).toStringAsFixed(0);
-
-    //  check needed because of toStringAsFixed(0)
-    //  which sometimes cast millis to be 10 and crash UI
-    if (milis == "10") {
-      milis = "9";
-    }
-
-    return "$secs.$milis";
+  @override
+  void dispose() {
+    ///  when view is closed timerService need to be informed,
+    ///  to stop calling _displayTime() method in here
+    timerService.isTimerOnView = false;
+    super.dispose();
   }
 }

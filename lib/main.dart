@@ -3,6 +3,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
 void main() async {
@@ -23,6 +24,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
+  static TimerService timerService = TimerService();
   static const String _TITLE = "It is your time !";
 
   @override

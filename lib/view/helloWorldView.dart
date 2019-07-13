@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/timerView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
+import '../main.dart';
 import 'exerciseListView.dart';
 
 /// Main page of application.
@@ -32,7 +34,7 @@ class HelloWorldView extends StatefulWidget {
 }
 
 class _HelloWorldViewState extends State<HelloWorldView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   TabController _tabController;
   SharedPreferences prefs;
   Orientation screenOrientation;
@@ -42,6 +44,8 @@ class _HelloWorldViewState extends State<HelloWorldView>
 
   @override
   void initState() {
+    TimerService timerService = MyApp.timerService;
+    timerService.setTickerProvider(this);
     _tabController = new TabController(length: 2, vsync: this);
     super.initState();
   }
