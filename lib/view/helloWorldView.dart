@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/notification.dart';
 import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/calendarView.dart';
@@ -44,8 +46,9 @@ class _HelloWorldViewState extends State<HelloWorldView>
 
   @override
   void initState() {
-    TimerService timerService = MyApp.timerService;
-    timerService.setTickerProvider(this);
+    MyApp.timerService.setTickerProvider(this);
+    MyApp.notificationService.init();
+
     _tabController = new TabController(length: 2, vsync: this);
     super.initState();
   }

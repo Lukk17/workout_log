@@ -1,8 +1,12 @@
+import 'dart:isolate';
+
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/notification.dart';
 import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
@@ -17,19 +21,24 @@ void main() async {
   } else {
     AppThemeSettings.theme = AppThemeSettings.themeL;
   }
+//  await AndroidAlarmManager.initialize();
 
   initializeDateFormatting().then((_) => runApp(MyApp()));
 }
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
   static TimerService timerService = TimerService();
+  static NotificationService notificationService;
+
   static const String _TITLE = "It is your time !";
 
   @override
   Widget build(BuildContext context) {
     return AppBuilder(builder: (context) {
+      notificationService = NotificationService(context);
       return MaterialApp(
         title: 'Private WorkLog',
         theme: AppThemeSettings.theme,

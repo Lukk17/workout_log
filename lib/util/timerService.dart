@@ -1,12 +1,17 @@
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:workout_log/main.dart';
+import 'package:workout_log/util/notification.dart';
 
 class TimerService {
   AnimationController animationController;
   TickerProvider view;
   Function _displayTime;
   bool isTimerOnView = false;
+
+  NotificationService notificationService = MyApp.notificationService;
 
   int hour = 0;
   int minute = 0;
@@ -22,7 +27,7 @@ class TimerService {
   setTickerProvider(TickerProvider view) {
     this.view = view;
 
-    if(animationController==null) {
+    if (animationController == null) {
       animationController = AnimationController(
         vsync: view,
         duration: Duration(
@@ -31,20 +36,19 @@ class TimerService {
             seconds: sec,
             milliseconds: milliseconds),
       );
-      animationController.addListener(() =>
-      {
-        if (isTimerOnView)
-          {
-            _displayTime((animationController.duration.inMilliseconds *
-                animationController.value)
-                .toInt()),
-          },
-        if (animationController.value == 0)
-          {
-            stopTimer(),
-            _startAlarm(),
-          },
-      });
+      animationController.addListener(() => {
+            if (isTimerOnView)
+              {
+                _displayTime((animationController.duration.inMilliseconds *
+                        animationController.value)
+                    .toInt()),
+              },
+            if (animationController.value == 0)
+              {
+                stopTimer(),
+                _startAlarm(),
+              },
+          });
     }
   }
 
@@ -98,11 +102,17 @@ class TimerService {
     animationController.value = 1;
   }
 
-  _startAlarm() {
+  _startAlarm() async {
+//    await AndroidAlarmManager.oneShot(Duration(seconds: 1), 17, alarmCallback).then((val) => print(val));
+    await notificationService.display(title: "alarm", body: "timer !");
     SystemSound.play(SystemSoundType.click);
     AudioCache player = AudioCache();
     player.play('CarHornAlarm.mp3');
   }
+
+//  static void alarmCallback(){
+//    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. ALARM CALLBACK <<<<<<<<<<<<<<<<<<<<<<<< ');
+//  }
 
   void computeTime(int milliseconds) {
     //  if more than second
