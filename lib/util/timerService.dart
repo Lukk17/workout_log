@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workout_log/main.dart';
 import 'package:workout_log/util/notification.dart';
+import 'package:workout_log/view/helloWorldView.dart';
 
 class TimerService {
   AnimationController animationController;
@@ -103,6 +104,7 @@ class TimerService {
   }
 
   _startAlarm() async {
+    MyApp.globalKey.currentState.showSnackBar(SnackBar(content: Text("ALARM") ));
 //    await AndroidAlarmManager.oneShot(Duration(seconds: 1), 17, alarmCallback).then((val) => print(val));
     await notificationService.display(title: "alarm", body: "timer !");
     SystemSound.play(SystemSoundType.click);

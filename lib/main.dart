@@ -32,15 +32,16 @@ class MyApp extends StatelessWidget {
 
   static TimerService timerService = TimerService();
   static NotificationService notificationService;
+  static GlobalKey<ScaffoldState> globalKey;
 
-  static const String _TITLE = "It is your time !";
+  static const String _TITLE = "Private WorkoutLog";
 
   @override
   Widget build(BuildContext context) {
     return AppBuilder(builder: (context) {
       notificationService = NotificationService(context);
       return MaterialApp(
-        title: 'Private WorkLog',
+        title: 'Private WorkoutLog',
         theme: AppThemeSettings.theme,
         home: HelloWorldView(
           title: _TITLE,

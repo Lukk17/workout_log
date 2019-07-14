@@ -4,6 +4,7 @@ import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
+import '../main.dart';
 import 'bodyPartLogView.dart';
 
 /// This is main WorkLog view.
@@ -23,6 +24,9 @@ class WorkLogPageView extends StatefulWidget {
 class _WorkLogPageViewState extends State<WorkLogPageView> {
   final DateTime date;
   Orientation screenOrientation;
+
+  //  to save helloWorld scaffold key
+  final GlobalKey<ScaffoldState> scaffoldKey = MyApp.globalKey;
 
   _WorkLogPageViewState(this.date);
 
@@ -178,7 +182,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   builder: (context) =>
                       BodyPartLogView(date: date, bodyPart: bodyPart),
                 ),
-              );
+              ).then(restoreKey());
       },
       height: (screenOrientation == Orientation.portrait)
           ? MediaQuery.of(context).size.height * 0.06
@@ -193,4 +197,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     );
     return cb;
   }
+
+  restoreKey(){
+    MyApp.globalKey = scaffoldKey;
+  }
+
 }

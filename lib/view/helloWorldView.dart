@@ -40,16 +40,20 @@ class _HelloWorldViewState extends State<HelloWorldView>
   TabController _tabController;
   SharedPreferences prefs;
   Orientation screenOrientation;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
 
   //  creating key to change drawer icon
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
+
     MyApp.timerService.setTickerProvider(this);
     MyApp.notificationService.init();
 
-    _tabController = new TabController(length: 2, vsync: this);
+    MyApp.globalKey = this.scaffoldKey;
+
+    _tabController = new TabController(length: 1, vsync: this);
     super.initState();
   }
 
@@ -60,7 +64,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
     return OrientationBuilder(builder: (context, orientation) {
       screenOrientation = orientation;
       return Scaffold(
-        key: _scaffoldKey,
+        key: scaffoldKey,
         appBar: _createAppBar(),
         body: _createBody(),
         bottomNavigationBar: _createTabBar(),
@@ -78,7 +82,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
         //  changing drawer icon
         leading: new IconButton(
             icon: new Icon(Icons.settings),
-            onPressed: () => _scaffoldKey.currentState.openDrawer()),
+            onPressed: () => scaffoldKey.currentState.openDrawer()),
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -87,7 +91,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
           style: TextStyle(
               color: AppThemeSettings.titleColor,
               fontSize: (screenOrientation == Orientation.portrait)
-                  ? MediaQuery.of(context).size.height * 0.03
+                  ? MediaQuery.of(context).size.width * 0.055
                   : MediaQuery.of(context).size.width * 0.03),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
@@ -132,10 +136,10 @@ class _HelloWorldViewState extends State<HelloWorldView>
             text: (screenOrientation == Orientation.portrait) ? "log" : null,
             icon: Icon(Icons.assignment),
           ),
-          Tab(
-            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
-            icon: Icon(Icons.timer),
-          ),
+//          Tab(
+//            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
+//            icon: Icon(Icons.timer),
+//          ),
 //          Tab(
 //            text: (screenOrientation == Orientation.portrait)
 //                ? "statistic"
@@ -164,7 +168,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
             children: [
               // calling builder to get callback (Widget)
               WorkLogPageView((widget) => {}, HelloWorldView.date),
-              TimerView((widget) => {}),
+//              TimerView((widget) => {}),
 //          Center(),
             ]),
       ),

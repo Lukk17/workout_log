@@ -12,6 +12,8 @@ import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 import 'package:workout_log/view/workLogView.dart';
 
+import '../main.dart';
+
 /// This view show all exercises in selected body part.
 ///
 /// Exercises are shown as cards.
@@ -34,6 +36,9 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   BodyPart _bodyPart;
   static List<Widget> wList = List();
   List<MaterialButton> exerciseList = List();
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> savedKey = MyApp.globalKey;
+
 
   //  get DB from singleton global provider
   DBProvider db = DBProvider.db;
@@ -42,14 +47,24 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   void initState() {
     super.initState();
 
+    MyApp.globalKey = scaffoldKey;
     // get date and bodyPart from forwarded variable
     this._bodyPart = widget.bodyPart;
     updateWorkLogFromDB();
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    MyApp.globalKey = savedKey;
+  }
+
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: AppBar(
 
           /// title of selected body part
@@ -77,7 +92,7 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
         /// ListView of every workLog entry in given bodyParty
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 3.0),
           child: ListView(
             children: <Widget>[
               Column(
