@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/exercise.dart';
+import 'package:workout_log/util/util.dart';
 
 part 'workLog.g.dart';
 
@@ -9,7 +12,7 @@ part 'workLog.g.dart';
 // or
 // flutter packages pub run build_runner build
 // commend in project root to generate this file
-// clearing flutter cashe maybe be necessary
+// clearing flutter cache maybe be necessary
 
 @JsonSerializable()
 class WorkLog {
@@ -19,14 +22,10 @@ class WorkLog {
 
   Exercise exercise;
 
-  //TODO series as List, where each position number is series number and value stored is repeat number
-  //TODO for example: list[1]=5 > mean that in 1 series there were 5 repeats
-  int series = 0;
-  int repeat = 0;
+  Map<dynamic, dynamic> series = Map();
 
-  //  Date for SQLITE must be in format:
+  //  Date for SQLite must be in format:
   //  YYYY-MM-DD
-  // TODO format it for SQLITE
   DateTime created = DateTime.now();
 
   WorkLog(this.exercise);
@@ -39,34 +38,56 @@ class WorkLog {
   Map<String, dynamic> toJson() => _$WorkLogToJson(this);
 
   //  needed for SQLite
-  factory WorkLog.fromMap(Map<String, dynamic> json, Exercise e) {
+  factory WorkLog.fromMap(Map<String, dynamic> map, Exercise e) {
     WorkLog result = WorkLog(e);
-    result.id = json["id"];
-    result.series = json["series"];
-    result.repeat = json["repeat"];
-//    result.created = json["created"];
+    result.id = map["id"];
+    //  decode json, which is string from DB to series map
+    result.series = jsonDecode(map["series"]);
+
+    result.created = DateTime.parse(map["created"]);
     return result;
   }
 
   Map<String, dynamic> toMap() => {
         "id": id,
         "exercise_id": exercise.id,
-        "series": series,
-        "repeat": repeat,
-//        "created": created,
+        //  encode map as json for easy storing as text in DB
+        "series": json.encode(series),
+        "created": Util.formatter.format(created),
       };
-/*
-    WITHOUT LAMBDA:
 
-  Map<String, dynamic> toMap() {
-    var map = <String, dynamic> {
-      "id": id,
-      "exercise": exercise,
-      "series": series,
-      "repeat": repeat,
-      "created": created,
-    };
-    return map;
+  String getReps(String set) {
+    return series[set];
   }
-  */
+
+  String getRepsSum() {
+    int sum = 0;
+    series.forEach((f, v) => {sum += int.parse(v)});
+    return sum.toString();
+  }
+
+  String getBodyPart() {
+    return exercise.bodyParts
+        .toString()
+        .substring(exercise.bodyParts.toString().indexOf('.') + 1);
+  }
+
+  String toString(){
+    StringBuffer result = StringBuffer();
+
+    result.write(" WORKLOG \t");
+    result.write(" ID: ");
+    result.write(this.id);
+    result.write(" CREATED: ");
+    result.write(this.created);
+    result.write(" SERIES: ");
+    result.write(this.series.toString());
+    result.write("\t\t");
+    result.write(this.exercise.toString());
+
+    return result.toString();
+
+  }
+
+
 }

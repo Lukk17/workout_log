@@ -7,15 +7,19 @@ part of 'exercise.dart';
 // **************************************************************************
 
 Exercise _$ExerciseFromJson(Map<String, dynamic> json) {
-  return Exercise(json['name'] as String,
-      _$enumDecodeNullable(_$BodyPartEnumMap, json['bodyPart']))
+  return Exercise(
+      json['name'] as String,
+      (json['bodyParts'] as List)
+          ?.map((e) => _$enumDecodeNullable(_$BodyPartEnumMap, e))
+          ?.toSet())
     ..id = json['id'] as String;
 }
 
 Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'bodyPart': _$BodyPartEnumMap[instance.bodyPart]
+      'bodyParts':
+          instance.bodyParts?.map((e) => _$BodyPartEnumMap[e])?.toList()
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {
@@ -42,5 +46,8 @@ const _$BodyPartEnumMap = <BodyPart, dynamic>{
   BodyPart.CHEST: 'CHEST',
   BodyPart.BACK: 'BACK',
   BodyPart.ARM: 'ARM',
-  BodyPart.LEG: 'LEG'
+  BodyPart.LEG: 'LEG',
+  BodyPart.ABDOMINAL: 'ABDOMINAL',
+  BodyPart.CARDIO: 'CARDIO',
+  BodyPart.UNDEFINED: 'UNDEFINED'
 };
