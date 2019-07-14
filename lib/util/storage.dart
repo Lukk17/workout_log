@@ -14,7 +14,6 @@ class Storage {
     await getApplicationDocumentsDirectory().then((Directory directory)=> _dir=directory);
     _path = _dir.path + "/" + _FILENAME;
     File file = File(_path);
-    print(_path);
     file.writeAsString(content);
   }
 
