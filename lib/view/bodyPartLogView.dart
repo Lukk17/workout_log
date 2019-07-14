@@ -39,7 +39,6 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<ScaffoldState> savedKey = MyApp.globalKey;
 
-
   //  get DB from singleton global provider
   DBProvider db = DBProvider.db;
 
@@ -58,8 +57,6 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     super.dispose();
     MyApp.globalKey = savedKey;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -118,8 +115,8 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
 
                   // open pop-up on button press to add new exercise
                   onPressed: () => {
-                        showAddExerciseDialog(),
-                      },
+                    showAddExerciseDialog(),
+                  },
                   child: Icon(Icons.add),
                   backgroundColor: AppThemeSettings.primaryColor,
                   foregroundColor: AppThemeSettings.secondaryColor,
@@ -163,11 +160,11 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
   ) {
     return GestureDetector(
       onHorizontalDragUpdate: (d) => {
-            if (d.delta.dx < -10)
-              {
-                deleteWorkLog(workLog),
-              }
-          },
+        if (d.delta.dx < -10)
+          {
+            deleteWorkLog(workLog),
+          }
+      },
       child: Card(
         color: AppThemeSettings.primaryColor,
         margin: EdgeInsets.only(
@@ -244,65 +241,64 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-            title: Text(
-              "Select exercise",
-              textAlign: TextAlign.center,
-            ),
+        title: Text(
+          "Select exercise",
+          textAlign: TextAlign.center,
+        ),
+        children: <Widget>[
+          Util.addHorizontalLine(),
+          Column(
             children: <Widget>[
-              Util.addHorizontalLine(),
-              Column(
+              Row(
                 children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Container(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        width: MediaQuery.of(context).size.width * 0.7,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: exerciseList.length,
-                          itemBuilder: (context, index) => exerciseList[index],
-                        ),
-                      ),
-                      Column(
-                        children: <Widget>[
-                          Icon(Icons.arrow_upward),
-                          Util.spacerSelectable(
-                              top: MediaQuery.of(context).size.height * 0.3,
-                              bottom: 0,
-                              left: 0,
-                              right: 0),
-                          Icon(Icons.arrow_downward),
-                        ],
-                      )
-                    ],
-                  ),
-                  Util.addHorizontalLine(),
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        MaterialButton(
-                            color: AppThemeSettings.greenButtonColor,
-                            child: Text("New"),
-                            onPressed: () => {
-                                  showNewExerciseDialog(
-                                          'Exercise', 'eg. pushup')
-                                      .then((_) => {Navigator.pop(context)}),
-                                }),
-                        MaterialButton(
-                            color: AppThemeSettings.cancelButtonColor,
-                            child: const Text('CANCEL'),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            }),
-                      ],
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: exerciseList.length,
+                      itemBuilder: (context, index) => exerciseList[index],
                     ),
                   ),
+                  Column(
+                    children: <Widget>[
+                      Icon(Icons.arrow_upward),
+                      Util.spacerSelectable(
+                          top: MediaQuery.of(context).size.height * 0.3,
+                          bottom: 0,
+                          left: 0,
+                          right: 0),
+                      Icon(Icons.arrow_downward),
+                    ],
+                  )
                 ],
+              ),
+              Util.addHorizontalLine(),
+              Container(
+                height: MediaQuery.of(context).size.height * 0.1,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    MaterialButton(
+                        color: AppThemeSettings.greenButtonColor,
+                        child: Text("New"),
+                        onPressed: () => {
+                              showNewExerciseDialog('Exercise', 'eg. pushup')
+                                  .then((_) => {Navigator.pop(context)}),
+                            }),
+                    MaterialButton(
+                        color: AppThemeSettings.cancelButtonColor,
+                        child: const Text('CANCEL'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ],
+                ),
               ),
             ],
           ),
+        ],
+      ),
     );
   }
 
@@ -311,22 +307,24 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     List<Exercise> exercises = await db.getAllExercise();
 
     for (Exercise e in exercises) {
-      result.add(MaterialButton(
-        onPressed: () async {
-          Exercise exercise = Exercise(
-            e.name,
-            // bodyPart as Set()
-            {_bodyPart},
-          );
-          //  save workLog to db
-          WorkLog workLog = await addWorkLog(exercise, _bodyPart);
-          setState(() {
-            wList.add(createWorkLogRowWidget(workLog, context));
-          });
-          Navigator.pop(context);
-        },
-        child: Text(e.name),
-      ));
+      result.add(
+        MaterialButton(
+          onPressed: () async {
+            Exercise exercise = Exercise(
+              e.name,
+              // bodyPart as Set()
+              {_bodyPart},
+            );
+            //  save workLog to db
+            WorkLog workLog = await addWorkLog(exercise, _bodyPart);
+            setState(() {
+              wList.add(createWorkLogRowWidget(workLog, context));
+            });
+            Navigator.pop(context);
+          },
+          child: Text(e.name),
+        ),
+      );
     }
     setState(() {
       exerciseList = result;
@@ -341,48 +339,47 @@ class _BodyPartLogViewState extends State<BodyPartLogView> {
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-            title: Center(child: Text(title)),
-            contentPadding:
-                EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
-            children: <Widget>[
-              TextField(
-                // use text controller to save given by user String
-                controller: textEditingController,
-                autofocus: true,
-                autocorrect: true,
-                decoration: InputDecoration(hintText: hint),
-                maxLength: 50,
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    MaterialButton(
-                        color: AppThemeSettings.greenButtonColor,
-                        child: const Text('SAVE'),
-                        onPressed: () async {
-                          // text is forwarded by controller from SimpleDialog text field
-                          Exercise exercise = Exercise(
-                            textEditingController.text,
-                            // bodyPart as Set()
-                            {_bodyPart},
-                          );
-                          WorkLog workLog =
-                              await addWorkLog(exercise, _bodyPart);
-                          //  after saving new record bp state need to be updated:
-                          setState(() {
-                            wList.add(createWorkLogRowWidget(workLog, context));
-                          });
-                          Navigator.pop(context);
-                        }),
-                    MaterialButton(
-                        color: AppThemeSettings.cancelButtonColor,
-                        child: const Text('CANCEL'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
-                  ]),
-            ],
+        title: Center(child: Text(title)),
+        contentPadding:
+            EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+        children: <Widget>[
+          TextField(
+            // use text controller to save given by user String
+            controller: textEditingController,
+            autofocus: true,
+            autocorrect: true,
+            decoration: InputDecoration(hintText: hint),
+            maxLength: 50,
           ),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                MaterialButton(
+                    color: AppThemeSettings.greenButtonColor,
+                    child: const Text('SAVE'),
+                    onPressed: () async {
+                      // text is forwarded by controller from SimpleDialog text field
+                      Exercise exercise = Exercise(
+                        textEditingController.text,
+                        // bodyPart as Set()
+                        {_bodyPart},
+                      );
+                      WorkLog workLog = await addWorkLog(exercise, _bodyPart);
+                      //  after saving new record bp state need to be updated:
+                      setState(() {
+                        wList.add(createWorkLogRowWidget(workLog, context));
+                      });
+                      Navigator.pop(context);
+                    }),
+                MaterialButton(
+                    color: AppThemeSettings.cancelButtonColor,
+                    child: const Text('CANCEL'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ]),
+        ],
+      ),
     );
   }
 

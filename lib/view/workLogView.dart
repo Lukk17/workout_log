@@ -3,6 +3,7 @@ import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/editExerciseView.dart';
 
 /// This is most detailed view for each WorkLog.
 ///
@@ -28,14 +29,18 @@ class _WorkLogView extends State<WorkLogView> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> wList = createRowsForSeries(context);
+    List<Widget> wList = createRowsForSeries();
     return Scaffold(
       appBar: AppBar(
           title: Row(
             children: <Widget>[
+
               /// title of body part of exercise
               Container(
-                width: MediaQuery.of(context).size.width * 0.4,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.4,
                 child: Text(
                   workLog.getBodyPart(),
                   textAlign: TextAlign.start,
@@ -47,7 +52,10 @@ class _WorkLogView extends State<WorkLogView> {
 
               /// created time of this log
               Container(
-                width: MediaQuery.of(context).size.width * 0.3,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.3,
                 child: Text(
                   workLog.created.toIso8601String().substring(0, 10),
                   textAlign: TextAlign.end,
@@ -59,24 +67,42 @@ class _WorkLogView extends State<WorkLogView> {
           backgroundColor: AppThemeSettings.appBarColor),
       body: Column(
         children: <Widget>[
+
           /// exercise name
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                    color: AppThemeSettings.borderColor,
-                    width: AppThemeSettings.tableHeaderBorderWidth),
+          GestureDetector(
+            onLongPress: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          EditExerciseView(
+                            exercise: widget.workLog.exercise,
+                          )));
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                      color: AppThemeSettings.borderColor,
+                      width: AppThemeSettings.tableHeaderBorderWidth),
+                ),
               ),
-            ),
-            height: MediaQuery.of(context).size.height * 0.20,
-            width: MediaQuery.of(context).size.width,
-            alignment: FractionalOffset(0.5, 0.5),
-            child: Text(
-              workLog.exercise.name,
-              style: TextStyle(
-                color: AppThemeSettings.specialTextColor,
-                fontSize: AppThemeSettings.headerSize,
-                fontWeight: FontWeight.bold,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.20,
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width,
+              alignment: FractionalOffset(0.5, 0.5),
+              child: Text(
+                workLog.exercise.name,
+                style: TextStyle(
+                  color: AppThemeSettings.specialTextColor,
+                  fontSize: AppThemeSettings.headerSize,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -92,8 +118,14 @@ class _WorkLogView extends State<WorkLogView> {
                         width: AppThemeSettings.tableHeaderBorderWidth),
                   ),
                 ),
-                height: MediaQuery.of(context).size.height * 0.10,
-                width: MediaQuery.of(context).size.width * 0.5,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.10,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.5,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   "series",
@@ -115,8 +147,14 @@ class _WorkLogView extends State<WorkLogView> {
                         width: AppThemeSettings.tableHeaderBorderWidth),
                   ),
                 ),
-                height: MediaQuery.of(context).size.height * 0.10,
-                width: MediaQuery.of(context).size.width * 0.5,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.10,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.5,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   "repeats",
@@ -157,11 +195,15 @@ class _WorkLogView extends State<WorkLogView> {
     );
   }
 
-  List<Widget> createRowsForSeries(BuildContext context) {
+  List<Widget> createRowsForSeries() {
     List<Widget> wList = List();
     for (int i = 1; i <= workLog.series.length; i++) {
-      wList.add(
-        Row(
+      wList.add(GestureDetector(
+        onHorizontalDragEnd: (d) =>
+        {
+          deleteSeries(i),
+        },
+        child: Row(
           children: <Widget>[
             Container(
               decoration: BoxDecoration(
@@ -171,13 +213,19 @@ class _WorkLogView extends State<WorkLogView> {
                       width: AppThemeSettings.tableCellBorderWidth),
                 ),
               ),
-              height: MediaQuery.of(context).size.height * 0.10,
-              width: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.10,
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
               //TODO delete button
               child: FlatButton(
 
-                  ///  series number start from 1 as iteration
+                ///  series number start from 1 as iteration
                   child: Text(
                     i.toString(),
                     style: TextStyle(
@@ -200,12 +248,18 @@ class _WorkLogView extends State<WorkLogView> {
                       width: AppThemeSettings.tableCellBorderWidth),
                 ),
               ),
-              height: MediaQuery.of(context).size.height * 0.10,
-              width: MediaQuery.of(context).size.width * 0.5,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.10,
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.5,
               alignment: FractionalOffset(0.5, 0.5),
               child: FlatButton(
 
-                  ///  get repeats number
+                ///  get repeats number
                   child: Text(
                     workLog.getReps(i.toString()),
                     style: TextStyle(
@@ -219,14 +273,20 @@ class _WorkLogView extends State<WorkLogView> {
             ),
           ],
         ),
-      );
+      ),);
     }
 
     /// add additional container at bottom for better visibility
     wList.add(
       Container(
-        height: MediaQuery.of(context).size.height * 0.10,
-        width: MediaQuery.of(context).size.width * 0.5,
+        height: MediaQuery
+            .of(context)
+            .size
+            .height * 0.10,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.5,
       ),
     );
     return wList;
@@ -245,12 +305,17 @@ class _WorkLogView extends State<WorkLogView> {
     TextEditingController textEditingController = Util.textController();
     return showDialog(
       context: context,
-      builder: (_) => SimpleDialog(
+      builder: (_) =>
+          SimpleDialog(
             title: Center(child: Text("Edit repeats number")),
             contentPadding:
-                EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+            EdgeInsets.all(MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             children: <Widget>[
               TextField(
+
                 /// use text controller to save given by user String
                 controller: textEditingController,
                 autofocus: true,
@@ -259,35 +324,67 @@ class _WorkLogView extends State<WorkLogView> {
                 decoration: InputDecoration(hintText: workLog.getReps(set)),
                 maxLength: 4,
               ),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <
-                  Widget>[
-                FlatButton(
-                    color: AppThemeSettings.greenButtonColor,
-                    child: Text(
-                      'SAVE',
-                      style: TextStyle(color: AppThemeSettings.buttonTextColor),
-                    ),
-                    onPressed: () {
-                      ///  set repeat number of this set
-                      // exception here if input is not int,
-                      // preventing from saving that value
-                      workLog.series[set] =
-                          int.parse(textEditingController.text).toString();
-                      db.updateWorkLog(workLog);
-                      Navigator.pop(context);
-                    }),
-                FlatButton(
-                    color: AppThemeSettings.cancelButtonColor,
-                    child: Text(
-                      'CANCEL',
-                      style: TextStyle(color: AppThemeSettings.buttonTextColor),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    }),
-              ]),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    FlatButton(
+                        color: AppThemeSettings.greenButtonColor,
+                        child: Text(
+                          'SAVE',
+                          style: TextStyle(
+                              color: AppThemeSettings.buttonTextColor),
+                        ),
+                        onPressed: () {
+                          ///  set repeat number of this set
+                          // exception here if input is not int,
+                          // preventing from saving that value
+                          workLog.series[set] =
+                              int.parse(textEditingController.text).toString();
+                          db.updateWorkLog(workLog);
+                          Navigator.pop(context);
+                        }),
+                    FlatButton(
+                        color: AppThemeSettings.cancelButtonColor,
+                        child: Text(
+                          'CANCEL',
+                          style: TextStyle(
+                              color: AppThemeSettings.buttonTextColor),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ]),
             ],
           ),
     );
+  }
+
+  deleteSeries(int i) async {
+    Map<dynamic, dynamic> updatedSeries = Map();
+
+    workLog.series.forEach((key, value) =>
+    {
+      if(int.parse(key) == i){
+        //  do not save it to new map - this way it will be deleted
+      }
+
+      /// decrement series number higher than deleted one
+      else
+        if (int.parse(key) > i)
+          {
+            key = (int.parse(key) - 1).toString(),
+            updatedSeries.putIfAbsent(key, () => value.toString())
+          }
+
+        /// series number
+        else
+          {
+            updatedSeries.putIfAbsent(key, () => value.toString())
+          }
+    });
+
+    workLog.series = updatedSeries;
+    await db.updateWorkLog(workLog);
+    setState(() {});
   }
 }

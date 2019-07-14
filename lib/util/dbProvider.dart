@@ -79,8 +79,8 @@ class DBProvider {
 
     for (var dbExercise in allExercises) {
       if (dbExercise.name == workLog.exercise.name) {
-        //  add to DB only if there is no identical workLog entry
-        //  (with same exercise and bodyPart)
+        ///  add to DB only if there is no identical workLog entry
+        ///  (with same exercise and bodyPart)
         if (!dbExercise.bodyParts.contains(workLog.exercise.bodyParts.first)) {
           ///  if workLog is adding exercise which name already exist
           ///  but user added this exercise to another bodyPart
@@ -91,14 +91,6 @@ class DBProvider {
           print(
               "\n [newWorkLog] UPDATING EXERCISE : ============>  ${dbExercise.toString()} \n ");
         }
-
-        //  if there is worklog with same exercise name in given
-//        var res = await db.query("worklog", where: "exercise_id = ?", whereArgs: [dbExercise.id]);
-//        for() {
-//          if (){
-//
-//          }
-//        }
 
         //  db exercise as workLog exercise (to save one with correct ID)
         workLog.exercise = dbExercise;
@@ -134,8 +126,30 @@ class DBProvider {
     //  if so save this exercise new body part
 
     for (var dbExercise in allExercises) {
-      if (dbExercise.name == exercise.name) {
+      if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts.addAll(exercise.bodyParts);
+        id = await db.update(exerciseTable, dbExercise.toMap(),
+            where: "id = ?", whereArgs: [dbExercise.id]);
+
+        print(
+            "\n UPDATE EXERCISE: ============>  ${dbExercise.toString()} \n ");
+      }
+    }
+    return id;
+  }
+
+  Future<int> editExercise(Exercise exercise) async {
+    final db = await database;
+    int id = -1;
+
+    List<Exercise> allExercises = await getAllExercise();
+    // check if in db on that day is workLog with same exercise name but different bodypart
+    //  if so save this exercise new body part
+
+    for (var dbExercise in allExercises) {
+      if (dbExercise.id == exercise.id) {
+        dbExercise.bodyParts = exercise.bodyParts;
+        dbExercise.name = exercise.name;
         id = await db.update(exerciseTable, dbExercise.toMap(),
             where: "id = ?", whereArgs: [dbExercise.id]);
 

@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:workout_log/view/helloWorldView.dart';
 
 class NotificationService {
   BuildContext context;
@@ -15,7 +14,6 @@ class NotificationService {
   NotificationService(this.context);
 
   init() {
-
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
 // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     var initializationSettingsAndroid =
@@ -30,13 +28,9 @@ class NotificationService {
 
   // fire when a notification has been tapped on
   Future onSelectNotification(String payload) async {
-
-    if (payload != null) {
-    }
-    await Navigator.push(
-      context,
-      new MaterialPageRoute(builder: (context) => HelloWorldView()),
-    );
+    //  pop to default app view
+    Navigator.popUntil(
+        context, ModalRoute.withName(Navigator.defaultRouteName));
   }
 
   Future<void> onDidReceiveLocalNotification(
@@ -53,12 +47,9 @@ class NotificationService {
             child: Text('Ok'),
             onPressed: () async {
               Navigator.of(context, rootNavigator: true).pop();
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HelloWorldView(),
-                ),
-              );
+              //  pop to default app view
+              Navigator.popUntil(
+                  context, ModalRoute.withName(Navigator.defaultRouteName));
             },
           )
         ],
@@ -88,14 +79,12 @@ class NotificationService {
         _getPlatformSpecifics());
   }
 
-  NotificationDetails _getPlatformSpecifics(){
-
+  NotificationDetails _getPlatformSpecifics() {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         _channelID, _channelName, _channelDescription,
         importance: Importance.Max, priority: Priority.High, ticker: _ticker);
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
     return NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-
   }
 }

@@ -3,6 +3,8 @@ import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 
+import 'editExerciseView.dart';
+
 class ExerciseListView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _ExerciseListViewState();
@@ -23,37 +25,43 @@ class _ExerciseListViewState extends State<ExerciseListView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(
-            "Exercises Edit",
-            style: TextStyle(
-              color: AppThemeSettings.titleColor,
-              fontSize: AppThemeSettings.fontSize,
+    return Hero(
+      tag: "exerciseEdit",
+      child: Scaffold(
+        appBar: AppBar(
+            centerTitle: true,
+            title: Text(
+              "Exercises Edit",
+              style: TextStyle(
+                color: AppThemeSettings.titleColor,
+                fontSize: AppThemeSettings.fontSize,
+              ),
             ),
-          ),
-          backgroundColor: AppThemeSettings.appBarColor),
-      body: ListView(
-        children: <Widget>[
-          Column(
-            children: exerciseList,
-          ),
-          Container(
-            height: MediaQuery.of(context).size.height * 0.15,
-          ),
-        ],
+            backgroundColor: AppThemeSettings.appBarColor),
+        body: ListView.builder(
+          itemCount: exerciseList.length,
+          itemBuilder: (context, index) => exerciseList[index],
+        ),
       ),
     );
   }
 
-  void getExercises() async {
+  getExercises() async {
     List<MaterialButton> result = List();
     List<Exercise> exercises = await db.getAllExercise();
 
+    print(
+        '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   ${exercises.toString()}');
+
     for (Exercise e in exercises) {
       result.add(MaterialButton(
-        onPressed: () {
-          Navigator.pop(context);
+        key: Key(e.name),
+        onPressed: () async {
+          Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => EditExerciseView(exercise: e)))
+              .then((val) => getExercises());
         },
         child: Text(e.name),
       ));

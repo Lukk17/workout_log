@@ -1,6 +1,3 @@
-import 'dart:isolate';
-
-import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,7 +22,6 @@ void main() async {
 
   initializeDateFormatting().then((_) => runApp(MyApp()));
 }
-
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
