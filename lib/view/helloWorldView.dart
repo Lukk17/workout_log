@@ -74,6 +74,10 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     _tabController = new TabController(length: 1, vsync: this);
 
     _getPrefs();
+    MyApp.globalKey = this.scaffoldKey;
+
+    _tabController = new TabController(length: 2, vsync: this);
+    super.initState();
   }
 
   @override
@@ -162,16 +166,16 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
               color: AppThemeSettings.tabBarIconColor,
             ),
           ),
-          //          Tab(
-          //            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
-          //            icon: Icon(Icons.timer),
-          //          ),
-          //          Tab(
-          //            text: (screenOrientation == Orientation.portrait)
-          //                ? "statistic"
-          //                : null,
-          //            icon: Icon(Icons.assessment),
-          //          ),
+          Tab(
+            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
+            icon: Icon(Icons.timer),
+          ),
+//          Tab(
+//            text: (screenOrientation == Orientation.portrait)
+//                ? "statistic"
+//                : null,
+//            icon: Icon(Icons.assessment),
+//          ),
         ],
       ),
     );
@@ -196,8 +200,8 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
             children: [
               // calling builder to get callback (Widget)
               WorkLogPageView((widget) => {}, HelloWorldView.date),
-              //              TimerView((widget) => {}),
-              //          Center(),
+              TimerView((widget) => {}),
+//          Center(),
             ]),
       ),
     );

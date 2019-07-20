@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:logging/logging.dart';
@@ -8,7 +9,7 @@ import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
 void main() async {
-  //  await AndroidAlarmManager.initialize();
+  await AndroidAlarmManager.initialize();
   initializeDateFormatting().then((_) => runApp(MyApp()));
 }
 
