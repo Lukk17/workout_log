@@ -53,7 +53,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
 
     MyApp.globalKey = this.scaffoldKey;
 
-    _tabController = new TabController(length: 1, vsync: this);
+    _tabController = new TabController(length: 2, vsync: this);
     super.initState();
   }
 
@@ -136,10 +136,10 @@ class _HelloWorldViewState extends State<HelloWorldView>
             text: (screenOrientation == Orientation.portrait) ? "log" : null,
             icon: Icon(Icons.assignment),
           ),
-//          Tab(
-//            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
-//            icon: Icon(Icons.timer),
-//          ),
+          Tab(
+            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
+            icon: Icon(Icons.timer),
+          ),
 //          Tab(
 //            text: (screenOrientation == Orientation.portrait)
 //                ? "statistic"
@@ -168,7 +168,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
             children: [
               // calling builder to get callback (Widget)
               WorkLogPageView((widget) => {}, HelloWorldView.date),
-//              TimerView((widget) => {}),
+              TimerView((widget) => {}),
 //          Center(),
             ]),
       ),
