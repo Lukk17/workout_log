@@ -10,22 +10,22 @@ import 'package:workout_log/view/editExerciseView.dart';
 /// In Tab bar there is body part name and date.
 /// Main view have name of exercise,
 /// below it series and repeats in each series shown as table.
-class WorkLogView extends StatefulWidget {
+class ExerciseView extends StatefulWidget {
   final WorkLog workLog;
 
-  WorkLogView({Key key, @required this.workLog}) : super(key: key);
+  ExerciseView({Key key, @required this.workLog}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _WorkLogView(workLog: workLog);
+    return _ExerciseView(workLog: workLog);
   }
 }
 
-class _WorkLogView extends State<WorkLogView> {
+class _ExerciseView extends State<ExerciseView> {
   final WorkLog workLog;
   static DBProvider db = DBProvider.db;
 
-  _WorkLogView({Key key, @required this.workLog});
+  _ExerciseView({Key key, @required this.workLog});
 
   @override
   Widget build(BuildContext context) {
@@ -33,22 +33,8 @@ class _WorkLogView extends State<WorkLogView> {
     return Scaffold(
       appBar: AppBar(
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-
-              /// title of body part of exercise
-              Container(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.4,
-                child: Text(
-                  workLog.getBodyPart(),
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    color: AppThemeSettings.titleColor,
-                  ),
-                ),
-              ),
 
               /// created time of this log
               Container(

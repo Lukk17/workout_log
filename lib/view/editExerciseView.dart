@@ -39,8 +39,8 @@ class _EditExerciseView extends State<EditExerciseView> {
     /// checkbox should be checked only if exercise have that body part
     updateCheckboxesState();
 
-    print(
-        'EditExerciseView >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${widget.exercise.name} \t ${widget.exercise.bodyParts.toString()} \t ID: ${widget.exercise.id}');
+    print('EditExerciseView >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${widget.exercise.name} '
+        '\t ${widget.exercise.bodyParts.toString()} \t ID: ${widget.exercise.id}');
   }
 
   @override

@@ -1,15 +1,11 @@
 import 'dart:ui';
 
-import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
-import 'package:workout_log/util/notification.dart';
-import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/calendarView.dart';
-import 'package:workout_log/view/timerView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
 import '../main.dart';
@@ -22,8 +18,7 @@ class HelloWorldView extends StatefulWidget {
   static DateTime date = DateTime.now();
   final Function(Widget) callback;
 
-  HelloWorldView({Key key, @required this.title, @required this.callback})
-      : super(key: key);
+  HelloWorldView({Key key, @required this.title, @required this.callback}) : super(key: key);
 
   // This widget is the home page of your application.
   // Fields in a Widget subclass are always marked "final".
@@ -35,19 +30,16 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView>
-    with TickerProviderStateMixin {
+class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
   TabController _tabController;
   SharedPreferences prefs;
   Orientation screenOrientation;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
-
   //  creating key to change drawer icon
 
   @override
   void initState() {
-
     MyApp.timerService.setTickerProvider(this);
     MyApp.notificationService.init();
 
@@ -75,14 +67,11 @@ class _HelloWorldViewState extends State<HelloWorldView>
 
   Widget _createAppBar() {
     return PreferredSize(
-      preferredSize: Size.fromHeight((screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.08
-          : MediaQuery.of(context).size.width * 0.05),
+      preferredSize: Size.fromHeight(
+          (screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.width * 0.05),
       child: AppBar(
         //  changing drawer icon
-        leading: new IconButton(
-            icon: new Icon(Icons.settings),
-            onPressed: () => scaffoldKey.currentState.openDrawer()),
+        leading: new IconButton(icon: new Icon(Icons.settings), onPressed: () => scaffoldKey.currentState.openDrawer()),
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -90,9 +79,8 @@ class _HelloWorldViewState extends State<HelloWorldView>
           widget.title,
           style: TextStyle(
               color: AppThemeSettings.titleColor,
-              fontSize: (screenOrientation == Orientation.portrait)
-                  ? MediaQuery.of(context).size.width * 0.055
-                  : MediaQuery.of(context).size.width * 0.03),
+              fontSize:
+                  (screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.width * 0.055 : MediaQuery.of(context).size.width * 0.03),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
         centerTitle: (screenOrientation == Orientation.portrait) ? false : true,
@@ -109,8 +97,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
                       ),
                       Text(
                         "Calendar",
-                        style: TextStyle(
-                            color: AppThemeSettings.calendarIconColor),
+                        style: TextStyle(color: AppThemeSettings.calendarIconColor),
                       ),
                     ],
                   )
@@ -180,11 +167,11 @@ class _HelloWorldViewState extends State<HelloWorldView>
     await showDialog(
       context: context,
       builder: (context) => SimpleDialog(
-            children: <Widget>[
-              //  send screen orientation to dialog creator
-              CalendarView((widget) => {}, screenOrientation),
-            ],
-          ),
+        children: <Widget>[
+          //  send screen orientation to dialog creator
+          CalendarView((widget) => {}, screenOrientation),
+        ],
+      ),
     );
     setState(() {});
   }
@@ -203,10 +190,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
               child: DrawerHeader(
                 child: Text(
                   "Settings",
-                  style: TextStyle(
-                      color: AppThemeSettings.textColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: AppThemeSettings.headerSize),
+                  style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold, fontSize: AppThemeSettings.headerSize),
                 ),
               ),
             ),
@@ -221,28 +205,19 @@ class _HelloWorldViewState extends State<HelloWorldView>
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
-                    Switch(
-                        value: AppThemeSettings.theme == ThemeData.dark(),
-                        onChanged: (isDark) => _changeTheme(isDark))
+                    Switch(value: AppThemeSettings.theme == ThemeData.dark(), onChanged: (isDark) => _changeTheme(isDark))
                   ],
                 ),
                 (screenOrientation == Orientation.portrait)
-                    ? Util.spacerSelectable(
-                        top: MediaQuery.of(context).size.height * 0.3)
-                    : Util.spacerSelectable(
-                        top: MediaQuery.of(context).size.height * 0.1),
+                    ? Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.3)
+                    : Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.1),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(color: AppThemeSettings.textColor, fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ExerciseListView())),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView())),
                 ),
               ],
             ),
