@@ -31,22 +31,26 @@ class HelloWorldView extends StatefulWidget {
 }
 
 class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
+  static const String BACKGROUND_IMAGE = "backgroundImage";
+  static const String IS_DARK = "isDark";
+
   TabController _tabController;
-  SharedPreferences prefs;
-  Orientation screenOrientation;
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  SharedPreferences _prefs;
+  Orientation _screenOrientation;
+  bool _backgroundImage = true;
 
   //  creating key to change drawer icon
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     MyApp.timerService.setTickerProvider(this);
     MyApp.notificationService.init();
-
     MyApp.globalKey = this.scaffoldKey;
-
     _tabController = new TabController(length: 1, vsync: this);
     super.initState();
+
+    getPrefs();
   }
 
   @override
@@ -54,7 +58,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     return OrientationBuilder(builder: (context, orientation) {
-      screenOrientation = orientation;
+      _screenOrientation = orientation;
       return Scaffold(
         key: scaffoldKey,
         appBar: _createAppBar(),
@@ -68,7 +72,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   Widget _createAppBar() {
     return PreferredSize(
       preferredSize: Size.fromHeight(
-          (screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.width * 0.05),
+          (_screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.width * 0.05),
       child: AppBar(
         //  changing drawer icon
         leading: new IconButton(icon: new Icon(Icons.settings), onPressed: () => scaffoldKey.currentState.openDrawer()),
@@ -79,16 +83,17 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
           widget.title,
           style: TextStyle(
               color: AppThemeSettings.titleColor,
-              fontSize:
-                  (screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.width * 0.055 : MediaQuery.of(context).size.width * 0.03),
+              fontSize: (_screenOrientation == Orientation.portrait)
+                  ? MediaQuery.of(context).size.width * 0.055
+                  : MediaQuery.of(context).size.width * 0.03),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
-        centerTitle: (screenOrientation == Orientation.portrait) ? false : true,
+        centerTitle: (_screenOrientation == Orientation.portrait) ? false : true,
         actions: <Widget>[
           MaterialButton(
             padding: EdgeInsets.all(5),
             onPressed: _openCalendar,
-            child: (screenOrientation == Orientation.portrait)
+            child: (_screenOrientation == Orientation.portrait)
                 ? Column(
                     children: <Widget>[
                       Icon(
@@ -120,7 +125,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
         controller: _tabController,
         tabs: <Widget>[
           Tab(
-            text: (screenOrientation == Orientation.portrait) ? "log" : null,
+            text: (_screenOrientation == Orientation.portrait) ? "log" : null,
             icon: Icon(Icons.assignment),
           ),
 //          Tab(
@@ -140,12 +145,14 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
 
   Widget _createBody() {
     return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(AppThemeSettings.background),
-          fit: BoxFit.fitHeight,
-        ),
-      ),
+      decoration: _backgroundImage
+          ? BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(AppThemeSettings.background),
+                fit: BoxFit.fitHeight,
+              ),
+            )
+          : BoxDecoration(),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
         child: TabBarView(
@@ -169,31 +176,28 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
       builder: (context) => SimpleDialog(
         children: <Widget>[
           //  send screen orientation to dialog creator
-          CalendarView((widget) => {}, screenOrientation),
+          CalendarView((widget) => {}, _screenOrientation),
         ],
       ),
     );
     setState(() {});
   }
 
-  updateDate() async {}
-
   _openSettings() {
-    updateDate();
     return Drawer(
       child: Container(
         color: AppThemeSettings.drawerColor,
         child: ListView(
-          padding: EdgeInsets.zero,
           children: <Widget>[
             Center(
-              child: DrawerHeader(
-                child: Text(
-                  "Settings",
-                  style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold, fontSize: AppThemeSettings.headerSize),
-                ),
+              child: Text(
+                "Settings",
+                style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold, fontSize: AppThemeSettings.headerSize),
               ),
             ),
+            (_screenOrientation == Orientation.portrait)
+                ? Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.2)
+                : Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.1),
             Column(
               children: <Widget>[
                 Row(
@@ -208,7 +212,22 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     Switch(value: AppThemeSettings.theme == ThemeData.dark(), onChanged: (isDark) => _changeTheme(isDark))
                   ],
                 ),
-                (screenOrientation == Orientation.portrait)
+                (_screenOrientation == Orientation.portrait)
+                    ? Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.1)
+                    : Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Background image:",
+                      style: TextStyle(
+                        fontSize: AppThemeSettings.fontSize,
+                      ),
+                    ),
+                    Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
+                  ],
+                ),
+                (_screenOrientation == Orientation.portrait)
                     ? Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.3)
                     : Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.1),
                 MaterialButton(
@@ -227,16 +246,46 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     );
   }
 
+  _changeBackground(bool isImage) {
+    if (isImage) {
+      _backgroundImage = true;
+      _prefs.setBool(BACKGROUND_IMAGE, true);
+    } else {
+      _backgroundImage = false;
+      _prefs.setBool(BACKGROUND_IMAGE, false);
+    }
+    AppBuilder.of(context).rebuild();
+  }
+
   _changeTheme(bool isDark) async {
-    prefs = await SharedPreferences.getInstance();
+    _prefs = await SharedPreferences.getInstance();
 
     if (isDark) {
-      prefs.setBool("isDark", true);
+      _prefs.setBool(IS_DARK, true);
       AppThemeSettings.theme = AppThemeSettings.themeD;
     } else {
-      prefs.setBool("isDark", false);
+      _prefs.setBool(IS_DARK, false);
       AppThemeSettings.theme = AppThemeSettings.themeL;
     }
     AppBuilder.of(context).rebuild();
+  }
+
+  void getPrefs() async {
+    _prefs = await SharedPreferences.getInstance();
+
+    Set<String> prefKeys = _prefs.getKeys();
+
+    if (prefKeys.contains(BACKGROUND_IMAGE)) {
+      _backgroundImage = _prefs.get(BACKGROUND_IMAGE);
+    } else {
+      _backgroundImage = true;
+      _prefs.setBool(BACKGROUND_IMAGE, true);
+    }
+
+    if (prefKeys.contains(IS_DARK)) {
+      _changeTheme(_prefs.getBool(IS_DARK));
+    } else {
+      _prefs.setBool(IS_DARK, true);
+    }
   }
 }

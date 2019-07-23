@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
@@ -103,7 +104,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                             await updateState(),
                           },
                           child: Icon(Icons.add),
-                          backgroundColor: AppThemeSettings.greenButtonColor,
+                          backgroundColor: AppThemeSettings.buttonColor,
                           foregroundColor: AppThemeSettings.secondaryColor,
                         ),
                         Util.spacerSelectable(
@@ -128,64 +129,84 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   /// workLog which will be added to widget
   /// context of application (for screen dimension)
   Widget createWorkLogRowWidget(WorkLog workLog) {
-    return GestureDetector(
-      onHorizontalDragUpdate: (d) => {
-        if (d.delta.dx < -10)
-          {
-            deleteWorkLog(workLog),
-          }
-      },
-      child: Card(
-        color: AppThemeSettings.primaryColor,
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02, top: MediaQuery.of(context).size.height * 0.02),
-        elevation: 8,
-        child: ListTile(
-          title: Container(
-            margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
-            child: Text(
-              workLog.exercise.name,
-              style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
-              textAlign: TextAlign.center,
+    return Container(
+      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02, top: MediaQuery.of(context).size.height * 0.02),
+      child: Slidable(
+        actionPane: SlidableDrawerActionPane(),
+        actionExtentRatio: 0.25,
+        secondaryActions: <Widget>[
+          Container(
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.01, top: MediaQuery.of(context).size.height * 0.01),
+            child: IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () => deleteWorkLog(workLog),
+            ),
+          )
+        ],
+        actions: <Widget>[
+          Container(
+            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.01, top: MediaQuery.of(context).size.height * 0.01),
+            child: IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () => deleteWorkLog(workLog),
             ),
           ),
-          subtitle: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              ///  sum of workLog series
-              Container(
-                margin: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
-                child: Text(
-                  "Series: ${workLog.series.length.toString()}",
-                  style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
-                ),
+        ],
+        child: Card(
+          color: AppThemeSettings.primaryColor,
+          elevation: 8,
+          child: ListTile(
+            title: Container(
+              margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+              child: Text(
+                workLog.exercise.name,
+                style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
+                textAlign: TextAlign.center,
               ),
-
-              ///  sum of workLog reps in set
-              Container(
-                margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
-                child: Text(
-                  "Reps: ${workLog.getRepsSum()}",
-                  style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
-          ),
-          trailing: Container(
-            child: Icon(
-              Icons.arrow_forward,
-              color: AppThemeSettings.secondaryColor,
             ),
-            margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+            subtitle: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ///  sum of workLog series
+                Container(
+                  margin: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+                  child: Text(
+                    "Series: ${workLog.series.length.toString()}",
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
+                  ),
+                ),
+
+                ///  sum of workLog reps in set
+                Container(
+                  margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+                  child: Text(
+                    "Reps: ${workLog.getRepsSum()}",
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Container(
+              child: Icon(
+                Icons.arrow_forward,
+                color: AppThemeSettings.secondaryColor,
+              ),
+              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+            ),
+
+            ///  push workLog and bodyPartInterface to new screen to display it's details
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+
+                    ///  using Navigator.then to update parent state as well
+                    builder: (context) => ExerciseView(workLog: workLog))).then((v) => updateState()),
           ),
-
-          ///  push workLog and bodyPartInterface to new screen to display it's details
-          onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-
-                  ///  using Navigator.then to update parent state as well
-                  builder: (context) => ExerciseView(workLog: workLog))).then((v) => updateState()),
         ),
       ),
     );

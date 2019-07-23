@@ -11,19 +11,19 @@ class AppThemeSettings {
     buttonColor = Colors.redAccent;
     buttonSplashColor = Colors.lightGreen;
     iconColor = Colors.black;
-    appBarColor = Colors.redAccent;
+    appBarColor = Colors.green[800];
     tabBarColor = Colors.white;
     timerColor = Colors.cyanAccent;
     buttonTextColor = Colors.white;
     textColor = Colors.white;
     specialTextColor = Colors.amber;
-    primaryColor = Colors.red;
+    primaryColor = Colors.lightGreen[800];
     secondaryColor = Colors.white;
     calendarIconColor = Colors.white;
     titleColor = Colors.white;
     backgroundColor = Colors.black;
     indicatorColor = Colors.red;
-    borderColor = Colors.red;
+    borderColor = Colors.blueGrey;
     drawerColor = Colors.grey[800];
 
     background = "graphics/background.png";

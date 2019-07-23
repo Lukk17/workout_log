@@ -251,7 +251,7 @@ class _AddExerciseView extends State<AddExerciseView> {
     for (var w in workLogList) {
       if (w.exercise.name == exercise.name) {
         //  if there is workLog with that exercise name on this day,
-        //  but with different bodypart
+        //  but with different bodyPart
         //  update db with this new body part
         w.exercise.bodyParts.addAll(exercise.bodyParts);
         db.updateExercise(w.exercise);

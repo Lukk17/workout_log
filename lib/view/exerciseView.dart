@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
@@ -184,82 +185,141 @@ class _ExerciseView extends State<ExerciseView> {
   List<Widget> createRowsForSeries() {
     List<Widget> wList = List();
     for (int i = 1; i <= workLog.series.length; i++) {
-      wList.add(GestureDetector(
-        onHorizontalDragEnd: (d) =>
-        {
-          deleteSeries(i),
-        },
-        child: Row(
-          children: <Widget>[
+      wList.add(
+        Slidable(
+          actionPane: SlidableDrawerActionPane(),
+          actionExtentRatio: 0.25,
+          secondaryActions: <Widget>[
             Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                      color: AppThemeSettings.borderColor,
-                      width: AppThemeSettings.tableCellBorderWidth),
-                ),
+              margin: EdgeInsets.only(bottom: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.01, top: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.01,
+                  left: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.01, right: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.01),
+              child: IconSlideAction(
+                caption: 'Delete',
+                color: Colors.red,
+                icon: Icons.delete,
+                onTap: () => deleteSeries(i),
               ),
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.10,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width * 0.5,
-              alignment: FractionalOffset(0.5, 0.5),
-              //TODO delete button
-              child: FlatButton(
-
-                ///  series number start from 1 as iteration
-                  child: Text(
-                    i.toString(),
-                    style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
-                      fontSize: AppThemeSettings.fontSize,
-                    ),
-                  ),
-                  onPressed: () {
-//                    Util.editSeriesDialog(bp, context, workLog);
-                  }),
-            ),
+            )
+          ],
+          actions: <Widget>[
             Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                      color: AppThemeSettings.borderColor,
-                      width: AppThemeSettings.tableCellBorderWidth),
-                  left: BorderSide(
-                      color: AppThemeSettings.borderColor,
-                      width: AppThemeSettings.tableCellBorderWidth),
-                ),
+              margin: EdgeInsets.only(bottom: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.01, top: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.01,
+                  left: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.01, right: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.01),
+              child: IconSlideAction(
+                caption: 'Delete',
+                color: Colors.red,
+                icon: Icons.delete,
+                onTap: () => deleteSeries(i),
               ),
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.10,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width * 0.5,
-              alignment: FractionalOffset(0.5, 0.5),
-              child: FlatButton(
-
-                ///  get repeats number
-                  child: Text(
-                    workLog.getReps(i.toString()),
-                    style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
-                      fontSize: AppThemeSettings.fontSize,
-                    ),
-                  ),
-                  onPressed: () {
-                    editRepeatsDialog(context, workLog, i.toString());
-                  }),
             ),
           ],
-        ),
-      ),);
+          child: Row(
+            children: <Widget>[
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                    left: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                    top: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                  ),
+                ),
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.10,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                //TODO delete button
+                child: FlatButton(
+
+                  ///  series number start from 1 as iteration
+                    child: Text(
+                      i.toString(),
+                      style: TextStyle(
+                        color: AppThemeSettings.specialTextColor,
+                        fontSize: AppThemeSettings.fontSize,
+                      ),
+                    ),
+                    onPressed: () {
+//                    Util.editSeriesDialog(bp, context, workLog);
+                    }),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                    left: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                    right: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                    top: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
+                  ),
+                ),
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.10,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.5,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: FlatButton(
+
+                  ///  get repeats number
+                    child: Text(
+                      workLog.getReps(i.toString()),
+                      style: TextStyle(
+                        color: AppThemeSettings.specialTextColor,
+                        fontSize: AppThemeSettings.fontSize,
+                      ),
+                    ),
+                    onPressed: () {
+                      editRepeatsDialog(context, workLog, i.toString());
+                    }),
+              ),
+            ],
+          ),
+        ),);
     }
 
     /// add additional container at bottom for better visibility
