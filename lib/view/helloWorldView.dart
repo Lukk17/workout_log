@@ -15,14 +15,12 @@ import 'exerciseListView.dart';
 ///
 /// Contains links to settings, calendar, workLogs and timer.
 class HelloWorldView extends StatefulWidget {
+  // This widget is the home page of your application.
+  // Fields in a Widget subclass are always marked "final".
   static DateTime date = DateTime.now();
   final Function(Widget) callback;
 
-  HelloWorldView({Key key, @required this.title, @required this.callback}) : super(key: key);
-
-  // This widget is the home page of your application.
-  // Fields in a Widget subclass are always marked "final".
-  final String title;
+  HelloWorldView({Key key, @required this.callback}) : super(key: key);
 
   // override to manually creates private (starting with _ ) subclass
   // to update state of counter widget
@@ -40,13 +38,13 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   bool _backgroundImage = true;
 
   //  creating key to change drawer icon
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     MyApp.timerService.setTickerProvider(this);
     MyApp.notificationService.init();
-    MyApp.globalKey = this.scaffoldKey;
+    MyApp.globalKey = this._scaffoldKey;
     _tabController = new TabController(length: 1, vsync: this);
     super.initState();
 
@@ -60,7 +58,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     return OrientationBuilder(builder: (context, orientation) {
       _screenOrientation = orientation;
       return Scaffold(
-        key: scaffoldKey,
+        key: _scaffoldKey,
         appBar: _createAppBar(),
         body: _createBody(),
         bottomNavigationBar: _createTabBar(),
@@ -72,15 +70,15 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   Widget _createAppBar() {
     return PreferredSize(
       preferredSize: Size.fromHeight(
-          (_screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.width * 0.05),
+          (_screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.08 : MediaQuery.of(context).size.height * 0.1),
       child: AppBar(
         //  changing drawer icon
-        leading: new IconButton(icon: new Icon(Icons.settings), onPressed: () => scaffoldKey.currentState.openDrawer()),
+        leading: new IconButton(icon: new Icon(Icons.settings), onPressed: () => _scaffoldKey.currentState.openDrawer()),
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(
-          widget.title,
+          MyApp.TITLE,
           style: TextStyle(
               color: AppThemeSettings.titleColor,
               fontSize: (_screenOrientation == Orientation.portrait)
@@ -128,16 +126,16 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
             text: (_screenOrientation == Orientation.portrait) ? "log" : null,
             icon: Icon(Icons.assignment),
           ),
-//          Tab(
-//            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
-//            icon: Icon(Icons.timer),
-//          ),
-//          Tab(
-//            text: (screenOrientation == Orientation.portrait)
-//                ? "statistic"
-//                : null,
-//            icon: Icon(Icons.assessment),
-//          ),
+          //          Tab(
+          //            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
+          //            icon: Icon(Icons.timer),
+          //          ),
+          //          Tab(
+          //            text: (screenOrientation == Orientation.portrait)
+          //                ? "statistic"
+          //                : null,
+          //            icon: Icon(Icons.assessment),
+          //          ),
         ],
       ),
     );
@@ -162,8 +160,8 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
             children: [
               // calling builder to get callback (Widget)
               WorkLogPageView((widget) => {}, HelloWorldView.date),
-//              TimerView((widget) => {}),
-//          Center(),
+              //              TimerView((widget) => {}),
+              //          Center(),
             ]),
       ),
     );

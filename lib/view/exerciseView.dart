@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
@@ -17,223 +18,221 @@ class ExerciseView extends StatefulWidget {
   ExerciseView({Key key, @required this.workLog}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() {
-    return _ExerciseView(workLog: workLog);
-  }
+  State<StatefulWidget> createState() => _ExerciseView();
+
 }
 
 class _ExerciseView extends State<ExerciseView> {
-  final WorkLog workLog;
-  static DBProvider db = DBProvider.db;
-
-  _ExerciseView({Key key, @required this.workLog});
+  DBProvider _db = DBProvider.db;
+  double _screenHeight;
+  double _screenWidth;
+  bool _isPortraitOrientation;
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> wList = createRowsForSeries();
-    return Scaffold(
-      appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
+    return OrientationBuilder(builder: (context, orientation) {
 
-              /// created time of this log
-              Container(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.3,
-                child: Text(
-                  workLog.created.toIso8601String().substring(0, 10),
-                  textAlign: TextAlign.end,
-                  style: TextStyle(color: AppThemeSettings.titleColor),
-                ),
-              ),
-            ],
+      /// check if new orientation is portrait
+      /// rebuild from here where orientation will change
+      _isPortraitOrientation = orientation == Orientation.portrait;
+
+      _getScreenHeight();
+      _getScreenWidth();
+      List<Widget> wList = _createRowsForSeries();
+
+      return Scaffold(
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(
+              _isPortraitOrientation
+                  ? _screenHeight * 0.08
+                  : _screenHeight * 0.1
+
           ),
-          backgroundColor: AppThemeSettings.appBarColor),
-      body: Column(
-        children: <Widget>[
+          child: AppBar(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
 
-          /// exercise name
-          GestureDetector(
-            onLongPress: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          EditExerciseView(
-                            exercise: widget.workLog.exercise,
-                          )));
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                      color: AppThemeSettings.borderColor,
-                      width: AppThemeSettings.tableHeaderBorderWidth),
-                ),
+                  /// created time of this log
+                  Container(
+                    width: _screenWidth * 0.3,
+                    child: Text(
+                      widget.workLog.created.toIso8601String().substring(0, 10),
+                      textAlign: TextAlign.end,
+                      style: TextStyle(color: AppThemeSettings.titleColor),
+                    ),
+                  ),
+                ],
               ),
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.20,
-              width: MediaQuery
-                  .of(context)
-                  .size
-                  .width,
-              alignment: FractionalOffset(0.5, 0.5),
-              child: Text(
-                workLog.exercise.name,
-                style: TextStyle(
-                  color: AppThemeSettings.specialTextColor,
-                  fontSize: AppThemeSettings.headerSize,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+              backgroundColor: AppThemeSettings.appBarColor),),
+        body: Column(
+          children: <Widget>[
 
-          /// table header
-          Row(
-            children: <Widget>[
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableHeaderBorderWidth),
-                  ),
-                ),
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.10,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.5,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Text(
-                  "series",
-                  style: TextStyle(
-                    color: AppThemeSettings.specialTextColor,
-                    fontSize: AppThemeSettings.fontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableHeaderBorderWidth),
-                    left: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableHeaderBorderWidth),
-                  ),
-                ),
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.10,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.5,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Text(
-                  "repeats",
-                  style: TextStyle(
-                    color: AppThemeSettings.specialTextColor,
-                    fontSize: AppThemeSettings.fontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          /// list view builder create series
-          Expanded(
-            child: ListView.builder(
-              itemCount: wList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return wList[index];
+            /// exercise name
+            GestureDetector(
+              onLongPress: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            EditExerciseView(
+                              exercise: widget.workLog.exercise,
+                            )));
               },
-              //  nested listView need to shrink to size of its children
-              //  if not shrinked it will be infinite in size and can't be render
-              shrinkWrap: true,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableHeaderBorderWidth),
+                  ),
+                ),
+                height: _screenHeight * 0.20,
+                width: _screenWidth,
+                alignment: FractionalOffset(0.5, 0.5),
+                child: Text(
+                  widget.workLog.exercise.name,
+                  style: TextStyle(
+                    color: AppThemeSettings.specialTextColor,
+                    fontSize: AppThemeSettings.headerSize,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        // text which will be shown after long press on button
-        tooltip: 'Add series',
 
-        // open pop-up on button press to add new exercise
-        onPressed: () => addSeriesToWorkLog(),
-        child: Icon(Icons.add),
-        backgroundColor: AppThemeSettings.primaryColor,
-        foregroundColor: AppThemeSettings.secondaryColor,
-      ),
-    );
+            /// table header
+            Row(
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+
+                      left: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+
+                      right: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                    ),
+                  ),
+                  height: _isPortraitOrientation
+                      ? _screenHeight * 0.10
+                      : _screenHeight * 0.15,
+
+                  width: _screenWidth * 0.5,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: Text(
+                    "series",
+                    style: TextStyle(
+                      color: AppThemeSettings.specialTextColor,
+                      fontSize: AppThemeSettings.fontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                      left: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                      right: BorderSide(
+                          color: AppThemeSettings.borderColor,
+                          width: AppThemeSettings.tableHeaderBorderWidth),
+                    ),
+                  ),
+                  height: _isPortraitOrientation
+                      ? _screenHeight * 0.10
+                      : _screenHeight * 0.15,
+
+                  width: _screenWidth * 0.5,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: Text(
+                    "repeats",
+                    style: TextStyle(
+                      color: AppThemeSettings.specialTextColor,
+                      fontSize: AppThemeSettings.fontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            /// list view builder create series
+            Expanded(
+              child: ListView.builder(
+                itemCount: wList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return wList[index];
+                },
+                //  nested listView need to shrink to size of its children
+                //  if not shrieked it will be infinite in size and can't be render
+                shrinkWrap: true,
+              ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          // text which will be shown after long press on button
+          tooltip: 'Add series',
+
+          // open pop-up on button press to add new exercise
+          onPressed: () => _addSeriesToWorkLog(),
+          child: Icon(Icons.add),
+          backgroundColor: AppThemeSettings.primaryColor,
+          foregroundColor: AppThemeSettings.secondaryColor,
+        ),
+      );
+    });
   }
 
-  List<Widget> createRowsForSeries() {
+  List<Widget> _createRowsForSeries() {
     List<Widget> wList = List();
-    for (int i = 1; i <= workLog.series.length; i++) {
+    for (int i = 1; i <= widget.workLog.series.length; i++) {
       wList.add(
         Slidable(
           actionPane: SlidableDrawerActionPane(),
           actionExtentRatio: 0.25,
           secondaryActions: <Widget>[
             Container(
-              margin: EdgeInsets.only(bottom: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.01, top: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.01,
-                  left: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.01, right: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.01),
+              margin: EdgeInsets.only(
+
+                  bottom: _screenHeight * 0.01,
+                  top: _screenHeight * 0.01,
+                  left: _screenWidth * 0.01,
+                  right: _screenWidth * 0.01),
+
               child: IconSlideAction(
                 caption: 'Delete',
                 color: Colors.red,
                 icon: Icons.delete,
-                onTap: () => deleteSeries(i),
+                onTap: () => _deleteSeries(i),
               ),
             )
           ],
           actions: <Widget>[
             Container(
-              margin: EdgeInsets.only(bottom: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.01, top: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.01,
-                  left: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.01, right: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.01),
+              margin: EdgeInsets.only(
+
+                  bottom: _screenHeight * 0.01,
+                  top: _screenHeight * 0.01,
+                  left: _screenWidth * 0.01,
+                  right: _screenWidth * 0.01),
+
               child: IconSlideAction(
                 caption: 'Delete',
                 color: Colors.red,
                 icon: Icons.delete,
-                onTap: () => deleteSeries(i),
+                onTap: () => _deleteSeries(i),
               ),
             ),
           ],
@@ -251,31 +250,28 @@ class _ExerciseView extends State<ExerciseView> {
                     top: BorderSide(
                         color: AppThemeSettings.borderColor,
                         width: AppThemeSettings.tableCellBorderWidth),
+                    right: BorderSide(
+                        color: AppThemeSettings.borderColor,
+                        width: AppThemeSettings.tableCellBorderWidth),
                   ),
                 ),
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.10,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.5,
+                height: _isPortraitOrientation
+                    ? _screenHeight * 0.10
+                    : _screenHeight * 0.17,
+
+                width: _screenWidth * 0.5,
                 alignment: FractionalOffset(0.5, 0.5),
-                //TODO delete button
-                child: FlatButton(
+                child: Center(
 
                   ///  series number start from 1 as iteration
-                    child: Text(
-                      i.toString(),
-                      style: TextStyle(
-                        color: AppThemeSettings.specialTextColor,
-                        fontSize: AppThemeSettings.fontSize,
-                      ),
+                  child: Text(
+                    i.toString(),
+                    style: TextStyle(
+                      color: AppThemeSettings.specialTextColor,
+                      fontSize: AppThemeSettings.fontSize,
                     ),
-                    onPressed: () {
-//                    Util.editSeriesDialog(bp, context, workLog);
-                    }),
+                  ),
+                ),
               ),
               Container(
                 decoration: BoxDecoration(
@@ -294,27 +290,33 @@ class _ExerciseView extends State<ExerciseView> {
                         width: AppThemeSettings.tableCellBorderWidth),
                   ),
                 ),
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.10,
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.5,
+                height: _isPortraitOrientation
+                    ? _screenHeight * 0.10
+                    : _screenHeight * 0.17,
+
+                width: _screenWidth * 0.5,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: FlatButton(
 
                   ///  get repeats number
                     child: Text(
-                      workLog.getReps(i.toString()),
+                      widget.workLog.getReps(i.toString()),
                       style: TextStyle(
                         color: AppThemeSettings.specialTextColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
                     onPressed: () {
-                      editRepeatsDialog(context, workLog, i.toString());
+                      _editRepeatsDialog(context, widget.workLog, i.toString()).then((v) =>
+                      {
+                        /// restore orientation ability to change
+                        SystemChrome.setPreferredOrientations([
+                          DeviceOrientation.landscapeRight,
+                          DeviceOrientation.landscapeLeft,
+                          DeviceOrientation.portraitUp,
+                          DeviceOrientation.portraitDown,
+                        ])
+                      });
                     }),
               ),
             ],
@@ -325,90 +327,115 @@ class _ExerciseView extends State<ExerciseView> {
     /// add additional container at bottom for better visibility
     wList.add(
       Container(
-        height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.10,
-        width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.5,
+        height: _screenHeight * 0.10,
+        width: _screenWidth * 0.5,
       ),
     );
     return wList;
   }
 
-  addSeriesToWorkLog() {
+  _addSeriesToWorkLog() {
     setState(() {
       ///  add new series (with incremented number) to workLog with 0 repeats
-      workLog.series
-          .putIfAbsent((workLog.series.length + 1).toString(), () => "0");
-      db.updateWorkLog(workLog);
+      widget.workLog.series
+          .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
+      _db.updateWorkLog(widget.workLog);
     });
   }
 
-  Future editRepeatsDialog(BuildContext context, WorkLog workLog, String set) {
+  /// shows dialog for editing repeats number
+  Future _editRepeatsDialog(BuildContext context, WorkLog workLog, String set) {
     TextEditingController textEditingController = Util.textController();
-    return showDialog(
-      context: context,
-      builder: (_) =>
-          SimpleDialog(
-            title: Center(child: Text("Edit repeats number")),
-            contentPadding:
-            EdgeInsets.all(MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
-            children: <Widget>[
-              TextField(
 
-                /// use text controller to save given by user String
-                controller: textEditingController,
-                autofocus: true,
-                autocorrect: true,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(hintText: workLog.getReps(set)),
-                maxLength: 4,
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    FlatButton(
-                        color: AppThemeSettings.greenButtonColor,
-                        child: Text(
-                          'SAVE',
-                          style: TextStyle(
-                              color: AppThemeSettings.buttonTextColor),
-                        ),
-                        onPressed: () {
-                          ///  set repeat number of this set
-                          // exception here if input is not int,
-                          // preventing from saving that value
-                          workLog.series[set] =
-                              int.parse(textEditingController.text).toString();
-                          db.updateWorkLog(workLog);
-                          Navigator.pop(context);
-                        }),
-                    FlatButton(
-                        color: AppThemeSettings.cancelButtonColor,
-                        child: Text(
-                          'CANCEL',
-                          style: TextStyle(
-                              color: AppThemeSettings.buttonTextColor),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
-                  ]),
-            ],
-          ),
+    ///  block orientation change
+    if (_isPortraitOrientation) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+
+    /// create required widgets due to different dialogs depending on screen orientation
+    List<Widget> dialogWidgets = List();
+
+    dialogWidgets.add(
+
+      /// use text controller to save given by user String
+      TextField(
+        controller: textEditingController,
+        autofocus: true,
+        autocorrect: true,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(hintText: workLog.getReps(set)),
+        maxLength: 4,
+      ),
+    );
+
+    dialogWidgets.add(
+      Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            MaterialButton(
+                color: AppThemeSettings.greenButtonColor,
+                child: Text(
+                  'SAVE',
+                  style: TextStyle(
+                      color: AppThemeSettings.buttonTextColor),
+                ),
+                onPressed: () {
+                  ///  set repeat number of this set
+                  // exception here if input is not int,
+                  // preventing from saving that value
+                  workLog.series[set] =
+                      int.parse(textEditingController.text).toString();
+                  _db.updateWorkLog(workLog);
+                  Navigator.pop(context);
+                }),
+            MaterialButton(
+                color: AppThemeSettings.cancelButtonColor,
+                child: Text(
+                  'CANCEL',
+                  style: TextStyle(
+                      color: AppThemeSettings.buttonTextColor),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                }),
+          ]),
+    );
+
+    return showDialog(
+        context: context,
+        builder: (_) =>
+        _isPortraitOrientation
+            ? SimpleDialog(
+            title: Center(heightFactor: 0.3, child: Text("Edit repeats number")),
+            contentPadding: EdgeInsets.all(_screenHeight * 0.02),
+            children: dialogWidgets
+        )
+            : SimpleDialog(
+            contentPadding: EdgeInsets.all(_screenHeight * 0.01),
+
+            children: <Widget>[
+              Center(heightFactor: 0.3, child: Text("Edit repeats number")),
+              dialogWidgets.first,
+              dialogWidgets.last,
+            ]
+        )
     );
   }
 
-  deleteSeries(int i) async {
+
+  _deleteSeries(int i) async {
     Map<dynamic, dynamic> updatedSeries = Map();
 
-    workLog.series.forEach((key, value) =>
+    widget.workLog.series.forEach((key, value) =>
     {
       if(int.parse(key) == i){
         //  do not save it to new map - this way it will be deleted
@@ -429,8 +456,16 @@ class _ExerciseView extends State<ExerciseView> {
           }
     });
 
-    workLog.series = updatedSeries;
-    await db.updateWorkLog(workLog);
+    widget.workLog.series = updatedSeries;
+    await _db.updateWorkLog(widget.workLog);
     setState(() {});
+  }
+
+  _getScreenHeight() {
+    _screenHeight = Util.getScreenHeight(context);
+  }
+
+  _getScreenWidth() {
+    _screenWidth = Util.getScreenWidth(context);
   }
 }

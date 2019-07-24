@@ -7,7 +7,7 @@ import 'package:workout_log/util/timerService.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
 void main() async {
-//  await AndroidAlarmManager.initialize();
+  //  await AndroidAlarmManager.initialize();
   initializeDateFormatting().then((_) => runApp(MyApp()));
 }
 
@@ -17,18 +17,17 @@ class MyApp extends StatelessWidget {
   static TimerService timerService = TimerService();
   static NotificationService notificationService;
   static GlobalKey<ScaffoldState> globalKey;
-
-  static const String _TITLE = "Private WorkoutLog";
+  static const String TITLE = "Private WorkoutLog";
 
   @override
   Widget build(BuildContext context) {
     return AppBuilder(builder: (context) {
       notificationService = NotificationService(context);
+
       return MaterialApp(
-        title: 'Private WorkoutLog',
+        title: TITLE,
         theme: AppThemeSettings.theme,
         home: HelloWorldView(
-          title: _TITLE,
           callback: (widget) => {},
         ),
       );

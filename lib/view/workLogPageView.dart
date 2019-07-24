@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
@@ -12,7 +12,6 @@ import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/exerciseView.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
-import '../main.dart';
 import 'addExerciseView.dart';
 
 /// This is main WorkLog view.
@@ -30,22 +29,20 @@ class WorkLogPageView extends StatefulWidget {
 }
 
 class _WorkLogPageViewState extends State<WorkLogPageView> {
-  Orientation screenOrientation;
-
-  //  to save helloWorld scaffold key
-  final GlobalKey<ScaffoldState> scaffoldKey = MyApp.globalKey;
-  GlobalKey key = GlobalKey();
+  List<Widget> _wList = List();
+  List<MaterialButton> _exerciseList = List();
+  bool _isPortraitOrientation;
+  double _screenHeight;
+  double _screenWidth;
+  GlobalKey _key = GlobalKey();
 
   //  get DB from singleton global provider
-  DBProvider db = DBProvider.db;
-
-  static List<Widget> wList = List();
-  List<MaterialButton> exerciseList = List();
+  DBProvider _db = DBProvider.db;
 
   @override
   void initState() {
     super.initState();
-    updateWorkLogFromDB();
+    _updateWorkLogFromDB();
   }
 
   @override
@@ -56,9 +53,15 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(builder: (context, orientation) {
-      screenOrientation = orientation;
+      /// check if new orientation is portrait
+      /// rebuild from here where orientation will change
+      _isPortraitOrientation = orientation == Orientation.portrait;
+
+      _getScreenHeight();
+      _getScreenWidth();
+
       return Column(
-        key: key,
+        key: _key,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Container(
@@ -79,19 +82,19 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   shrinkWrap: true,
                   children: <Widget>[
                     Column(
-                      children: wList,
+                      children: _wList,
                     ),
                     //  container at bottom which make it possible to scroll down
                     //  and see last workLog fully
                     Container(
-                      height: MediaQuery.of(context).size.height * 0.15,
+                      height: _screenHeight * 0.15,
                     ),
                   ],
                 ),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Util.spacerSelectable(bottom: MediaQuery.of(context).size.height * 0.4),
+                    Util.spacerSelectable(bottom: _screenHeight * 0.4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -100,19 +103,27 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                           tooltip: 'Add exercise',
                           // open pop-up on button press to add new exercise
                           onPressed: () async => {
-                            await showAddExerciseDialog(),
-                            await updateState(),
+                            await _showAddExerciseDialog(),
+                            await _updateState(),
+
+                            /// restore orientation ability to change
+                            SystemChrome.setPreferredOrientations([
+                              DeviceOrientation.landscapeRight,
+                              DeviceOrientation.landscapeLeft,
+                              DeviceOrientation.portraitUp,
+                              DeviceOrientation.portraitDown,
+                            ])
                           },
                           child: Icon(Icons.add),
                           backgroundColor: AppThemeSettings.buttonColor,
                           foregroundColor: AppThemeSettings.secondaryColor,
                         ),
                         Util.spacerSelectable(
-                          right: MediaQuery.of(context).size.width * 0.1,
+                          right: _screenWidth * 0.1,
                         ),
                       ],
                     ),
-                    Util.spacerSelectable(bottom: MediaQuery.of(context).size.height * 0.01)
+                    Util.spacerSelectable(bottom: _screenHeight * 0.01)
                   ],
                 ),
               ],
@@ -128,31 +139,31 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   /// require:
   /// workLog which will be added to widget
   /// context of application (for screen dimension)
-  Widget createWorkLogRowWidget(WorkLog workLog) {
+  Widget _createWorkLogRowWidget(WorkLog workLog) {
     return Container(
-      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.02, top: MediaQuery.of(context).size.height * 0.02),
+      margin: EdgeInsets.only(bottom: _screenHeight * 0.02, top: _screenHeight * 0.02),
       child: Slidable(
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
         secondaryActions: <Widget>[
           Container(
-            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.01, top: MediaQuery.of(context).size.height * 0.01),
+            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
             child: IconSlideAction(
               caption: 'Delete',
               color: Colors.red,
               icon: Icons.delete,
-              onTap: () => deleteWorkLog(workLog),
+              onTap: () => _deleteWorkLog(workLog),
             ),
           )
         ],
         actions: <Widget>[
           Container(
-            margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.01, top: MediaQuery.of(context).size.height * 0.01),
+            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
             child: IconSlideAction(
               caption: 'Delete',
               color: Colors.red,
               icon: Icons.delete,
-              onTap: () => deleteWorkLog(workLog),
+              onTap: () => _deleteWorkLog(workLog),
             ),
           ),
         ],
@@ -161,7 +172,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
           elevation: 8,
           child: ListTile(
             title: Container(
-              margin: EdgeInsets.all(MediaQuery.of(context).size.height * 0.02),
+              margin: EdgeInsets.all(_screenHeight * 0.02),
               child: Text(
                 workLog.exercise.name,
                 style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
@@ -173,7 +184,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               children: <Widget>[
                 ///  sum of workLog series
                 Container(
-                  margin: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+                  margin: EdgeInsets.only(right: _screenWidth * 0.02, bottom: _screenHeight * 0.01),
                   child: Text(
                     "Series: ${workLog.series.length.toString()}",
                     style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
@@ -182,7 +193,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
 
                 ///  sum of workLog reps in set
                 Container(
-                  margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.height * 0.01),
+                  margin: EdgeInsets.only(left: _screenWidth * 0.02, bottom: _screenHeight * 0.01),
                   child: Text(
                     "Reps: ${workLog.getRepsSum()}",
                     style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
@@ -196,7 +207,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 Icons.arrow_forward,
                 color: AppThemeSettings.secondaryColor,
               ),
-              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
+              margin: EdgeInsets.only(top: _screenHeight * 0.02),
             ),
 
             ///  push workLog and bodyPartInterface to new screen to display it's details
@@ -205,16 +216,16 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 MaterialPageRoute(
 
                     ///  using Navigator.then to update parent state as well
-                    builder: (context) => ExerciseView(workLog: workLog))).then((v) => updateState()),
+                    builder: (context) => ExerciseView(workLog: workLog))).then((v) => _updateState()),
           ),
         ),
       ),
     );
   }
 
-  getExercises() async {
+  _getExercises() async {
     List<MaterialButton> result = List();
-    List<Exercise> exercises = await db.getAllExercise();
+    List<Exercise> exercises = await _db.getAllExercise();
 
     for (Exercise e in exercises) {
       result.add(
@@ -226,9 +237,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               e.bodyParts,
             );
             //  save workLog to db
-            WorkLog workLog = await addWorkLog(exercise);
+            WorkLog workLog = await _addWorkLog(exercise);
             setState(() {
-              wList.add(createWorkLogRowWidget(workLog));
+              _wList.add(_createWorkLogRowWidget(workLog));
             });
             Navigator.pop(context);
           },
@@ -237,13 +248,27 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
       );
     }
     setState(() {
-      exerciseList = result;
+      _exerciseList = result;
     });
   }
 
-  showAddExerciseDialog() async {
-    await getExercises();
-    updateState();
+  _showAddExerciseDialog() async {
+    await _getExercises();
+    _updateState();
+
+    ///  block orientation change
+    if (_isPortraitOrientation) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
@@ -258,18 +283,18 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               Row(
                 children: <Widget>[
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    width: MediaQuery.of(context).size.width * 0.7,
+                    height: _screenHeight * 0.5,
+                    width: _screenWidth * 0.7,
                     child: ListView.builder(
                       shrinkWrap: true,
-                      itemCount: exerciseList.length,
-                      itemBuilder: (context, index) => exerciseList[index],
+                      itemCount: _exerciseList.length,
+                      itemBuilder: (context, index) => _exerciseList[index],
                     ),
                   ),
                   Column(
                     children: <Widget>[
                       Icon(Icons.arrow_upward),
-                      Util.spacerSelectable(top: MediaQuery.of(context).size.height * 0.3, bottom: 0, left: 0, right: 0),
+                      Util.spacerSelectable(top: _screenHeight * 0.3, bottom: 0, left: 0, right: 0),
                       Icon(Icons.arrow_downward),
                     ],
                   )
@@ -277,7 +302,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               ),
               Util.addHorizontalLine(),
               Container(
-                height: MediaQuery.of(context).size.height * 0.1,
+                height: _screenHeight * 0.1,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
@@ -285,6 +310,13 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                         color: AppThemeSettings.greenButtonColor,
                         child: Text("New"),
                         onPressed: () async => {
+                              /// restore orientation ability to change
+                              SystemChrome.setPreferredOrientations([
+                                DeviceOrientation.landscapeRight,
+                                DeviceOrientation.landscapeLeft,
+                                DeviceOrientation.portraitUp,
+                                DeviceOrientation.portraitDown,
+                              ]),
                               await Navigator.push(context, MaterialPageRoute(builder: (_) => AddExerciseView())),
                               Navigator.pop(context),
                             }),
@@ -304,18 +336,17 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     );
   }
 
-  Future<WorkLog> addWorkLog(Exercise exercise) async {
+  Future<WorkLog> _addWorkLog(Exercise exercise) async {
     //  get all workLogs from that day
-    List<WorkLog> workLogList = await db.getDateAllWorkLogs();
+    List<WorkLog> workLogList = await _db.getDateAllWorkLogs();
 
-    //  check if workLogs have same exercise name
+    ///  check if workLogs have same exercise name
     for (var w in workLogList) {
       if (w.exercise.name == exercise.name) {
-        //  if there is workLog with that exercise name on this day,
-        //  but with different bodypart
-        //  update db with this new body part
+        ///  if there is workLog with that exercise name on this day, but with different bodyPart
+        ///  update db with this new body part
         w.exercise.bodyParts.addAll(exercise.bodyParts);
-        await db.updateExercise(w.exercise);
+        await _db.updateExercise(w.exercise);
         print("\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
         return w;
       }
@@ -331,55 +362,50 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     Storage.writeToFile(json);
 
     ///  save workLog to DB
-    await db.newWorkLog(workLog);
+    await _db.newWorkLog(workLog);
 
     return workLog;
   }
 
-  Set<BodyPart> updateBP(BodyPart bodyPart, bool value, Set<BodyPart> bodyParts) {
-    if (value)
-      bodyParts.add(bodyPart);
-    else
-      bodyParts.remove(bodyPart);
-
-    return bodyParts;
-  }
-
-  updateState() {
+  _updateState() {
     setState(() {
-      updateWorkLogFromDB();
+      _updateWorkLogFromDB();
     });
   }
 
-  void updateWorkLogFromDB() async {
+  void _updateWorkLogFromDB() async {
     List<WorkLog> workLogList;
-    workLogList = await db.getDateAllWorkLogs();
+    workLogList = await _db.getDateAllWorkLogs();
     setState(() {
       if (workLogList != null && workLogList.isNotEmpty) {
         List<Widget> dbList = List();
 
         for (WorkLog workLog in workLogList) {
-          dbList.add(createWorkLogRowWidget(workLog));
+          dbList.add(_createWorkLogRowWidget(workLog));
         }
-        wList = dbList;
+        _wList = dbList;
       }
       // this is needed to refresh state even if there is no entries
       // if not artifacts from different bodyPart will appear
       else {
-        wList = List();
+        _wList = List();
       }
-      wList.add(Card(
+      _wList.add(Card(
         child: Container(),
       ));
     });
   }
 
-  deleteWorkLog(WorkLog workLog) {
-    db.deleteWorkLog(workLog);
-    updateState();
+  _deleteWorkLog(WorkLog workLog) {
+    _db.deleteWorkLog(workLog);
+    _updateState();
   }
 
-  restoreKey() {
-    MyApp.globalKey = scaffoldKey;
+  _getScreenHeight() {
+    _screenHeight = Util.getScreenHeight(context);
+  }
+
+  _getScreenWidth() {
+    _screenWidth = Util.getScreenWidth(context);
   }
 }

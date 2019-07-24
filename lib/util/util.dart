@@ -25,35 +25,33 @@ class Util {
     return showDialog(
       context: context,
       builder: (_) => SimpleDialog(
-            title: Center(child: Text("Edit exercise name")),
-            contentPadding: EdgeInsets.all(20),
-            children: <Widget>[
-              TextField(
-                // use text controller to save given by user String
-                controller: textController,
-                autofocus: true,
-                autocorrect: true,
-                decoration: InputDecoration(hintText: workLog.exercise.name),
-                maxLength: 50,
-              ),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    FlatButton(
-                        child: const Text('SAVE'),
-                        onPressed: () {
-                          // TODO call setState to change in UI
-                          workLog.exercise.name = textController.text;
-                          Navigator.pop(context);
-                        }),
-                    FlatButton(
-                        child: const Text('CANCEL'),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
-                  ]),
-            ],
+        title: Center(child: Text("Edit exercise name")),
+        contentPadding: EdgeInsets.all(20),
+        children: <Widget>[
+          TextField(
+            // use text controller to save given by user String
+            controller: textController,
+            autofocus: true,
+            autocorrect: true,
+            decoration: InputDecoration(hintText: workLog.exercise.name),
+            maxLength: 50,
           ),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+            FlatButton(
+                child: const Text('SAVE'),
+                onPressed: () {
+                  // TODO call setState to change in UI
+                  workLog.exercise.name = textController.text;
+                  Navigator.pop(context);
+                }),
+            FlatButton(
+                child: const Text('CANCEL'),
+                onPressed: () {
+                  Navigator.pop(context);
+                }),
+          ]),
+        ],
+      ),
     );
   }
 
@@ -81,12 +79,23 @@ class Util {
     return Container(margin: EdgeInsets.all(size));
   }
 
-  static Widget spacerSelectable(
-      {double top, double bottom, double left, double right}) {
+  static Widget spacerSelectable({double top, double bottom, double left, double right}) {
     if (top == null) top = 0;
     if (bottom == null) bottom = 0;
     if (left == null) left = 0;
     if (right == null) right = 0;
     return Container(margin: EdgeInsets.fromLTRB(left, top, right, bottom));
+  }
+
+  static double getScreenHeight(BuildContext context) {
+    return MediaQuery.of(context).size.height;
+  }
+
+  static double getScreenWidth(BuildContext context) {
+    return MediaQuery.of(context).size.width;
+  }
+
+  static hideKeyboard(BuildContext context){
+    FocusScope.of(context).requestFocus(new FocusNode());
   }
 }

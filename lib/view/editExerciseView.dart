@@ -16,7 +16,7 @@ class EditExerciseView extends StatefulWidget {
 
 class _EditExerciseView extends State<EditExerciseView> {
   //  get DB from singleton global provider
-  DBProvider db = DBProvider.db;
+  DBProvider _db = DBProvider.db;
 
   bool _chest = false;
   bool _back = false;
@@ -25,52 +25,72 @@ class _EditExerciseView extends State<EditExerciseView> {
   bool _abdominal = false;
   bool _cardio = false;
 
-  Orientation screenOrientation;
-  String editedName;
-  TextEditingController myController;
+  TextEditingController _myController;
+  double _screenHeight;
+  double _screenWidth;
+  bool _isPortraitOrientation;
 
   @override
   void initState() {
     super.initState();
 
     ///  set initial textField text
-    myController = TextEditingController(text: widget.exercise.name);
+    _myController = TextEditingController(text: widget.exercise.name);
 
     /// checkbox should be checked only if exercise have that body part
-    updateCheckboxesState();
+    _updateCheckboxesState();
 
     print('EditExerciseView >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${widget.exercise.name} '
         '\t ${widget.exercise.bodyParts.toString()} \t ID: ${widget.exercise.id}');
   }
 
   @override
+  void dispose() {
+    Util.hideKeyboard(context);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return OrientationBuilder(builder: (context, orientation) {
-      screenOrientation = orientation;
+      /// check if new orientation is portrait
+      /// rebuild from here where orientation will change
+      _isPortraitOrientation = orientation == Orientation.portrait;
+
+      _getScreenHeight();
+      _getScreenWidth();
+
       return Hero(
         tag: "exerciseEdit",
         child: Scaffold(
-          appBar: AppBar(
-              centerTitle: true,
-              title: Text(
-                "Exercises Edit",
-                style: TextStyle(
-                  color: AppThemeSettings.titleColor,
-                  fontSize: AppThemeSettings.fontSize,
+          /// when keyboard is shown the layout is not rebuild
+          /// thank to this there is no pixel overflow
+          resizeToAvoidBottomInset: false,
+
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(_isPortraitOrientation ? _screenHeight * 0.08 : _screenHeight * 0.1),
+            child: AppBar(
+                centerTitle: true,
+                title: Text(
+                  "Exercises Edit",
+                  style: TextStyle(
+                    color: AppThemeSettings.titleColor,
+                    fontSize: AppThemeSettings.fontSize,
+                  ),
                 ),
-              ),
-              backgroundColor: AppThemeSettings.appBarColor),
+                backgroundColor: AppThemeSettings.appBarColor),
+          ),
           body: Container(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: _isPortraitOrientation ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.start,
               children: <Widget>[
                 Column(
                   children: <Widget>[
                     SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.7,
+                      width: _screenWidth * 0.7,
                       child: TextFormField(
                         textAlign: TextAlign.center,
-                        controller: myController,
+                        controller: _myController,
                         style: TextStyle(
                           fontSize: AppThemeSettings.headerSize,
                         ),
@@ -78,6 +98,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                     ),
                   ],
                 ),
+                _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.1),
                 Column(
                   children: <Widget>[
                     Row(
@@ -93,7 +114,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _chest = value;
-                                    updateBP(BodyPart.CHEST, value);
+                                    _updateBP(BodyPart.CHEST, value);
                                   });
                                 }),
                           ],
@@ -108,7 +129,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _back = value;
-                                    updateBP(BodyPart.BACK, value);
+                                    _updateBP(BodyPart.BACK, value);
                                   });
                                 }),
                           ],
@@ -123,7 +144,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _arm = value;
-                                    updateBP(BodyPart.ARM, value);
+                                    _updateBP(BodyPart.ARM, value);
                                   });
                                 }),
                           ],
@@ -143,7 +164,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _leg = value;
-                                    updateBP(BodyPart.LEG, value);
+                                    _updateBP(BodyPart.LEG, value);
                                   });
                                 }),
                           ],
@@ -158,7 +179,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _abdominal = value;
-                                    updateBP(BodyPart.ABDOMINAL, value);
+                                    _updateBP(BodyPart.ABDOMINAL, value);
                                   });
                                 }),
                           ],
@@ -173,7 +194,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                                 onChanged: (value) {
                                   setState(() {
                                     _cardio = value;
-                                    updateBP(BodyPart.CARDIO, value);
+                                    _updateBP(BodyPart.CARDIO, value);
                                   });
                                 }),
                           ],
@@ -182,40 +203,16 @@ class _EditExerciseView extends State<EditExerciseView> {
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    MaterialButton(
-                      onPressed: () => saveExercise(),
-                      height: (screenOrientation == Orientation.portrait)
-                          ? MediaQuery.of(context).size.height * 0.06
-                          : MediaQuery.of(context).size.height * 0.1,
-                      minWidth: (screenOrientation == Orientation.portrait)
-                          ? MediaQuery.of(context).size.width * 0.5
-                          : MediaQuery.of(context).size.width * 0.27,
-                      color: AppThemeSettings.greenButtonColor,
-                      splashColor: AppThemeSettings.buttonSplashColor,
-                      textColor: AppThemeSettings.buttonTextColor,
-                      child: Text("SAVE"),
-                    ),
-                    Util.spacerSelectable(top: 30),
-                    MaterialButton(
-                      onPressed: () => {
-                        Navigator.pop(context),
-                      },
-                      height: (screenOrientation == Orientation.portrait)
-                          ? MediaQuery.of(context).size.height * 0.06
-                          : MediaQuery.of(context).size.height * 0.1,
-                      minWidth: (screenOrientation == Orientation.portrait)
-                          ? MediaQuery.of(context).size.width * 0.5
-                          : MediaQuery.of(context).size.width * 0.27,
-                      color: AppThemeSettings.cancelButtonColor,
-                      splashColor: AppThemeSettings.buttonSplashColor,
-                      textColor: AppThemeSettings.buttonTextColor,
-                      child: Text("Cancel"),
-                    ),
-                  ],
-                ),
+                _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.08),
+                _isPortraitOrientation
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: _getControlButtons(),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: _getControlButtons(),
+                      )
               ],
             ),
           ),
@@ -224,7 +221,44 @@ class _EditExerciseView extends State<EditExerciseView> {
     });
   }
 
-  void updateCheckboxesState() {
+  List<Widget> _getControlButtons() {
+    List<Widget> result = List();
+
+    result.add(
+      MaterialButton(
+        onPressed: () => _saveExercise(),
+        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
+        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        color: AppThemeSettings.greenButtonColor,
+        splashColor: AppThemeSettings.buttonSplashColor,
+        textColor: AppThemeSettings.buttonTextColor,
+        child: Text("SAVE"),
+      ),
+    );
+    if (_isPortraitOrientation) {
+      result.add(Util.spacerSelectable(top: _screenHeight * 0.05));
+    } else {
+      result.add(Util.spacerSelectable(right: _screenWidth * 0.1));
+    }
+
+    result.add(
+      MaterialButton(
+        onPressed: () => {
+          Navigator.pop(context),
+        },
+        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
+        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        color: AppThemeSettings.cancelButtonColor,
+        splashColor: AppThemeSettings.buttonSplashColor,
+        textColor: AppThemeSettings.buttonTextColor,
+        child: Text("Cancel"),
+      ),
+    );
+
+    return result;
+  }
+
+  void _updateCheckboxesState() {
     for (var bp in widget.exercise.bodyParts) {
       switch (bp) {
         case BodyPart.CHEST:
@@ -257,16 +291,24 @@ class _EditExerciseView extends State<EditExerciseView> {
     }
   }
 
-  void saveExercise() async {
-    widget.exercise.name = myController.text;
-    await db.editExercise(widget.exercise);
+  void _saveExercise() async {
+    widget.exercise.name = _myController.text;
+    await _db.editExercise(widget.exercise);
     Navigator.pop(context);
   }
 
-  void updateBP(BodyPart bodyPart, bool value) {
+  void _updateBP(BodyPart bodyPart, bool value) {
     if (value)
       widget.exercise.bodyParts.add(bodyPart);
     else
       widget.exercise.bodyParts.remove(bodyPart);
+  }
+
+  _getScreenHeight() {
+    _screenHeight = Util.getScreenHeight(context);
+  }
+
+  _getScreenWidth() {
+    _screenWidth = Util.getScreenWidth(context);
   }
 }

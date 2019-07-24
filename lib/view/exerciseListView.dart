@@ -14,12 +14,13 @@ class _ExerciseListViewState extends State<ExerciseListView> {
   List<MaterialButton> exerciseList = List();
 
   //  get DB from singleton global provider
-  DBProvider db = DBProvider.db;
+  DBProvider _db = DBProvider.db;
 
   @override
   void initState() {
     super.initState();
-    getExercises();
+
+    _getExercises();
     print('$exerciseList');
   }
 
@@ -46,22 +47,17 @@ class _ExerciseListViewState extends State<ExerciseListView> {
     );
   }
 
-  getExercises() async {
+  _getExercises() async {
     List<MaterialButton> result = List();
-    List<Exercise> exercises = await db.getAllExercise();
+    List<Exercise> exercises = await _db.getAllExercise();
 
-    print(
-        '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   ${exercises.toString()}');
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   ${exercises.toString()}');
 
     for (Exercise e in exercises) {
       result.add(MaterialButton(
         key: Key(e.name),
         onPressed: () async {
-          Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => EditExerciseView(exercise: e)))
-              .then((val) => getExercises());
+          Navigator.push(context, MaterialPageRoute(builder: (context) => EditExerciseView(exercise: e))).then((val) => _getExercises());
         },
         child: Text(e.name),
       ));
