@@ -99,7 +99,7 @@ class _AddExerciseView extends State<AddExerciseView> {
                   ),
                 ],
               ),
-              _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.1),
+              if(!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
               Column(
                 children: <Widget>[
                   Row(
@@ -204,7 +204,7 @@ class _AddExerciseView extends State<AddExerciseView> {
                   ),
                 ],
               ),
-              _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.08),
+              if(!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
               _isPortraitOrientation
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.center,

@@ -36,6 +36,16 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   double _screenWidth;
   GlobalKey _key = GlobalKey();
 
+  double _datePortraitHeight;
+  double _dateLandscapeHeight;
+  double _dateTextScale;
+  double _cardMargin;
+  double _cardOutsideMargin;
+  EdgeInsets _seriesMargin;
+  EdgeInsets _repsMargin;
+  double _exerciseDialogHeight;
+  double _exerciseDialogWidth;
+
   //  get DB from singleton global provider
   DBProvider _db = DBProvider.db;
 
@@ -50,6 +60,21 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     super.dispose();
   }
 
+  void setupDimensions(){
+    _getScreenHeight();
+    _getScreenWidth();
+
+    _datePortraitHeight = _screenHeight * 0.1;
+    _dateLandscapeHeight = _screenHeight * 0.2;
+    _dateTextScale = 3;
+    _cardMargin = _screenHeight * 0.01;
+    _cardOutsideMargin = _screenHeight * 0.01;
+    _seriesMargin = EdgeInsets.only(right: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _repsMargin = EdgeInsets.only(left: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _exerciseDialogHeight = _screenHeight * 0.5;
+    _exerciseDialogWidth = _screenWidth * 0.7;
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(builder: (context, orientation) {
@@ -57,21 +82,22 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
       /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
 
-      _getScreenHeight();
-      _getScreenWidth();
+      setupDimensions();
 
       return Column(
         key: _key,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Container(
-            height: MediaQuery.of(context).size.height * 0.1,
-            alignment: Alignment(0, 0.8),
+            height: _isPortraitOrientation
+                ? _datePortraitHeight
+                : _dateLandscapeHeight,
+            alignment: Alignment(0, 0),
             child: Text(
               Util.formatter.format(HelloWorldView.date) == Util.formatter.format(DateTime.now())
                   ? "Today"
                   : Util.formatter.format(HelloWorldView.date),
-              textScaleFactor: 3,
+              textScaleFactor: _dateTextScale,
               style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold),
             ),
           ),
@@ -94,7 +120,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Util.spacerSelectable(bottom: _screenHeight * 0.4),
+                    Util.spacerSelectable(bottom: _screenHeight * 0.3),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -141,7 +167,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   /// context of application (for screen dimension)
   Widget _createWorkLogRowWidget(WorkLog workLog) {
     return Container(
-      margin: EdgeInsets.only(bottom: _screenHeight * 0.02, top: _screenHeight * 0.02),
+      margin: EdgeInsets.only(bottom: _cardOutsideMargin),
       child: Slidable(
         actionPane: SlidableDrawerActionPane(),
         actionExtentRatio: 0.25,
@@ -172,7 +198,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
           elevation: 8,
           child: ListTile(
             title: Container(
-              margin: EdgeInsets.all(_screenHeight * 0.02),
+              margin: EdgeInsets.all(_cardMargin),
               child: Text(
                 workLog.exercise.name,
                 style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
@@ -184,7 +210,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               children: <Widget>[
                 ///  sum of workLog series
                 Container(
-                  margin: EdgeInsets.only(right: _screenWidth * 0.02, bottom: _screenHeight * 0.01),
+                  margin: _seriesMargin,
                   child: Text(
                     "Series: ${workLog.series.length.toString()}",
                     style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
@@ -193,7 +219,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
 
                 ///  sum of workLog reps in set
                 Container(
-                  margin: EdgeInsets.only(left: _screenWidth * 0.02, bottom: _screenHeight * 0.01),
+                  margin: _repsMargin,
                   child: Text(
                     "Reps: ${workLog.getRepsSum()}",
                     style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
@@ -283,8 +309,8 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               Row(
                 children: <Widget>[
                   Container(
-                    height: _screenHeight * 0.5,
-                    width: _screenWidth * 0.7,
+                    height: _exerciseDialogHeight,
+                    width: _exerciseDialogWidth,
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: _exerciseList.length,
