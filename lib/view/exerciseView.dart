@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
@@ -23,24 +24,34 @@ class ExerciseView extends StatefulWidget {
 }
 
 class _ExerciseView extends State<ExerciseView> {
-  DBProvider _db = DBProvider.db;
+  final DBProvider _db = DBProvider.db;
+  final Logger _log = new Logger("ExerciseView");
+
   double _screenHeight;
   double _screenWidth;
   bool _isPortraitOrientation;
 
+  double _appBarHeightPortrait;
+  double _appBarHeightLandscape;
+  double _exerciseHeight;
+  double _exerciseWidth;
   double _columnWidth;
   double _seriesColumnWidth;
   double _headerLandscapeColumnHeight;
   double _portraitColumnHeight;
   double _landscapeColumnHeight;
 
-  void setupDimensions(){
+  void setupDimensions() {
     _getScreenHeight();
     _getScreenWidth();
 
+    _appBarHeightPortrait = _screenHeight * 0.08;
+    _appBarHeightLandscape = _screenHeight * 0.1;
+    _exerciseHeight = _screenHeight * 0.2;
+    _exerciseWidth = _screenWidth;
     _columnWidth = _screenWidth * 0.4;
     _seriesColumnWidth = _screenWidth * 0.2;
-    _portraitColumnHeight = _screenHeight * 0.10;
+    _portraitColumnHeight = _screenHeight * 0.1;
     _headerLandscapeColumnHeight = _screenHeight * 0.15;
     _landscapeColumnHeight = _screenHeight * 0.17;
   }
@@ -60,8 +71,8 @@ class _ExerciseView extends State<ExerciseView> {
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(
               _isPortraitOrientation
-                  ? _screenHeight * 0.08
-                  : _screenHeight * 0.1
+                  ? _appBarHeightPortrait
+                  : _appBarHeightLandscape
 
           ),
           child: AppBar(
@@ -69,7 +80,7 @@ class _ExerciseView extends State<ExerciseView> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
 
-                  /// created time of this log
+                  /// created date of this log
                   Container(
                     width: _screenWidth * 0.3,
                     child: Text(
@@ -103,8 +114,8 @@ class _ExerciseView extends State<ExerciseView> {
                         width: AppThemeSettings.tableHeaderBorderWidth),
                   ),
                 ),
-                height: _screenHeight * 0.20,
-                width: _screenWidth,
+                height: _exerciseHeight,
+                width: _exerciseWidth,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   widget.workLog.exercise.name,
@@ -427,21 +438,23 @@ class _ExerciseView extends State<ExerciseView> {
     return wList;
   }
 
-  _addSeriesToWorkLog() {
-    setState(() {
-      ///  add new series (with incremented number) to workLog with 0 repeats
-      widget.workLog.series
-          .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
-      widget.workLog.load.putIfAbsent((widget.workLog.load.length + 1).toString(), () => "0");
-      _db.updateWorkLog(widget.workLog);
-    });
+  _addSeriesToWorkLog() async {
+    ///  add new series (with incremented number) to workLog with 0 repeats
+    widget.workLog.series
+        .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
+    widget.workLog.load.putIfAbsent((widget.workLog.load.length + 1).toString(), () => "0");
+    await _db.updateWorkLog(widget.workLog);
+
+    setState(() {});
+
+    _log.fine("Series added to: ${widget.workLog.toString()}");
   }
 
   /// shows dialog for editing repeats number
   Future _editRepeatsDialog(WorkLog workLog, String set) {
     TextEditingController textEditingController = Util.textController();
 
-    _blockOrientation();
+    Util.blockOrientation(_isPortraitOrientation);
 
     /// create required widgets due to different dialogs depending on screen orientation
     List<Widget> dialogWidgets = List();
@@ -470,13 +483,16 @@ class _ExerciseView extends State<ExerciseView> {
                   style: TextStyle(
                       color: AppThemeSettings.buttonTextColor),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   ///  set repeat number of this set
                   // exception here if input is not int,
                   // preventing from saving that value
                   workLog.series[set] =
                       int.parse(textEditingController.text).toString();
-                  _db.updateWorkLog(workLog);
+                  await _db.updateWorkLog(workLog);
+
+                  _log.fine("Repeats change to ${workLog.series[set]} for ${workLog.toString()}");
+
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -499,7 +515,7 @@ class _ExerciseView extends State<ExerciseView> {
   Future _editLoadDialog(WorkLog workLog, String set) {
     TextEditingController textEditingController = Util.textController();
 
-    _blockOrientation();
+    Util.blockOrientation(_isPortraitOrientation);
 
     /// create required widgets due to different dialogs depending on screen orientation
     List<Widget> dialogWidgets = List();
@@ -528,13 +544,15 @@ class _ExerciseView extends State<ExerciseView> {
                   style: TextStyle(
                       color: AppThemeSettings.buttonTextColor),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   ///  set load value of this set
                   // exception here if input is not int,
                   // preventing from saving that value
                   workLog.load[set] =
                       int.parse(textEditingController.text).toString();
-                  _db.updateWorkLog(workLog);
+                  await _db.updateWorkLog(workLog);
+
+                  _log.fine("Load change to ${workLog.load} for ${workLog.toString()}");
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -553,23 +571,6 @@ class _ExerciseView extends State<ExerciseView> {
     return _showDialog("Edit load value", dialogWidgets);
   }
 
-  _blockOrientation() {
-
-    ///  block orientation change
-    if (_isPortraitOrientation) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    } else {
-      SystemChrome.setPreferredOrientations([
-
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-      ]);
-    }
-  }
-
   _showDialog(String title, List<Widget> dialogWidgets) {
     return showDialog(
         context: context,
@@ -584,7 +585,7 @@ class _ExerciseView extends State<ExerciseView> {
             contentPadding: EdgeInsets.all(_screenHeight * 0.01),
 
             children: <Widget>[
-              Center(heightFactor: 0.3, child: Text("Edit repeats number")),
+              Center(heightFactor: 0.3, child: Text(title)),
               dialogWidgets.first,
               dialogWidgets.last,
             ]
@@ -643,6 +644,8 @@ class _ExerciseView extends State<ExerciseView> {
     widget.workLog.load = updatedLoad;
     await _db.updateWorkLog(widget.workLog);
     setState(() {});
+
+    _log.fine("Series number $i deleted from ${widget.workLog.toString()}");
   }
 
   _getScreenHeight() {

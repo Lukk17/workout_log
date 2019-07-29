@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
-import 'package:workout_log/util/storage.dart';
 import 'package:workout_log/util/util.dart';
 
 import 'helloWorldView.dart';
@@ -18,7 +18,9 @@ class AddExerciseView extends StatefulWidget {
 
 class _AddExerciseView extends State<AddExerciseView> {
   //  get DB from singleton global provider
-  DBProvider _db = DBProvider.db;
+  final DBProvider _db = DBProvider.db;
+
+  final Logger _log = new Logger("AddExerciseView");
 
   Set<BodyPart> _bodyParts = Set();
 
@@ -35,6 +37,27 @@ class _AddExerciseView extends State<AddExerciseView> {
   double _screenHeight;
   double _screenWidth;
   bool _isPortraitOrientation;
+
+  double _appBarHeightPortrait;
+  double _appBarHeightLandscape;
+  double _textFieldWidth;
+  double _buttonHeightPortrait;
+  double _buttonHeightLandscape;
+  double _buttonWidthPortrait;
+  double _buttonWidthLandscape;
+
+  void setupDimensions() {
+    _getScreenHeight();
+    _getScreenWidth();
+
+    _appBarHeightPortrait = _screenHeight * 0.08;
+    _appBarHeightLandscape = _screenHeight * 0.1;
+    _textFieldWidth = _screenWidth * 0.7;
+    _buttonHeightPortrait = _screenHeight * 0.06;
+    _buttonHeightLandscape = _screenHeight * 0.1;
+    _buttonWidthPortrait = _screenWidth * 0.5;
+    _buttonWidthLandscape = _screenWidth * 0.27;
+  }
 
   @override
   void initState() {
@@ -59,8 +82,7 @@ class _AddExerciseView extends State<AddExerciseView> {
       /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
 
-      _getScreenHeight();
-      _getScreenWidth();
+      setupDimensions();
 
       return Scaffold(
         /// when keyboard is shown the layout is not rebuild
@@ -69,7 +91,7 @@ class _AddExerciseView extends State<AddExerciseView> {
 
         key: _key,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(_isPortraitOrientation ? _screenHeight * 0.08 : _screenHeight * 0.1),
+          preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
           child: AppBar(
               centerTitle: true,
               title: Text(
@@ -88,7 +110,7 @@ class _AddExerciseView extends State<AddExerciseView> {
               Column(
                 children: <Widget>[
                   SizedBox(
-                    width: _screenWidth * 0.7,
+                    width: _textFieldWidth,
                     child: TextFormField(
                       textAlign: TextAlign.center,
                       controller: _myController,
@@ -99,7 +121,7 @@ class _AddExerciseView extends State<AddExerciseView> {
                   ),
                 ],
               ),
-              if(!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
               Column(
                 children: <Widget>[
                   Row(
@@ -204,7 +226,7 @@ class _AddExerciseView extends State<AddExerciseView> {
                   ),
                 ],
               ),
-              if(!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
               _isPortraitOrientation
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -227,8 +249,8 @@ class _AddExerciseView extends State<AddExerciseView> {
     result.add(
       MaterialButton(
         onPressed: () => _saveExercise(),
-        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
-        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.greenButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -237,9 +259,9 @@ class _AddExerciseView extends State<AddExerciseView> {
     );
 
     if (_isPortraitOrientation) {
-      result.add(Util.spacerSelectable(top: 30));
+      result.add(Util.spacerSelectable(top: _screenHeight * 0.05));
     } else {
-      result.add(Util.spacerSelectable(right: 30));
+      result.add(Util.spacerSelectable(right: _screenWidth * 0.1));
     }
     result.add(
       MaterialButton(
@@ -248,8 +270,8 @@ class _AddExerciseView extends State<AddExerciseView> {
           Util.hideKeyboard(context),
           Navigator.pop(context),
         },
-        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
-        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.cancelButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -289,8 +311,10 @@ class _AddExerciseView extends State<AddExerciseView> {
         ///  but with different bodyPart
         /// update db with this new body part
         w.exercise.bodyParts.addAll(exercise.bodyParts);
-        _db.updateExercise(w.exercise);
-        print("\n [addworklog] UPDATE EXERCISE BP  : ============>  ${w.exercise.toString()}\n ");
+        await _db.updateExercise(w.exercise);
+
+        _log.fine("Worklog updated ${w.exercise.toString()}");
+
         return w;
       }
     }
@@ -299,13 +323,13 @@ class _AddExerciseView extends State<AddExerciseView> {
     workLog.created = HelloWorldView.date;
     String json = jsonEncode(workLog);
 
-    print("\n [addworklog] ADDING NEW WORKLOG  : ============>  ${workLog.toString()}\n ");
-
-    /// save to json
-    Storage.writeToFile(json);
+    //    /// save to json
+    //    Storage.writeToFile(json);
 
     ///  save workLog to DB
     await _db.newWorkLog(workLog);
+
+    _log.fine("New workLog saved to DB: ${workLog.toString()}");
 
     return workLog;
   }

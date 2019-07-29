@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
@@ -16,7 +17,9 @@ class EditExerciseView extends StatefulWidget {
 
 class _EditExerciseView extends State<EditExerciseView> {
   //  get DB from singleton global provider
-  DBProvider _db = DBProvider.db;
+  final DBProvider _db = DBProvider.db;
+
+  final Logger _log = new Logger("EditExerciseView");
 
   bool _chest = false;
   bool _back = false;
@@ -30,6 +33,27 @@ class _EditExerciseView extends State<EditExerciseView> {
   double _screenWidth;
   bool _isPortraitOrientation;
 
+  double _appBarHeightPortrait;
+  double _appBarHeightLandscape;
+  double _textFieldWidth;
+  double _buttonHeightPortrait;
+  double _buttonHeightLandscape;
+  double _buttonWidthPortrait;
+  double _buttonWidthLandscape;
+
+  void setupDimensions() {
+    _getScreenHeight();
+    _getScreenWidth();
+
+    _appBarHeightPortrait = _screenHeight * 0.08;
+    _appBarHeightLandscape = _screenHeight * 0.1;
+    _textFieldWidth = _screenWidth * 0.7;
+    _buttonHeightPortrait = _screenHeight * 0.06;
+    _buttonHeightLandscape = _screenHeight * 0.1;
+    _buttonWidthPortrait = _screenWidth * 0.5;
+    _buttonWidthLandscape = _screenWidth * 0.27;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,15 +63,6 @@ class _EditExerciseView extends State<EditExerciseView> {
 
     /// checkbox should be checked only if exercise have that body part
     _updateCheckboxesState();
-
-    print('EditExerciseView >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${widget.exercise.name} '
-        '\t ${widget.exercise.bodyParts.toString()} \t ID: ${widget.exercise.id}');
-  }
-
-  @override
-  void dispose() {
-    Util.hideKeyboard(context);
-    super.dispose();
   }
 
   @override
@@ -57,18 +72,15 @@ class _EditExerciseView extends State<EditExerciseView> {
       /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
 
-      _getScreenHeight();
-      _getScreenWidth();
+      setupDimensions();
 
-      return Hero(
-        tag: "exerciseEdit",
-        child: Scaffold(
+      return Scaffold(
           /// when keyboard is shown the layout is not rebuild
           /// thank to this there is no pixel overflow
           resizeToAvoidBottomInset: false,
 
           appBar: PreferredSize(
-            preferredSize: Size.fromHeight(_isPortraitOrientation ? _screenHeight * 0.08 : _screenHeight * 0.1),
+            preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
             child: AppBar(
                 centerTitle: true,
                 title: Text(
@@ -87,7 +99,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                 Column(
                   children: <Widget>[
                     SizedBox(
-                      width: _screenWidth * 0.7,
+                      width: _textFieldWidth,
                       child: TextFormField(
                         textAlign: TextAlign.center,
                         controller: _myController,
@@ -98,7 +110,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                     ),
                   ],
                 ),
-                _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.1),
+                if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
                 Column(
                   children: <Widget>[
                     Row(
@@ -203,7 +215,7 @@ class _EditExerciseView extends State<EditExerciseView> {
                     ),
                   ],
                 ),
-                _isPortraitOrientation ? null : Util.spacerSelectable(top: _screenHeight * 0.08),
+                if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
                 _isPortraitOrientation
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -216,7 +228,6 @@ class _EditExerciseView extends State<EditExerciseView> {
               ],
             ),
           ),
-        ),
       );
     });
   }
@@ -227,8 +238,8 @@ class _EditExerciseView extends State<EditExerciseView> {
     result.add(
       MaterialButton(
         onPressed: () => _saveExercise(),
-        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
-        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.greenButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -243,11 +254,12 @@ class _EditExerciseView extends State<EditExerciseView> {
 
     result.add(
       MaterialButton(
-        onPressed: () => {
-          Navigator.pop(context),
+        onPressed: () async =>  {
+        await Util.hideKeyboard(context),
+        Navigator.pop(context),
         },
-        height: _isPortraitOrientation ? _screenHeight * 0.06 : _screenHeight * 0.1,
-        minWidth: _isPortraitOrientation ? _screenWidth * 0.5 : _screenWidth * 0.27,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.cancelButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -294,8 +306,14 @@ class _EditExerciseView extends State<EditExerciseView> {
   void _saveExercise() async {
     widget.exercise.name = _myController.text;
     await _db.editExercise(widget.exercise);
+
+    _log.fine("Updating exercise: ${widget.exercise.toString()}");
+
+    await Util.hideKeyboard(context);
+
     Navigator.pop(context);
   }
+
 
   void _updateBP(BodyPart bodyPart, bool value) {
     if (value)

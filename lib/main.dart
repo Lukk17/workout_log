@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
 import 'package:workout_log/util/notification.dart';
@@ -21,6 +22,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /// setup logger
+    Logger.root.level = Level.ALL;
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print('${rec.level.name}: \t ${rec.time}: ===================================== > \t ${rec.loggerName}: \t ${rec.message}');
+    });
+    final Logger _log = new Logger("Application");
+    _log.fine("started");
+
     return AppBuilder(builder: (context) {
       notificationService = NotificationService(context);
 

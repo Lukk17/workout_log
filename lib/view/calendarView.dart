@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:logging/logging.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/util.dart';
@@ -23,43 +23,69 @@ class CalendarView extends StatefulWidget {
 class _CalendarViewState extends State<CalendarView> {
   DateTime _selected = HelloWorldView.date;
 
+  final Logger _log = new Logger("CalendarView");
+
+  double _screenHeight;
+  double _screenWidth;
+  bool _isPortraitOrientation;
+
+  double _dialogHeight;
+  double _dialogWidth;
+  double _naviButtonHeightPortrait;
+  double _naviButtonHeightLandscape;
+  double _naviButtonWidth;
+  double _saveButtonHeightPortrait;
+  double _saveButtonWidthPortrait;
+  double _saveButtonHeightLandscape;
+  double _saveButtonWidthLandscape;
+  double _calendarRowHeightPortrait;
+  double _calendarRowHeightLandscape;
+
+  void setupDimensions() {
+    _getScreenHeight();
+    _getScreenWidth();
+
+    _dialogHeight = _screenHeight * 0.7;
+    // this value of width is required by landscape mode to show it correctly
+    _dialogWidth = _screenWidth;
+
+    _naviButtonHeightPortrait = _screenHeight * 0.07;
+    _naviButtonHeightLandscape = _screenHeight * 0.1;
+    _naviButtonWidth = _screenWidth * 0.07;
+    _saveButtonHeightPortrait = _screenHeight * 0.07;
+    _saveButtonWidthPortrait = _screenWidth * 0.4;
+    _saveButtonHeightLandscape = _screenHeight * 0.1;
+    _saveButtonWidthLandscape = _screenWidth * 0.2;
+    _calendarRowHeightPortrait = _screenHeight * 0.07;
+    _calendarRowHeightLandscape = _screenHeight * 0.09;
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.screenOrientation == Orientation.landscape) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeRight,
-        DeviceOrientation.landscapeLeft,
-      ]);
-    } else {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    }
+
+    _isPortraitOrientation = widget.screenOrientation == Orientation.portrait;
+    Util.blockOrientation(_isPortraitOrientation);
   }
 
   @override
   dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    Util.unlockOrientation();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    setupDimensions();
+
     return _create(context);
   }
 
   Widget _create(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.7,
-      child: (widget.screenOrientation == Orientation.portrait)
+      width: _dialogWidth,
+      height: _dialogHeight,
+      child: (_isPortraitOrientation)
           ? Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
@@ -67,11 +93,11 @@ class _CalendarViewState extends State<CalendarView> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     createNaviButton(name: "Go to date..", onPressed: _setDate),
-                    Util.spacer(MediaQuery.of(context).size.height * 0.01),
+                    Util.spacer(_screenHeight * 0.01),
                     createNaviButton(name: "Go to today", onPressed: _today),
                   ],
                 ),
-                Util.spacer(MediaQuery.of(context).size.height * 0.01),
+                Util.spacer(_screenHeight * 0.01),
                 Flexible(
                   child: createTabCalendar(),
                 ),
@@ -82,25 +108,15 @@ class _CalendarViewState extends State<CalendarView> {
             )
           : Row(
               children: <Widget>[
-                Util.spacerSelectable(
-                    left: MediaQuery.of(context).size.width * 0.01,
-                    right: 0,
-                    bottom: 0,
-                    top: 0),
+                Util.spacerSelectable(left: _screenWidth * 0.01),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Column(
                       children: <Widget>[
-                        createNaviButton(
-                            name: "Go to date..", onPressed: _setDate),
-                        Util.spacerSelectable(
-                            top: MediaQuery.of(context).size.height * 0.03,
-                            bottom: 0,
-                            left: 0,
-                            right: 0),
-                        createNaviButton(
-                            name: "Go to today", onPressed: _today),
+                        createNaviButton(name: "Go to date..", onPressed: _setDate),
+                        Util.spacerSelectable(top: _screenHeight * 0.03),
+                        createNaviButton(name: "Go to today", onPressed: _today),
                       ],
                     ),
                     createSaveButton(),
@@ -114,14 +130,11 @@ class _CalendarViewState extends State<CalendarView> {
     );
   }
 
-  Widget createNaviButton(
-      {@required Function onPressed, @required String name}) {
+  Widget createNaviButton({@required Function onPressed, @required String name}) {
     return Center(
       child: MaterialButton(
-        height: (widget.screenOrientation == Orientation.portrait)
-            ? MediaQuery.of(context).size.height * 0.07
-            : MediaQuery.of(context).size.height * 0.1,
-        minWidth: MediaQuery.of(context).size.height * 0.07,
+        height: _isPortraitOrientation ? _naviButtonHeightPortrait : _naviButtonHeightLandscape,
+        minWidth: _naviButtonWidth,
         onPressed: onPressed,
         color: AppThemeSettings.buttonColor,
         child: Text(
@@ -134,12 +147,8 @@ class _CalendarViewState extends State<CalendarView> {
 
   Widget createSaveButton() {
     return MaterialButton(
-      height: (widget.screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.07
-          : MediaQuery.of(context).size.height * 0.1,
-      minWidth: (widget.screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.width * 0.4
-          : MediaQuery.of(context).size.width * 0.2,
+      height: _isPortraitOrientation ? _saveButtonHeightPortrait : _saveButtonHeightLandscape,
+      minWidth: _isPortraitOrientation ? _saveButtonWidthPortrait : _saveButtonWidthLandscape,
       onPressed: _save,
       color: AppThemeSettings.greenButtonColor,
       child: Text(
@@ -151,9 +160,7 @@ class _CalendarViewState extends State<CalendarView> {
 
   Widget createTabCalendar() {
     return TableCalendar(
-      rowHeight: (widget.screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.07
-          : MediaQuery.of(context).size.height * 0.09,
+      rowHeight: _isPortraitOrientation ? _calendarRowHeightPortrait : _calendarRowHeightLandscape,
       locale: 'en_US',
       selectedDay: _selected,
       onDaySelected: (day, list) => {_selectedDate(day)},
@@ -172,8 +179,7 @@ class _CalendarViewState extends State<CalendarView> {
   }
 
   _setDate() {
-    DatePicker.showDatePicker(context,
-        currentTime: DateTime.now(), onConfirm: (date) => _pickDate(date));
+    DatePicker.showDatePicker(context, currentTime: DateTime.now(), onConfirm: (date) => _pickDate(date));
   }
 
   _today() {
@@ -195,7 +201,17 @@ class _CalendarViewState extends State<CalendarView> {
 
   _save() {
     HelloWorldView.date = _selected;
+
+    _log.fine("Choosen date: $_selected");
+
     Navigator.pop(context);
   }
 
+  _getScreenHeight() {
+    _screenHeight = Util.getScreenHeight(context);
+  }
+
+  _getScreenWidth() {
+    _screenWidth = Util.getScreenWidth(context);
+  }
 }

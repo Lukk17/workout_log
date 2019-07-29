@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
@@ -14,21 +15,20 @@ class _ExerciseListViewState extends State<ExerciseListView> {
   List<MaterialButton> exerciseList = List();
 
   //  get DB from singleton global provider
-  DBProvider _db = DBProvider.db;
+  final DBProvider _db = DBProvider.db;
+
+  final Logger _log = new Logger("ExerciseListView");
 
   @override
   void initState() {
     super.initState();
 
     _getExercises();
-    print('$exerciseList');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: "exerciseEdit",
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
             centerTitle: true,
             title: Text(
@@ -43,7 +43,6 @@ class _ExerciseListViewState extends State<ExerciseListView> {
           itemCount: exerciseList.length,
           itemBuilder: (context, index) => exerciseList[index],
         ),
-      ),
     );
   }
 
@@ -51,7 +50,7 @@ class _ExerciseListViewState extends State<ExerciseListView> {
     List<MaterialButton> result = List();
     List<Exercise> exercises = await _db.getAllExercise();
 
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   ${exercises.toString()}');
+    _log.fine('List of DB exercise: ${exercises.toString()}');
 
     for (Exercise e in exercises) {
       result.add(MaterialButton(
