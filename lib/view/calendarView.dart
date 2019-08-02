@@ -29,7 +29,8 @@ class _CalendarViewState extends State<CalendarView> {
   double _screenWidth;
   bool _isPortraitOrientation;
 
-  double _dialogHeight;
+  double _dialogHeightPortrait;
+  double _dialogHeightLandscape;
   double _dialogWidth;
   double _naviButtonHeightPortrait;
   double _naviButtonHeightLandscape;
@@ -45,7 +46,8 @@ class _CalendarViewState extends State<CalendarView> {
     _getScreenHeight();
     _getScreenWidth();
 
-    _dialogHeight = _screenHeight * 0.7;
+    _dialogHeightPortrait = _screenHeight * 0.71;
+    _dialogHeightLandscape = _screenHeight * 0.8;
     // this value of width is required by landscape mode to show it correctly
     _dialogWidth = _screenWidth;
 
@@ -84,7 +86,7 @@ class _CalendarViewState extends State<CalendarView> {
   Widget _create(BuildContext context) {
     return Container(
       width: _dialogWidth,
-      height: _dialogHeight,
+      height: _isPortraitOrientation ? _dialogHeightPortrait : _dialogHeightLandscape,
       child: (_isPortraitOrientation)
           ? Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -153,7 +155,7 @@ class _CalendarViewState extends State<CalendarView> {
       color: AppThemeSettings.greenButtonColor,
       child: Text(
         "Save",
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppThemeSettings.buttonTextColor),
       ),
     );
   }

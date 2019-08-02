@@ -29,20 +29,20 @@ class _ExerciseListViewState extends State<ExerciseListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            centerTitle: true,
-            title: Text(
-              "Exercises Edit",
-              style: TextStyle(
-                color: AppThemeSettings.titleColor,
-                fontSize: AppThemeSettings.fontSize,
-              ),
+      appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            "Exercises Edit",
+            style: TextStyle(
+              color: AppThemeSettings.titleColor,
+              fontSize: AppThemeSettings.fontSize,
             ),
-            backgroundColor: AppThemeSettings.appBarColor),
-        body: ListView.builder(
-          itemCount: exerciseList.length,
-          itemBuilder: (context, index) => exerciseList[index],
-        ),
+          ),
+          backgroundColor: AppThemeSettings.appBarColor),
+      body: ListView.builder(
+        itemCount: exerciseList.length,
+        itemBuilder: (context, index) => exerciseList[index],
+      ),
     );
   }
 
@@ -58,7 +58,10 @@ class _ExerciseListViewState extends State<ExerciseListView> {
         onPressed: () async {
           Navigator.push(context, MaterialPageRoute(builder: (context) => EditExerciseView(exercise: e))).then((val) => _getExercises());
         },
-        child: Text(e.name),
+        child: Text(
+          e.name,
+          style: TextStyle(color: AppThemeSettings.specialTextColor),
+        ),
       ));
     }
     setState(() {

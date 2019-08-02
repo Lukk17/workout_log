@@ -136,7 +136,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                             await _updateState(),
                             Util.unlockOrientation(),
                           },
-                          child: Icon(Icons.add, color: AppThemeSettings.iconColor),
+                          child: Icon(Icons.add, color: AppThemeSettings.buttonTextColor),
                           backgroundColor: AppThemeSettings.buttonColor,
                           foregroundColor: AppThemeSettings.secondaryColor,
                         ),
@@ -197,7 +197,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               margin: EdgeInsets.all(_cardMargin),
               child: Text(
                 workLog.exercise.name,
-                style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
+                style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -209,7 +209,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _seriesMargin,
                   child: Text(
                     "Series: ${workLog.series.length.toString()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
                   ),
                 ),
 
@@ -218,7 +218,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _repsMargin,
                   child: Text(
                     "Reps: ${workLog.getRepsSum()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
                     textAlign: TextAlign.end,
                   ),
                 ),
@@ -265,7 +265,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
             });
             Navigator.pop(context);
           },
-          child: Text(e.name),
+          child: Text(e.name, style: TextStyle(color: AppThemeSettings.specialTextColor),),
         ),
       );
     }
@@ -286,6 +286,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
         title: Text(
           "Select exercise",
           textAlign: TextAlign.center,
+          style: TextStyle(color: AppThemeSettings.textColor),
         ),
         children: <Widget>[
           Util.addHorizontalLine(),
@@ -319,7 +320,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   children: <Widget>[
                     MaterialButton(
                         color: AppThemeSettings.greenButtonColor,
-                        child: Text("New"),
+                        child: Text("New", style: TextStyle(color: AppThemeSettings.buttonTextColor),),
                         onPressed: () async => {
                               Util.unlockOrientation(),
                               await Navigator.push(context, MaterialPageRoute(builder: (_) => AddExerciseView())),
@@ -327,7 +328,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                             }),
                     MaterialButton(
                         color: AppThemeSettings.cancelButtonColor,
-                        child: const Text('CANCEL'),
+                        child: Text('CANCEL', style: TextStyle(color: AppThemeSettings.buttonTextColor)),
                         onPressed: () {
                           Navigator.pop(context);
                         }),

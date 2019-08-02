@@ -113,7 +113,7 @@ class _ExerciseView extends State<ExerciseView> {
                 child: Text(
                   widget.workLog.exercise.name,
                   style: TextStyle(
-                    color: AppThemeSettings.specialTextColor,
+                    color: AppThemeSettings.textColor,
                     fontSize: AppThemeSettings.headerSize,
                     fontWeight: FontWeight.bold,
                   ),
@@ -134,7 +134,7 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "series",
                     style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
+                      color: AppThemeSettings.textColor,
                       fontSize: AppThemeSettings.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
@@ -150,7 +150,7 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "load",
                     style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
+                      color: AppThemeSettings.textColor,
                       fontSize: AppThemeSettings.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
@@ -166,7 +166,7 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "repeats",
                     style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
+                      color: AppThemeSettings.textColor,
                       fontSize: AppThemeSettings.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
@@ -197,8 +197,8 @@ class _ExerciseView extends State<ExerciseView> {
 
           // open pop-up on button press to add new exercise
           onPressed: () => _addSeriesToWorkLog(),
-          child: Icon(Icons.add),
-          backgroundColor: AppThemeSettings.primaryColor,
+          child: Icon(Icons.add, color: AppThemeSettings.buttonTextColor),
+          backgroundColor: AppThemeSettings.buttonColor,
           foregroundColor: AppThemeSettings.secondaryColor,
         ),
       );
@@ -298,7 +298,7 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     i.toString(),
                     style: TextStyle(
-                      color: AppThemeSettings.specialTextColor,
+                      color: AppThemeSettings.textColor,
                       fontSize: AppThemeSettings.fontSize,
                     ),
                   ),
@@ -317,7 +317,7 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       widget.workLog.getLoad(i.toString()),
                       style: TextStyle(
-                        color: AppThemeSettings.specialTextColor,
+                        color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
@@ -347,7 +347,7 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       widget.workLog.getReps(i.toString()),
                       style: TextStyle(
-                        color: AppThemeSettings.specialTextColor,
+                        color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),

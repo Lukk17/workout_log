@@ -106,7 +106,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
         leading: new IconButton(
             icon: new Icon(
               Icons.settings,
-              color: AppThemeSettings.iconColor,
+              color: AppThemeSettings.titleColor,
             ),
             onPressed: () => _scaffoldKey.currentState.openDrawer()),
 
@@ -129,11 +129,11 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     children: <Widget>[
                       Icon(
                         Icons.calendar_today,
-                        color: AppThemeSettings.iconColor,
+                        color: AppThemeSettings.titleColor,
                       ),
                       Text(
                         "Calendar",
-                        style: TextStyle(color: AppThemeSettings.iconColor),
+                        style: TextStyle(color: AppThemeSettings.titleColor),
                       ),
                     ],
                   )
@@ -264,7 +264,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(color: AppThemeSettings.drawerColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                   ),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView())).then((_) => _rebuildApp()),
                 ),
