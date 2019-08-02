@@ -15,26 +15,20 @@ class NotificationService {
 
   init() {
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    var initializationSettingsAndroid =
-        new AndroidInitializationSettings('@mipmap/ic_launcher');
-    var initializationSettingsIOS = new IOSInitializationSettings(
-        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-    var initializationSettings = new InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    var initializationSettingsAndroid = new AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsIOS = new IOSInitializationSettings(onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    var initializationSettings = new InitializationSettings(initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings, onSelectNotification: onSelectNotification);
   }
 
   // fire when a notification has been tapped on
   Future onSelectNotification(String payload) async {
     //  pop to default app view
-    Navigator.popUntil(
-        context, ModalRoute.withName(Navigator.defaultRouteName));
+    Navigator.popUntil(context, ModalRoute.withName(Navigator.defaultRouteName));
   }
 
-  Future<void> onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {
+  Future<void> onDidReceiveLocalNotification(int id, String title, String body, String payload) async {
     // display a dialog with the notification details, tap ok to go to another page
     await showDialog(
       context: context,
@@ -48,8 +42,7 @@ class NotificationService {
             onPressed: () async {
               Navigator.of(context, rootNavigator: true).pop();
               //  pop to default app view
-              Navigator.popUntil(
-                  context, ModalRoute.withName(Navigator.defaultRouteName));
+              Navigator.popUntil(context, ModalRoute.withName(Navigator.defaultRouteName));
             },
           )
         ],
@@ -57,34 +50,24 @@ class NotificationService {
     );
   }
 
-  Future<void> display(
-      {@required String title, @required String body, String payload}) async {
+  Future<void> display({@required String title, @required String body, String payload}) async {
     if (payload == null) {
       payload = "default";
     }
 
-    await flutterLocalNotificationsPlugin
-        .show(0, title, body, _getPlatformSpecifics(), payload: payload);
+    await flutterLocalNotificationsPlugin.show(0, title, body, _getPlatformSpecifics(), payload: payload);
   }
 
   Future<void> scheduleNotification() async {
-    var scheduledNotificationDateTime =
-        DateTime.now().add(Duration(seconds: 5));
+    var scheduledNotificationDateTime = DateTime.now().add(Duration(seconds: 5));
 
-    await flutterLocalNotificationsPlugin.schedule(
-        0,
-        'scheduled title',
-        'scheduled body',
-        scheduledNotificationDateTime,
-        _getPlatformSpecifics());
+    await flutterLocalNotificationsPlugin.schedule(0, 'scheduled title', 'scheduled body', scheduledNotificationDateTime, _getPlatformSpecifics());
   }
 
   NotificationDetails _getPlatformSpecifics() {
-    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        _channelID, _channelName, _channelDescription,
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(_channelID, _channelName, _channelDescription,
         importance: Importance.Max, priority: Priority.High, ticker: _ticker);
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-    return NotificationDetails(
-        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    return NotificationDetails(androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
   }
 }

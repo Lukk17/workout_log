@@ -224,6 +224,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 ),
               ],
             ),
+            leading: Column(
+              children: _getMainBodyParts(workLog),
+            ),
             trailing: Container(
               child: Icon(
                 Icons.arrow_forward,
@@ -265,7 +268,10 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
             });
             Navigator.pop(context);
           },
-          child: Text(e.name, style: TextStyle(color: AppThemeSettings.specialTextColor),),
+          child: Text(
+            e.name,
+            style: TextStyle(color: AppThemeSettings.specialTextColor),
+          ),
         ),
       );
     }
@@ -320,7 +326,10 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   children: <Widget>[
                     MaterialButton(
                         color: AppThemeSettings.greenButtonColor,
-                        child: Text("New", style: TextStyle(color: AppThemeSettings.buttonTextColor),),
+                        child: Text(
+                          "New",
+                          style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                        ),
                         onPressed: () async => {
                               Util.unlockOrientation(),
                               await Navigator.push(context, MaterialPageRoute(builder: (_) => AddExerciseView())),
@@ -373,6 +382,30 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     _log.fine("Added new workLog: ${workLog.toString()}");
 
     return workLog;
+  }
+
+  List<Widget> _getMainBodyParts(WorkLog workLog) {
+    List<Text> result = List();
+
+    /// add only first 3 when more than 3 body parts in exercise
+    if (workLog.exercise.bodyParts.length > 3) {
+      int counter = 0;
+      workLog.exercise.bodyParts.forEach((bp) => {
+            if (counter < 3)
+              {
+                counter++,
+                result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+              }
+          });
+
+      /// add all body parts when less than 3 in exercise
+    } else {
+      workLog.exercise.bodyParts.forEach((bp) => {
+            result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+          });
+    }
+
+    return result;
   }
 
   _updateState() {

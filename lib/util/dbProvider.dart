@@ -275,7 +275,6 @@ class DBProvider {
     db.delete(workLogTable, where: "id = ?", whereArgs: [workLog.id]);
 
     _log.fine("Deleted workLog: ${workLog.toString()}");
-
   }
 
   Future close() async => _database.close();

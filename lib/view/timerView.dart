@@ -18,8 +18,7 @@ class TimerView extends StatefulWidget {
   State<StatefulWidget> createState() => _TimerViewState();
 }
 
-class _TimerViewState extends State<TimerView>
-    with SingleTickerProviderStateMixin {
+class _TimerViewState extends State<TimerView> with SingleTickerProviderStateMixin {
   double position = 0;
   bool dragUp = true;
   Orientation screenOrientation;
@@ -46,9 +45,7 @@ class _TimerViewState extends State<TimerView>
       if (orientation == Orientation.portrait) {
         //  portrait
         //  orientation
-        if (timerService.isAnimating() ||
-            timerService.pause ||
-            timerService.running) {
+        if (timerService.isAnimating() || timerService.pause || timerService.running) {
           return Center(
             child: Stack(
               children: <Widget>[
@@ -57,23 +54,18 @@ class _TimerViewState extends State<TimerView>
                         animation: timerService.animationController,
                         builder: (BuildContext context, Widget child) {
                           return CustomPaint(
-                            painter: TimerCirclePainter(
-                                animation: timerService.animationController),
+                            painter: TimerCirclePainter(animation: timerService.animationController),
                           );
                         })),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Util.spacer(MediaQuery.of(context).size.height * 0.035),
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                          createTimer(scale: 1),
-                          Util.spacer(
-                              MediaQuery.of(context).size.height * 0.05),
-                          createControlButtons(scale: 1),
-                        ])
+                    Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+                      createTimer(scale: 1),
+                      Util.spacer(MediaQuery.of(context).size.height * 0.05),
+                      createControlButtons(scale: 1),
+                    ])
                   ],
                 ),
               ],
@@ -93,14 +85,11 @@ class _TimerViewState extends State<TimerView>
                     createTimeButton(timeText: "5 min", seconds: 60 * 5),
                   ],
                 ),
-                Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      createTimer(scale: 1),
-                      Util.spacer(MediaQuery.of(context).size.height * 0.05),
-                      createControlButtons(scale: 1),
-                    ])
+                Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+                  createTimer(scale: 1),
+                  Util.spacer(MediaQuery.of(context).size.height * 0.05),
+                  createControlButtons(scale: 1),
+                ])
               ],
             ),
           );
@@ -113,12 +102,10 @@ class _TimerViewState extends State<TimerView>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    createTimeButton(timeText: "30 sec", seconds: 30),
-                    createTimeButton(timeText: "3 min", seconds: 60 * 3),
-                  ]),
+              Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+                createTimeButton(timeText: "30 sec", seconds: 30),
+                createTimeButton(timeText: "3 min", seconds: 60 * 3),
+              ]),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
@@ -126,13 +113,10 @@ class _TimerViewState extends State<TimerView>
                   createTimeButton(timeText: "5 min", seconds: 60 * 5),
                 ],
               ),
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    createTimer(scale: 0.25),
-                    createControlButtons(scale: 0.4),
-                  ])
+              Column(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: <Widget>[
+                createTimer(scale: 0.25),
+                createControlButtons(scale: 0.4),
+              ])
             ],
           ),
         );
@@ -147,8 +131,7 @@ class _TimerViewState extends State<TimerView>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Util.spacerSelectable(
-                  left: MediaQuery.of(context).size.width * 0.4 * scale),
+              Util.spacerSelectable(left: MediaQuery.of(context).size.width * 0.4 * scale),
               Center(
                 child: Text(
                   "H",
@@ -159,8 +142,7 @@ class _TimerViewState extends State<TimerView>
                   ),
                 ),
               ),
-              Util.spacerSelectable(
-                  left: MediaQuery.of(context).size.width * 0.4 * scale),
+              Util.spacerSelectable(left: MediaQuery.of(context).size.width * 0.4 * scale),
               Center(
                 child: Text(
                   "M",
@@ -171,8 +153,7 @@ class _TimerViewState extends State<TimerView>
                   ),
                 ),
               ),
-              Util.spacerSelectable(
-                  left: MediaQuery.of(context).size.width * 0.5 * scale),
+              Util.spacerSelectable(left: MediaQuery.of(context).size.width * 0.5 * scale),
               Center(
                 child: Text(
                   "S",
@@ -183,8 +164,7 @@ class _TimerViewState extends State<TimerView>
                   ),
                 ),
               ),
-              Util.spacerSelectable(
-                  left: MediaQuery.of(context).size.width * 0.6 * scale),
+              Util.spacerSelectable(left: MediaQuery.of(context).size.width * 0.6 * scale),
             ],
           ),
           Row(
@@ -205,8 +185,7 @@ class _TimerViewState extends State<TimerView>
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  timerService.changeHour(
-                      time: timerService.hour, dragUp: dragUp);
+                  timerService.changeHour(time: timerService.hour, dragUp: dragUp);
                   setState(() {});
                 },
                 child: SizedBox(
@@ -216,8 +195,7 @@ class _TimerViewState extends State<TimerView>
                       //  padLeft to add additional 0 to be always same length of string
                       timerService.hour.toString().padLeft(2, "0"),
                       style: TextStyle(
-                        fontSize:
-                            MediaQuery.of(context).size.width * 0.4 * scale,
+                        fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
                         color: AppThemeSettings.timerColor,
                         shadows: AppThemeSettings.textBorder,
                       ),
@@ -247,8 +225,7 @@ class _TimerViewState extends State<TimerView>
                 },
                 onVerticalDragEnd: (data) {
                   // when dragging end read final dragUp bool and make action
-                  timerService.changeMinute(
-                      time: timerService.minute, dragUp: dragUp);
+                  timerService.changeMinute(time: timerService.minute, dragUp: dragUp);
                   setState(() {});
                 },
                 child: SizedBox(
@@ -258,8 +235,7 @@ class _TimerViewState extends State<TimerView>
                       //  padLeft to add additional 0 to be always same length of string
                       timerService.minute.toString().padLeft(2, "0"),
                       style: TextStyle(
-                        fontSize:
-                            MediaQuery.of(context).size.width * 0.4 * scale,
+                        fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
                         color: AppThemeSettings.timerColor,
                         shadows: AppThemeSettings.textBorder,
                       ),
@@ -301,8 +277,7 @@ class _TimerViewState extends State<TimerView>
                         Text(
                           timerService.getDecimalSeconds(),
                           style: TextStyle(
-                            fontSize:
-                                MediaQuery.of(context).size.width * 0.4 * scale,
+                            fontSize: MediaQuery.of(context).size.width * 0.4 * scale,
                             color: AppThemeSettings.timerColor,
                             shadows: AppThemeSettings.textBorder,
                           ),
@@ -321,9 +296,7 @@ class _TimerViewState extends State<TimerView>
 
   Widget createTimeButton({@required String timeText, @required int seconds}) {
     return MaterialButton(
-      height: (screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.06
-          : MediaQuery.of(context).size.height * 0.15,
+      height: (screenOrientation == Orientation.portrait) ? MediaQuery.of(context).size.height * 0.06 : MediaQuery.of(context).size.height * 0.15,
       minWidth: MediaQuery.of(context).size.width * 0.15,
       onPressed: () {
         _displayTime(seconds * 1000);
@@ -379,8 +352,7 @@ class _TimerViewState extends State<TimerView>
                           height: (screenOrientation == Orientation.portrait)
                               ? MediaQuery.of(context).size.height * 0.08
                               : MediaQuery.of(context).size.height * 0.15,
-                          minWidth:
-                              MediaQuery.of(context).size.width * 0.4 * scale,
+                          minWidth: MediaQuery.of(context).size.width * 0.4 * scale,
                           onPressed: _pauseTimer,
                           textColor: AppThemeSettings.buttonTextColor,
                           color: AppThemeSettings.buttonColor,
@@ -391,8 +363,7 @@ class _TimerViewState extends State<TimerView>
                           height: (screenOrientation == Orientation.portrait)
                               ? MediaQuery.of(context).size.height * 0.08
                               : MediaQuery.of(context).size.height * 0.15,
-                          minWidth:
-                              MediaQuery.of(context).size.width * 0.4 * scale,
+                          minWidth: MediaQuery.of(context).size.width * 0.4 * scale,
                           onPressed: _stopTimer,
                           textColor: AppThemeSettings.buttonTextColor,
                           color: AppThemeSettings.buttonColor,
@@ -408,10 +379,9 @@ class _TimerViewState extends State<TimerView>
                           : MediaQuery.of(context).size.height * 0.15,
                       minWidth: MediaQuery.of(context).size.width * 0.6 * scale,
                       onPressed: () => {
-                            timerService.timerCache =
-                                getDuration().inMilliseconds,
-                            _startTimer(),
-                          },
+                        timerService.timerCache = getDuration().inMilliseconds,
+                        _startTimer(),
+                      },
                       textColor: AppThemeSettings.buttonTextColor,
                       color: AppThemeSettings.buttonColor,
                       child: Text("Start"),
@@ -419,6 +389,7 @@ class _TimerViewState extends State<TimerView>
             ],
           );
   }
+
   /// Updates the state of this widget
   /// with correct time values and animation state
   void _displayTime(int milliseconds) {

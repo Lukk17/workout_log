@@ -33,7 +33,8 @@ class _ExerciseView extends State<ExerciseView> {
 
   double _appBarHeightPortrait;
   double _appBarHeightLandscape;
-  double _exerciseHeight;
+  double _exerciseHeightPortrait;
+  double _exerciseHeightLandscape;
   double _exerciseWidth;
   double _columnWidth;
   double _seriesColumnWidth;
@@ -47,7 +48,8 @@ class _ExerciseView extends State<ExerciseView> {
 
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
-    _exerciseHeight = _screenHeight * 0.2;
+    _exerciseHeightPortrait = _screenHeight * 0.15;
+    _exerciseHeightLandscape = _screenHeight * 0.2;
     _exerciseWidth = _screenWidth;
     _columnWidth = _screenWidth * 0.375;
     _seriesColumnWidth = _screenWidth * 0.25;
@@ -107,7 +109,9 @@ class _ExerciseView extends State<ExerciseView> {
                             )));
               },
               child: Container(
-                height: _exerciseHeight,
+                height: _isPortraitOrientation
+                    ? _exerciseHeightPortrait
+                    : _exerciseHeightLandscape,
                 width: _exerciseWidth,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
@@ -119,6 +123,11 @@ class _ExerciseView extends State<ExerciseView> {
                   ),
                 ),
               ),
+            ),
+
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: getBodyPartsBlocks(widget.workLog),
             ),
 
             /// table header
@@ -598,5 +607,64 @@ class _ExerciseView extends State<ExerciseView> {
 
   _getScreenWidth() {
     _screenWidth = Util.getScreenWidth(context);
+  }
+
+  List<Widget> getBodyPartsBlocks(WorkLog workLog) {
+    List<Row> result = List();
+    List<SizedBox> boxes = List();
+
+
+    workLog.exercise.bodyParts.forEach((bp) =>
+    {
+      boxes.add(SizedBox(
+        height: _screenHeight * 0.05,
+        width: _screenWidth * 0.3,
+        child: Container(
+          color: Util.getBpColor(bp),
+          child: Center(child: Text(Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
+        ),
+      ))
+    });
+
+
+    /// when more that 3 body parts is in one exercise
+    /// make 2 rows
+    if (boxes.length <= 3) {
+      result.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: boxes,
+      ));
+    }
+    else {
+      List<SizedBox> firstRowBoxes = List();
+      List<SizedBox> secondRowBoxes = List();
+
+      int counter = 0;
+      boxes.forEach((box) =>
+      {
+        counter++,
+
+        if(counter < 4){
+          firstRowBoxes.add(box)
+        }
+        else
+          {
+            secondRowBoxes.add(box)
+          }
+      });
+
+      result.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: firstRowBoxes,
+      ));
+      result.add(Row(children: <Widget>[
+        Util.spacerSelectable(top: _screenHeight * 0.01)
+      ],));
+      result.add(Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: secondRowBoxes,
+      ));
+    }
+    return result;
   }
 }

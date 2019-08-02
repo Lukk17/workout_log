@@ -129,7 +129,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("CHEST", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "CHEST",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _chest,
                               onChanged: (value) {
@@ -144,7 +147,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("BACK", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "BACK",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _back,
                               onChanged: (value) {
@@ -159,7 +165,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("ARM", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "ARM",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _arm,
                               onChanged: (value) {
@@ -179,7 +188,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("LEG", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "LEG",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _leg,
                               onChanged: (value) {
@@ -194,7 +206,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("ABDOMINAL", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "ABDOMINAL",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _abdominal,
                               onChanged: (value) {
@@ -209,7 +224,10 @@ class _AddExerciseView extends State<AddExerciseView> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         alignment: WrapAlignment.center,
                         children: <Widget>[
-                          Text("CARDIO", style: TextStyle(color: AppThemeSettings.textColor),),
+                          Text(
+                            "CARDIO",
+                            style: TextStyle(color: AppThemeSettings.textColor),
+                          ),
                           Checkbox(
                               value: _cardio,
                               onChanged: (value) {

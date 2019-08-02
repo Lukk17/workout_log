@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 
 class Util {
@@ -91,5 +92,57 @@ class Util {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+  }
+
+  static Color getBpColor(BodyPart bp) {
+    switch (bp) {
+      case BodyPart.CHEST:
+        return AppThemeSettings.chestColor;
+
+      case BodyPart.BACK:
+        return AppThemeSettings.backColor;
+
+      case BodyPart.LEG:
+        return AppThemeSettings.legColor;
+
+      case BodyPart.ARM:
+        return AppThemeSettings.armColor;
+
+      case BodyPart.CARDIO:
+        return AppThemeSettings.cardioColor;
+
+      case BodyPart.ABDOMINAL:
+        return AppThemeSettings.abdominalColor;
+
+      case BodyPart.UNDEFINED:
+        return Colors.white70;
+    }
+    return Colors.white70;
+  }
+
+  static String getBpName(BodyPart bp) {
+    switch (bp) {
+      case BodyPart.CHEST:
+        return "chest";
+
+      case BodyPart.BACK:
+        return "back";
+
+      case BodyPart.LEG:
+        return "leg";
+
+      case BodyPart.ARM:
+        return "arm";
+
+      case BodyPart.CARDIO:
+        return "cardio";
+
+      case BodyPart.ABDOMINAL:
+        return "abdominal";
+
+      case BodyPart.UNDEFINED:
+        return "";
+    }
+    return "";
   }
 }

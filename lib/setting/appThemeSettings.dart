@@ -78,6 +78,13 @@ class AppThemeSettings {
   static Color borderColor;
   static Color drawerColor;
 
+  static Color chestColor = Colors.red;
+  static Color backColor = Colors.white;
+  static Color armColor = Colors.deepPurple;
+  static Color legColor = Colors.green;
+  static Color abdominalColor = Colors.indigo;
+  static Color cardioColor = Colors.black;
+
   static Color circleColor = Colors.blueAccent;
   static Color arcColor = Colors.red;
 
