@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -13,6 +14,8 @@ import 'package:workout_log/view/helloWorldView.dart';
 class DBProvider {
   final String workLogTable = "workLog";
   final String exerciseTable = "exercise";
+
+  final Logger _log = new Logger("DBProvider");
 
   // singleton is needed to have only one global DB provider
   DBProvider._();
@@ -35,8 +38,8 @@ class DBProvider {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     // join need 'dart:async' lib imported
     String path = join(documentsDirectory.path, "worklog.db");
-    return await openDatabase(path, version: 1, onOpen: (db) {},
-        onCreate: (Database db, int version) async {
+
+    return await openDatabase(path, version: 1, onOpen: (db) {}, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE IF NOT EXISTS $exerciseTable ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
@@ -48,6 +51,8 @@ class DBProvider {
       //  ONE TO MANY relation
       await db.execute("CREATE TABLE IF NOT EXISTS $workLogTable ("
           "id VARCHAR(32) PRIMARY KEY,"
+          "load BLOB,"
+          "bodyWeight REAL,"
           "series BLOB,"
           "created TEXT,"
           "exercise_id VARCHAR(32),"
@@ -59,8 +64,7 @@ class DBProvider {
 
       exercises.add(Exercise("Push Up", {BodyPart.CHEST, BodyPart.ARM}));
       exercises.add(Exercise("Pull Up", {BodyPart.BACK, BodyPart.ARM}));
-      exercises.add(
-          Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG, BodyPart.ARM}));
+      exercises.add(Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG, BodyPart.ARM}));
       exercises.add(Exercise("Running", {BodyPart.CARDIO}));
 
       exercises.forEach(
@@ -78,26 +82,24 @@ class DBProvider {
     List<Exercise> allExercises = await getAllExercise();
 
     for (var dbExercise in allExercises) {
+      ///  add to DB only if there is no identical workLog entry
+      ///  (with same exercise and bodyPart)
       if (dbExercise.name == workLog.exercise.name) {
-        ///  add to DB only if there is no identical workLog entry
-        ///  (with same exercise and bodyPart)
+        ///  if user is adding exercise which name already exist
+        ///  but user added this exercise to another bodyPart
+        ///  add this new bodyPart to exercise's bp list and update db
         if (!dbExercise.bodyParts.contains(workLog.exercise.bodyParts.first)) {
-          ///  if workLog is adding exercise which name already exist
-          ///  but user added this exercise to another bodyPart
-          ///  add this new bodyPart to exercise's bp list and update db
           dbExercise.bodyParts.addAll(workLog.exercise.bodyParts);
-          db.update(exerciseTable, dbExercise.toMap(),
-              where: "id = ?", whereArgs: [dbExercise.id]);
-          print(
-              "\n [newWorkLog] UPDATING EXERCISE : ============>  ${dbExercise.toString()} \n ");
+          db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
+
+          _log.fine("[newWorkLog] UPDATING EXERCISE : ${dbExercise.toString()}");
         }
 
         //  db exercise as workLog exercise (to save one with correct ID)
         workLog.exercise = dbExercise;
         idFromDB = await db.insert(workLogTable, workLog.toMap());
 
-        print(
-            "\n ADDING NEW WORKLOG: ============>  ${workLog.toString()} \n ");
+        _log.fine("ADDING NEW WORKLOG: ${workLog.toString()}");
 
         //  when name and body part is identical change flag to false
         //  and do not save workLog again
@@ -107,8 +109,7 @@ class DBProvider {
 
     /// if it is new exercise save it to DB as well
     if (unique) {
-      print(
-          "\n ADDING NEW WORKLOG AND NEW EXERCISE: ============>  ${workLog.toString()} \n ");
+      _log.fine("ADDING NEW WORKLOG AND NEW EXERCISE: ${workLog.toString()}");
 
       await db.insert(exerciseTable, workLog.exercise.toMap());
       idFromDB = await db.insert(workLogTable, workLog.toMap());
@@ -128,11 +129,9 @@ class DBProvider {
     for (var dbExercise in allExercises) {
       if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts.addAll(exercise.bodyParts);
-        id = await db.update(exerciseTable, dbExercise.toMap(),
-            where: "id = ?", whereArgs: [dbExercise.id]);
+        id = await db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 
-        print(
-            "\n UPDATE EXERCISE: ============>  ${dbExercise.toString()} \n ");
+        _log.fine("UPDATE EXERCISE: ${dbExercise.toString()}");
       }
     }
     return id;
@@ -150,11 +149,9 @@ class DBProvider {
       if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts = exercise.bodyParts;
         dbExercise.name = exercise.name;
-        id = await db.update(exerciseTable, dbExercise.toMap(),
-            where: "id = ?", whereArgs: [dbExercise.id]);
+        id = await db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 
-        print(
-            "\n UPDATE EXERCISE: ============>  ${dbExercise.toString()} \n ");
+        _log.fine("UPDATE EXERCISE: ${dbExercise.toString()}");
       }
     }
     return id;
@@ -162,13 +159,11 @@ class DBProvider {
 
   Future<int> updateWorkLog(WorkLog workLog) async {
     final db = await database;
-    print("\n UPDATE WORKLOG: ============>  ${workLog.toString()} \n ");
 
-    await db.update(exerciseTable, workLog.exercise.toMap(),
-        where: "id = ?", whereArgs: [workLog.exercise.id]);
+    _log.fine("UPDATE WORKLOG: ${workLog.toString()}");
 
-    int id = await db.update(workLogTable, workLog.toMap(),
-        where: "id = ?", whereArgs: [workLog.id]);
+    await db.update(exerciseTable, workLog.exercise.toMap(), where: "id = ?", whereArgs: [workLog.exercise.id]);
+    int id = await db.update(workLogTable, workLog.toMap(), where: "id = ?", whereArgs: [workLog.id]);
 
     return id;
   }
@@ -177,17 +172,21 @@ class DBProvider {
     WorkLog log;
     final db = await database;
     var res = await db.query("worklog", where: "id = ?", whereArgs: [id]);
+
     //  if there is entry with this ID in DB it will be pulled
     if (res.isNotEmpty) {
-//      log = WorkLog.fromMap(res.first);
+      //      log = WorkLog.fromMap(res.first);
     }
+
     return log;
   }
 
   Future<List<WorkLog>> getAllWorkLogs() async {
     List<WorkLog> workLogList = new List();
     final db = await database;
+
     var res = await db.query("worklog");
+
     for (var l in res) {
       ///  exercise need to be pulled from DB
       /// and pushed to WorkLog.fromMap method
@@ -202,8 +201,9 @@ class DBProvider {
     String date = Util.formatter.format(HelloWorldView.date);
     List<WorkLog> workLogList = new List();
     final db = await database;
-    var res =
-        await db.query("worklog", where: "created = ?", whereArgs: [date]);
+
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
+
     for (var l in res) {
       ///  exercise need to be pulled from DB
       /// and pushed to WorkLog.fromMap method
@@ -221,7 +221,8 @@ class DBProvider {
 
     //  if there is entry with this ID in DB it will be pulled
     if (res.isNotEmpty) {
-      print("GET EXERCISE BY ID:    " + res.first.toString());
+      _log.fine("GET EXERCISE BY ID: res.first.toString()");
+
       exercise = Exercise.fromMap(res.first);
     } else {
       throw new Exception("exersice with id: $id was NOT found");
@@ -234,6 +235,7 @@ class DBProvider {
     List<Exercise> result = List();
     final db = await database;
     var res = await db.query("exercise");
+
     if (res.isNotEmpty) {
       for (var e in res) {
         result.add(Exercise.fromMap(e));
@@ -242,14 +244,13 @@ class DBProvider {
     return result;
   }
 
-  Future<List<WorkLog>> getDateBodypartWorkLogs(BodyPart part) async {
+  Future<List<WorkLog>> getDateBodyPartWorkLogs(BodyPart part) async {
     List<WorkLog> workLogList = List();
     final db = await database;
     String date = Util.formatter.format(HelloWorldView.date);
 
     // pull every workLog from given date
-    var res =
-        await db.query("worklog", where: "created = ?", whereArgs: [date]);
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
 
     for (var l in res) {
       //  exercise need to be pulled from DB
@@ -263,15 +264,17 @@ class DBProvider {
       }
     }
 
-    print('getWorklogs : $part  and ${workLogList.toString()}');
+    _log.fine("getWorklogs : $part  and ${workLogList.toString()}");
 
     return workLogList;
   }
 
   void deleteWorkLog(WorkLog workLog) async {
     final db = await database;
-    print("DELETE WORKLOG:    " + workLog.toString());
+
     db.delete(workLogTable, where: "id = ?", whereArgs: [workLog.id]);
+
+    _log.fine("Deleted workLog: ${workLog.toString()}");
   }
 
   Future close() async => _database.close();

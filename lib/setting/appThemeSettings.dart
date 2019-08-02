@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 
 class AppThemeSettings {
-  static ThemeData theme = ThemeData(brightness: Brightness.dark);
+  static ThemeData theme = themeD;
 
   static ThemeData _themeD = ThemeData(brightness: Brightness.dark);
 
   static ThemeData _themeL = ThemeData(brightness: Brightness.light);
 
   static ThemeData get themeD {
-    buttonColor = Colors.redAccent;
+    buttonColor = Colors.red;
     buttonSplashColor = Colors.lightGreen;
-    iconColor = Colors.black;
-    appBarColor = Colors.redAccent;
-    tabBarColor = Colors.white;
+    appBarColor = Colors.grey[900];
+    tabBarColor = Colors.amber;
     timerColor = Colors.cyanAccent;
-    buttonTextColor = Colors.white;
-    textColor = Colors.white;
-    specialTextColor = Colors.amber;
-    primaryColor = Colors.red;
+    buttonTextColor = Colors.grey[800];
+    cardTextColor = Colors.amber;
+    textColor = Colors.amber;
+    specialTextColor = Colors.lightGreen[300];
+    primaryColor = Colors.lightGreen[800];
     secondaryColor = Colors.white;
-    calendarIconColor = Colors.white;
-    titleColor = Colors.white;
+    iconColor = Colors.amber;
+    tabBarIconColor = Colors.amber;
+    titleColor = Colors.amber;
     backgroundColor = Colors.black;
     indicatorColor = Colors.red;
     borderColor = Colors.red;
@@ -35,21 +36,22 @@ class AppThemeSettings {
   static ThemeData get themeL {
     buttonColor = Colors.blue;
     buttonSplashColor = Colors.deepPurpleAccent;
-    iconColor = Colors.black;
     appBarColor = Colors.blue;
-    tabBarColor = Colors.black;
+    tabBarColor = Colors.black87;
     timerColor = Colors.amberAccent;
     buttonTextColor = Colors.white;
-    textColor = Colors.black;
-    specialTextColor = Colors.black;
+    cardTextColor = Colors.white;
+    textColor = Colors.black87;
+    specialTextColor = Colors.black87;
     primaryColor = Colors.blue;
     secondaryColor = Colors.white;
-    calendarIconColor = Colors.white;
+    iconColor = Colors.white;
+    tabBarIconColor = Colors.black87;
     titleColor = Colors.white;
     backgroundColor = Colors.white;
     indicatorColor = Colors.blue;
     borderColor = Colors.blue;
-    drawerColor = Colors.blueAccent[100];
+    drawerColor = Colors.blue[100];
 
     background = "graphics/lightBackground.png";
     bodyPartBackground = "graphics/bg-niagara.png";
@@ -57,23 +59,31 @@ class AppThemeSettings {
     return _themeL;
   }
 
-  static Color buttonColor = Colors.red;
-  static Color buttonSplashColor = Colors.red;
-  static Color iconColor = Colors.white;
-  static Color appBarColor = Colors.red;
-  static Color tabBarColor = Colors.white;
-  static Color timerColor = Colors.amber;
-  static Color buttonTextColor = Colors.white;
-  static Color textColor = Colors.white;
-  static Color specialTextColor = Colors.amber;
-  static Color primaryColor = Colors.red;
-  static Color secondaryColor = Colors.white;
-  static Color calendarIconColor = Colors.white;
-  static Color titleColor = Colors.white;
-  static Color backgroundColor = Colors.black;
-  static Color indicatorColor = Colors.red;
-  static Color borderColor = Colors.red;
-  static Color drawerColor = Colors.black38;
+  static Color buttonColor;
+  static Color buttonSplashColor;
+  static Color appBarColor;
+  static Color tabBarColor;
+  static Color timerColor;
+  static Color buttonTextColor;
+  static Color cardTextColor;
+  static Color textColor;
+  static Color specialTextColor;
+  static Color primaryColor;
+  static Color secondaryColor;
+  static Color iconColor;
+  static Color tabBarIconColor;
+  static Color titleColor;
+  static Color backgroundColor;
+  static Color indicatorColor;
+  static Color borderColor;
+  static Color drawerColor;
+
+  static Color chestColor = Colors.red;
+  static Color backColor = Colors.white;
+  static Color armColor = Colors.deepPurple;
+  static Color legColor = Colors.green;
+  static Color abdominalColor = Colors.indigo;
+  static Color cardioColor = Colors.black;
 
   static Color circleColor = Colors.blueAccent;
   static Color arcColor = Colors.red;
@@ -99,8 +109,8 @@ class AppThemeSettings {
   static StrokeCap strokeCap = StrokeCap.round;
   static PaintingStyle paintingStyle = PaintingStyle.stroke;
 
-  static String background = "graphics/background.png";
-  static String bodyPartBackground = "graphics/bg-leaves.png";
+  static String background;
+  static String bodyPartBackground;
 
   static List<Shadow> textBorder = [
     Shadow(

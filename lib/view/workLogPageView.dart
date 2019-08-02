@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:workout_log/entity/bodyPart.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:logging/logging.dart';
+import 'package:workout_log/entity/exercise.dart';
+import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/exerciseView.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
-import '../main.dart';
-import 'bodyPartLogView.dart';
+import 'addExerciseView.dart';
 
 /// This is main WorkLog view.
 ///
@@ -18,188 +22,435 @@ class WorkLogPageView extends StatefulWidget {
   WorkLogPageView(this.callback, this.date);
 
   @override
-  State<StatefulWidget> createState() => _WorkLogPageViewState(date);
+  State<StatefulWidget> createState() => _WorkLogPageViewState();
 }
 
 class _WorkLogPageViewState extends State<WorkLogPageView> {
-  final DateTime date;
-  Orientation screenOrientation;
+  List<Widget> _wList = List();
+  List<MaterialButton> _exerciseList = List();
+  bool _isPortraitOrientation;
+  double _screenHeight;
+  double _screenWidth;
 
-  //  to save helloWorld scaffold key
-  final GlobalKey<ScaffoldState> scaffoldKey = MyApp.globalKey;
+  final Logger _log = new Logger("WorkLogPageView");
 
-  _WorkLogPageViewState(this.date);
+  double _datePortraitHeight;
+  double _dateLandscapeHeight;
+  double _dateTextScale;
+  double _cardMargin;
+  double _cardOutsideMargin;
+  EdgeInsets _seriesMargin;
+  EdgeInsets _repsMargin;
+  double _exerciseDialogHeight;
+  double _exerciseDialogWidth;
+  double _bottomEmptyContainerHeight;
+
+  //  get DB from singleton global provider
+  final DBProvider _db = DBProvider.db;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateWorkLogFromDB();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void setupDimensions() {
+    _getScreenHeight();
+    _getScreenWidth();
+
+    _datePortraitHeight = _screenHeight * 0.1;
+    _dateLandscapeHeight = _screenHeight * 0.2;
+    _dateTextScale = 3;
+    _cardMargin = _screenHeight * 0.01;
+    _cardOutsideMargin = _screenHeight * 0.01;
+    _seriesMargin = EdgeInsets.only(right: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _repsMargin = EdgeInsets.only(left: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _exerciseDialogHeight = _screenHeight * 0.5;
+    _exerciseDialogWidth = _screenWidth * 0.7;
+    _bottomEmptyContainerHeight = _screenHeight * 0.15;
+  }
 
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(builder: (context, orientation) {
-      screenOrientation = orientation;
+      /// check if new orientation is portrait
+      /// rebuild from here where orientation will change
+      _isPortraitOrientation = orientation == Orientation.portrait;
+
+      setupDimensions();
+
+      /// need to be called to fetch workLogs for selected date in calendar
+      if (Util.rebuild) {
+        _updateWorkLogFromDB();
+        Util.rebuild = false;
+      }
+
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Container(
-            alignment: Alignment(-0.7, 0),
+            height: _isPortraitOrientation ? _datePortraitHeight : _dateLandscapeHeight,
+            alignment: Alignment(0, 0),
             child: Text(
-              Util.formatter.format(HelloWorldView.date) ==
-                      Util.formatter.format(DateTime.now())
+              Util.formatter.format(HelloWorldView.date) == Util.formatter.format(DateTime.now())
                   ? "Today"
                   : Util.formatter.format(HelloWorldView.date),
-              textScaleFactor: 3,
-              style: TextStyle(
-                  color: AppThemeSettings.textColor,
-                  fontWeight: FontWeight.bold),
+              textScaleFactor: _dateTextScale,
+              style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold),
             ),
           ),
-          (orientation == Orientation.portrait)
-
-              //  for portrait orientation
-              ? Table(
-                  columnWidths: {
-                    0: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.35),
-                    1: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.175),
-                    2: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.35)
-                  },
-                  defaultColumnWidth:
-                      FixedColumnWidth(MediaQuery.of(context).size.width * 0.3),
-                  children: [
-                    TableRow(
-                      children: <Widget>[
-                        _createCategoryButton('chest', BodyPart.CHEST),
-                        Util.spacer(5),
-                        _createCategoryButton('back', BodyPart.BACK),
-                      ],
+          Expanded(
+            child: Stack(
+              children: <Widget>[
+                ListView(
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    Column(
+                      children: _wList,
                     ),
-                    TableRow(
-                      children: <Widget>[
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.005),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01)
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        _createCategoryButton('arm', BodyPart.ARM),
-                        Util.spacer(5),
-                        _createCategoryButton('leg', BodyPart.LEG),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01)
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.005),
-                        _createCategoryButton('cardio', BodyPart.CARDIO),
-                      ],
-                    )
-                  ],
-                )
-
-              //  for landscape orientation
-              : Table(
-                  columnWidths: {
-                    0: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.2),
-                    1: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.1),
-                    2: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.2),
-                    3: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.1),
-                    4: FixedColumnWidth(
-                        MediaQuery.of(context).size.width * 0.2),
-                  },
-                  defaultColumnWidth:
-                      FixedColumnWidth(MediaQuery.of(context).size.width * 0.3),
-                  children: [
-                    TableRow(
-                      children: <Widget>[
-                        _createCategoryButton('chest', BodyPart.CHEST),
-                        Util.spacer(5),
-                        _createCategoryButton('back', BodyPart.BACK),
-                        Util.spacer(5),
-                        _createCategoryButton('arm', BodyPart.ARM),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.005),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.005),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.01),
-                      ],
-                    ),
-                    TableRow(
-                      children: <Widget>[
-                        _createCategoryButton('leg', BodyPart.LEG),
-                        Util.spacer(5),
-                        _createCategoryButton('abdominal', BodyPart.ABDOMINAL),
-                        Util.spacer(MediaQuery.of(context).size.height * 0.005),
-                        _createCategoryButton('cardio', BodyPart.CARDIO),
-                      ],
+                    //  container at bottom which make it possible to scroll down
+                    //  and see last workLog fully
+                    Container(
+                      height: _bottomEmptyContainerHeight,
                     ),
                   ],
                 ),
-          _createCategoryButton('all'),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Util.spacerSelectable(bottom: _screenHeight * 0.3),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        FloatingActionButton(
+                          // text which will be shown after long press on button
+                          tooltip: 'Add exercise',
+                          // open pop-up on button press to add new exercise
+                          onPressed: () async => {
+                            await _showAddExerciseDialog(),
+                            await _updateState(),
+                            Util.unlockOrientation(),
+                          },
+                          child: Icon(Icons.add, color: AppThemeSettings.buttonTextColor),
+                          backgroundColor: AppThemeSettings.buttonColor,
+                          foregroundColor: AppThemeSettings.secondaryColor,
+                        ),
+                        Util.spacerSelectable(
+                          right: _screenWidth * 0.1,
+                        ),
+                      ],
+                    ),
+                    Util.spacerSelectable(bottom: _screenHeight * 0.01)
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       );
     });
   }
 
-  /// Creates button routing to BodyPartLogView
+  /// create workLog for every entry in given day
   ///
-  /// BodyPart is optional due to option for showing all exercises
-  /// on any body part
-  Widget _createCategoryButton(String text, [BodyPart bodyPart]) {
-    /// if method is called without [bodyPart],
-    /// then it is set to [BodyPart.UNDEFINED],
-    /// which lead to show workLogs from all body parts
-    if (bodyPart == null) bodyPart = BodyPart.UNDEFINED;
+  /// require:
+  /// workLog which will be added to widget
+  /// context of application (for screen dimension)
+  Widget _createWorkLogRowWidget(WorkLog workLog) {
+    return Container(
+      margin: EdgeInsets.only(bottom: _cardOutsideMargin),
+      child: Slidable(
+        actionPane: SlidableDrawerActionPane(),
+        actionExtentRatio: 0.25,
+        secondaryActions: <Widget>[
+          Container(
+            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+            child: IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () => _deleteWorkLog(workLog),
+            ),
+          )
+        ],
+        actions: <Widget>[
+          Container(
+            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+            child: IconSlideAction(
+              caption: 'Delete',
+              color: Colors.red,
+              icon: Icons.delete,
+              onTap: () => _deleteWorkLog(workLog),
+            ),
+          ),
+        ],
+        child: Card(
+          color: AppThemeSettings.primaryColor,
+          elevation: 8,
+          child: ListTile(
+            title: Container(
+              margin: EdgeInsets.all(_cardMargin),
+              child: Text(
+                workLog.exercise.name,
+                style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            subtitle: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                ///  sum of workLog series
+                Container(
+                  margin: _seriesMargin,
+                  child: Text(
+                    "Series: ${workLog.series.length.toString()}",
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                  ),
+                ),
 
-    MaterialButton cb = MaterialButton(
-      // after pushing button, navigate to a new screen
-      onPressed: () {
-        bodyPart == BodyPart.UNDEFINED
-            ? Navigator.push(
+                ///  sum of workLog reps in set
+                Container(
+                  margin: _repsMargin,
+                  child: Text(
+                    "Reps: ${workLog.getRepsSum()}",
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+            leading: Column(
+              children: _getMainBodyParts(workLog),
+            ),
+            trailing: Container(
+              child: Icon(
+                Icons.arrow_forward,
+                color: AppThemeSettings.secondaryColor,
+              ),
+              margin: EdgeInsets.only(top: _screenHeight * 0.02),
+            ),
+
+            ///  push workLog and bodyPartInterface to new screen to display it's details
+            onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      BodyPartLogView(date: date, bodyPart: BodyPart.UNDEFINED),
-                ),
-              )
-            : Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      BodyPartLogView(date: date, bodyPart: bodyPart),
-                ),
-              ).then(restoreKey());
-      },
-      height: (screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.height * 0.06
-          : MediaQuery.of(context).size.height * 0.1,
-      minWidth: (screenOrientation == Orientation.portrait)
-          ? MediaQuery.of(context).size.width * 0.5
-          : MediaQuery.of(context).size.width * 0.3,
-      color: AppThemeSettings.buttonColor,
-      splashColor: AppThemeSettings.buttonSplashColor,
-      textColor: AppThemeSettings.buttonTextColor,
-      child: Text(text),
+
+                    ///  using Navigator.then to update parent state as well
+                    builder: (context) => ExerciseView(workLog: workLog))).then((v) => _updateState()),
+          ),
+        ),
+      ),
     );
-    return cb;
   }
 
-  restoreKey(){
-    MyApp.globalKey = scaffoldKey;
+  _getExercises() async {
+    List<MaterialButton> result = List();
+    List<Exercise> exercises = await _db.getAllExercise();
+
+    for (Exercise e in exercises) {
+      result.add(
+        MaterialButton(
+          onPressed: () async {
+            Exercise exercise = Exercise(
+              e.name,
+              // bodyPart as Set()
+              e.bodyParts,
+            );
+            //  save workLog to db
+            WorkLog workLog = await _addWorkLog(exercise);
+            setState(() {
+              _wList.add(_createWorkLogRowWidget(workLog));
+            });
+            Navigator.pop(context);
+          },
+          child: Text(
+            e.name,
+            style: TextStyle(color: AppThemeSettings.specialTextColor),
+          ),
+        ),
+      );
+    }
+    setState(() {
+      _exerciseList = result;
+    });
   }
 
+  _showAddExerciseDialog() async {
+    await _getExercises();
+    _updateState();
+
+    Util.blockOrientation(_isPortraitOrientation);
+
+    return showDialog(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: Text(
+          "Select exercise",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppThemeSettings.textColor),
+        ),
+        children: <Widget>[
+          Util.addHorizontalLine(),
+          Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    height: _exerciseDialogHeight,
+                    width: _exerciseDialogWidth,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _exerciseList.length,
+                      itemBuilder: (context, index) => _exerciseList[index],
+                    ),
+                  ),
+                  Column(
+                    children: <Widget>[
+                      Icon(Icons.arrow_upward),
+                      Util.spacerSelectable(top: _screenHeight * 0.3),
+                      Icon(Icons.arrow_downward),
+                    ],
+                  )
+                ],
+              ),
+              Util.addHorizontalLine(),
+              Container(
+                height: _screenHeight * 0.1,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    MaterialButton(
+                        color: AppThemeSettings.greenButtonColor,
+                        child: Text(
+                          "New",
+                          style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                        ),
+                        onPressed: () async => {
+                              Util.unlockOrientation(),
+                              await Navigator.push(context, MaterialPageRoute(builder: (_) => AddExerciseView())),
+                              Navigator.pop(context),
+                            }),
+                    MaterialButton(
+                        color: AppThemeSettings.cancelButtonColor,
+                        child: Text('CANCEL', style: TextStyle(color: AppThemeSettings.buttonTextColor)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<WorkLog> _addWorkLog(Exercise exercise) async {
+    //  get all workLogs from that day
+    List<WorkLog> workLogList = await _db.getDateAllWorkLogs();
+
+    ///  check if workLogs have same exercise name
+    for (var w in workLogList) {
+      if (w.exercise.name == exercise.name) {
+        ///  if there is workLog with that exercise name on this day, but with different bodyPart
+        ///  update db with this new body part
+        w.exercise.bodyParts.addAll(exercise.bodyParts);
+        await _db.updateExercise(w.exercise);
+
+        _log.fine("Updated exercise bodyParts: ${w.exercise.toString()}");
+
+        return w;
+      }
+    }
+    WorkLog workLog = WorkLog(exercise);
+    workLog.exercise.bodyParts = exercise.bodyParts; // bodyPart as Set()
+    workLog.created = HelloWorldView.date;
+
+    //    String json = jsonEncode(workLog);
+    //    /// save to json
+    //    Storage.writeToFile(json);
+
+    ///  save workLog to DB
+    await _db.newWorkLog(workLog);
+
+    _log.fine("Added new workLog: ${workLog.toString()}");
+
+    return workLog;
+  }
+
+  List<Widget> _getMainBodyParts(WorkLog workLog) {
+    List<Text> result = List();
+
+    /// add only first 3 when more than 3 body parts in exercise
+    if (workLog.exercise.bodyParts.length > 3) {
+      int counter = 0;
+      workLog.exercise.bodyParts.forEach((bp) => {
+            if (counter < 3)
+              {
+                counter++,
+                result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+              }
+          });
+
+      /// add all body parts when less than 3 in exercise
+    } else {
+      workLog.exercise.bodyParts.forEach((bp) => {
+            result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+          });
+    }
+
+    return result;
+  }
+
+  _updateState() {
+    setState(() {
+      _updateWorkLogFromDB();
+    });
+  }
+
+  void _updateWorkLogFromDB() async {
+    List<WorkLog> workLogList;
+    workLogList = await _db.getDateAllWorkLogs();
+    setState(() {
+      if (workLogList != null && workLogList.isNotEmpty) {
+        List<Widget> dbList = List();
+
+        for (WorkLog workLog in workLogList) {
+          _log.fine("Loaded from DB: ${workLog.exercise.toString()}");
+
+          dbList.add(_createWorkLogRowWidget(workLog));
+        }
+        _wList = dbList;
+      }
+      // this is needed to refresh state even if there is no entries
+      // if not artifacts from different bodyPart will appear
+      else {
+        _wList = List();
+      }
+      _wList.add(Card(
+        child: Container(),
+      ));
+    });
+  }
+
+  _deleteWorkLog(WorkLog workLog) {
+    _log.fine("Deleted workLog: : ${workLog.toString()}");
+
+    _db.deleteWorkLog(workLog);
+    _updateState();
+  }
+
+  _getScreenHeight() {
+    _screenHeight = Util.getScreenHeight(context);
+  }
+
+  _getScreenWidth() {
+    _screenWidth = Util.getScreenWidth(context);
+  }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Used to call rebuild() method which will rebuild all app
+/// needed for changing theme and background
 class AppBuilder extends StatefulWidget {
   final Function(BuildContext) builder;
 

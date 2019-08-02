@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
@@ -14,56 +15,53 @@ class _ExerciseListViewState extends State<ExerciseListView> {
   List<MaterialButton> exerciseList = List();
 
   //  get DB from singleton global provider
-  DBProvider db = DBProvider.db;
+  final DBProvider _db = DBProvider.db;
+
+  final Logger _log = new Logger("ExerciseListView");
 
   @override
   void initState() {
     super.initState();
-    getExercises();
-    print('$exerciseList');
+
+    _getExercises();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: "exerciseEdit",
-      child: Scaffold(
-        appBar: AppBar(
-            centerTitle: true,
-            title: Text(
-              "Exercises Edit",
-              style: TextStyle(
-                color: AppThemeSettings.titleColor,
-                fontSize: AppThemeSettings.fontSize,
-              ),
+    return Scaffold(
+      appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            "Exercises Edit",
+            style: TextStyle(
+              color: AppThemeSettings.titleColor,
+              fontSize: AppThemeSettings.fontSize,
             ),
-            backgroundColor: AppThemeSettings.appBarColor),
-        body: ListView.builder(
-          itemCount: exerciseList.length,
-          itemBuilder: (context, index) => exerciseList[index],
-        ),
+          ),
+          backgroundColor: AppThemeSettings.appBarColor),
+      body: ListView.builder(
+        itemCount: exerciseList.length,
+        itemBuilder: (context, index) => exerciseList[index],
       ),
     );
   }
 
-  getExercises() async {
+  _getExercises() async {
     List<MaterialButton> result = List();
-    List<Exercise> exercises = await db.getAllExercise();
+    List<Exercise> exercises = await _db.getAllExercise();
 
-    print(
-        '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   ${exercises.toString()}');
+    _log.fine('List of DB exercise: ${exercises.toString()}');
 
     for (Exercise e in exercises) {
       result.add(MaterialButton(
         key: Key(e.name),
         onPressed: () async {
-          Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => EditExerciseView(exercise: e)))
-              .then((val) => getExercises());
+          Navigator.push(context, MaterialPageRoute(builder: (context) => EditExerciseView(exercise: e))).then((val) => _getExercises());
         },
-        child: Text(e.name),
+        child: Text(
+          e.name,
+          style: TextStyle(color: AppThemeSettings.specialTextColor),
+        ),
       ));
     }
     setState(() {

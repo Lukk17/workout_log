@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/exercise.dart';
+import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 
-class EditExerciseView extends StatefulWidget {
-  final Exercise exercise;
+import 'helloWorldView.dart';
 
-  EditExerciseView({Key key, @required this.exercise}) : super(key: key);
-
+class AddExerciseView extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _EditExerciseView();
+  State<StatefulWidget> createState() => _AddExerciseView();
 }
 
-class _EditExerciseView extends State<EditExerciseView> {
+class _AddExerciseView extends State<AddExerciseView> {
   //  get DB from singleton global provider
   final DBProvider _db = DBProvider.db;
 
-  final Logger _log = new Logger("EditExerciseView");
+  final Logger _log = new Logger("AddExerciseView");
+
+  Set<BodyPart> _bodyParts = Set();
 
   bool _chest = false;
   bool _back = false;
@@ -29,6 +30,8 @@ class _EditExerciseView extends State<EditExerciseView> {
   bool _cardio = false;
 
   TextEditingController _myController;
+  GlobalKey<ScaffoldState> _key;
+
   double _screenHeight;
   double _screenWidth;
   bool _isPortraitOrientation;
@@ -58,11 +61,16 @@ class _EditExerciseView extends State<EditExerciseView> {
   void initState() {
     super.initState();
 
-    ///  set initial textField text
-    _myController = TextEditingController(text: widget.exercise.name);
+    _key = GlobalKey();
 
-    /// checkbox should be checked only if exercise have that body part
-    _updateCheckboxesState();
+    ///  set initial textField text
+    _myController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Util.hideKeyboard(context);
   }
 
   @override
@@ -79,12 +87,13 @@ class _EditExerciseView extends State<EditExerciseView> {
         /// thank to this there is no pixel overflow
         resizeToAvoidBottomInset: false,
 
+        key: _key,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
           child: AppBar(
               centerTitle: true,
               title: Text(
-                "Exercises Edit",
+                "Add Exercises",
                 style: TextStyle(
                   color: AppThemeSettings.titleColor,
                   fontSize: AppThemeSettings.fontSize,
@@ -264,16 +273,17 @@ class _EditExerciseView extends State<EditExerciseView> {
         child: Text("SAVE"),
       ),
     );
+
     if (_isPortraitOrientation) {
       result.add(Util.spacerSelectable(top: _screenHeight * 0.05));
     } else {
       result.add(Util.spacerSelectable(right: _screenWidth * 0.1));
     }
-
     result.add(
       MaterialButton(
-        onPressed: () async => {
-          await Util.hideKeyboard(context),
+        onPressed: () => {
+          //  hide keyboard before navigate to previous view
+          Util.hideKeyboard(context),
           Navigator.pop(context),
         },
         height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
@@ -288,55 +298,63 @@ class _EditExerciseView extends State<EditExerciseView> {
     return result;
   }
 
-  void _updateCheckboxesState() {
-    for (var bp in widget.exercise.bodyParts) {
-      switch (bp) {
-        case BodyPart.CHEST:
-          _chest = true;
-          break;
-
-        case BodyPart.BACK:
-          _back = true;
-          break;
-
-        case BodyPart.ARM:
-          _arm = true;
-          break;
-
-        case BodyPart.LEG:
-          _leg = true;
-          break;
-
-        case BodyPart.ABDOMINAL:
-          _abdominal = true;
-          break;
-
-        case BodyPart.CARDIO:
-          _cardio = true;
-          break;
-
-        default:
-          break;
-      }
+  void _saveExercise() async {
+    if (_myController.text == null || _myController.text.isEmpty) {
+      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise name :)")));
+      return;
     }
+
+    if (_bodyParts == null || _bodyParts.isEmpty) {
+      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise body part :)")));
+      return;
+    }
+
+    await addWorkLog(Exercise(_myController.text, _bodyParts));
+
+    //  hide keyboard before navigate to previous view
+    FocusScope.of(context).requestFocus(new FocusNode());
+    Navigator.pop(context);
   }
 
-  void _saveExercise() async {
-    widget.exercise.name = _myController.text;
-    await _db.editExercise(widget.exercise);
+  Future<WorkLog> addWorkLog(Exercise exercise) async {
+    //  get all workLogs from that day
+    List<WorkLog> workLogList = await _db.getDateAllWorkLogs();
 
-    _log.fine("Updating exercise: ${widget.exercise.toString()}");
+    ///  check if workLogs have same exercise name
+    for (var w in workLogList) {
+      if (w.exercise.name == exercise.name) {
+        /// if there is workLog with that exercise name on this day,
+        ///  but with different bodyPart
+        /// update db with this new body part
+        w.exercise.bodyParts.addAll(exercise.bodyParts);
+        await _db.updateExercise(w.exercise);
 
-    await Util.hideKeyboard(context);
+        _log.fine("Worklog updated ${w.exercise.toString()}");
 
-    Navigator.pop(context);
+        return w;
+      }
+    }
+    WorkLog workLog = WorkLog(exercise);
+    workLog.exercise.bodyParts = exercise.bodyParts; // bodyPart as Set()
+    workLog.created = HelloWorldView.date;
+
+    //    String json = jsonEncode(workLog);
+    //        /// save to json
+    //        Storage.writeToFile(json);
+
+    ///  save workLog to DB
+    await _db.newWorkLog(workLog);
+
+    _log.fine("New workLog saved to DB: ${workLog.toString()}");
+
+    return workLog;
   }
 
   void _updateBP(BodyPart bodyPart, bool value) {
     if (value)
-      widget.exercise.bodyParts.add(bodyPart);
+      _bodyParts.add(bodyPart);
     else
-      widget.exercise.bodyParts.remove(bodyPart);
+      _bodyParts.remove(bodyPart);
   }
 
   _getScreenHeight() {

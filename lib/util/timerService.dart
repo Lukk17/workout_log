@@ -1,10 +1,8 @@
-import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workout_log/main.dart';
 import 'package:workout_log/util/notification.dart';
-import 'package:workout_log/view/helloWorldView.dart';
 
 class TimerService {
   AnimationController animationController;
@@ -31,18 +29,12 @@ class TimerService {
     if (animationController == null) {
       animationController = AnimationController(
         vsync: view,
-        duration: Duration(
-            hours: hour,
-            minutes: minute,
-            seconds: sec,
-            milliseconds: milliseconds),
+        duration: Duration(hours: hour, minutes: minute, seconds: sec, milliseconds: milliseconds),
       );
       animationController.addListener(() => {
             if (isTimerOnView)
               {
-                _displayTime((animationController.duration.inMilliseconds *
-                        animationController.value)
-                    .toInt()),
+                _displayTime((animationController.duration.inMilliseconds * animationController.value).toInt()),
               },
             if (animationController.value == 0)
               {
@@ -65,8 +57,7 @@ class TimerService {
   }
 
   Duration getDuration() {
-    return Duration(
-        hours: hour, minutes: minute, seconds: sec, milliseconds: milliseconds);
+    return Duration(hours: hour, minutes: minute, seconds: sec, milliseconds: milliseconds);
   }
 
   startTimer() {
@@ -78,9 +69,7 @@ class TimerService {
     }
     pause = false;
 
-    animationController.reverse(
-        from:
-            animationController.value == 0.0 ? 1.0 : animationController.value);
+    animationController.reverse(from: animationController.value == 0.0 ? 1.0 : animationController.value);
   }
 
   void pauseTimer() {
@@ -104,17 +93,17 @@ class TimerService {
   }
 
   _startAlarm() async {
-    MyApp.globalKey.currentState.showSnackBar(SnackBar(content: Text("ALARM") ));
-//    await AndroidAlarmManager.oneShot(Duration(seconds: 1), 17, alarmCallback).then((val) => print(val));
+    MyApp.globalKey.currentState.showSnackBar(SnackBar(content: Text("ALARM")));
+    //    await AndroidAlarmManager.oneShot(Duration(seconds: 1), 17, alarmCallback).then((val) => print(val));
     await notificationService.display(title: "alarm", body: "timer !");
     SystemSound.play(SystemSoundType.click);
     AudioCache player = AudioCache();
     player.play('CarHornAlarm.mp3');
   }
 
-//  static void alarmCallback(){
-//    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. ALARM CALLBACK <<<<<<<<<<<<<<<<<<<<<<<< ');
-//  }
+  //  static void alarmCallback(){
+  //    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. ALARM CALLBACK <<<<<<<<<<<<<<<<<<<<<<<< ');
+  //  }
 
   void computeTime(int milliseconds) {
     //  if more than second
@@ -124,15 +113,9 @@ class TimerService {
         // check if there is more than one hour
         if (milliseconds / (60 * 60 * 1000) >= 1) {
           hour = (milliseconds / (60 * 60 * 1000)).floor();
-          minute =
-              ((milliseconds - (hour * 60 * 60 * 1000)) / (60 * 1000)).floor();
-          sec =
-              ((milliseconds - (hour * 60 * 60 * 1000) - (minute * 60 * 1000)) /
-                      1000)
-                  .floor();
-          milliseconds =
-              ((milliseconds - (hour * 60 * 60 * 1000) - (minute * 60 * 1000)) -
-                  sec * 1000);
+          minute = ((milliseconds - (hour * 60 * 60 * 1000)) / (60 * 1000)).floor();
+          sec = ((milliseconds - (hour * 60 * 60 * 1000) - (minute * 60 * 1000)) / 1000).floor();
+          milliseconds = ((milliseconds - (hour * 60 * 60 * 1000) - (minute * 60 * 1000)) - sec * 1000);
 
           //  if less than hour:
         } else {
