@@ -10,20 +10,20 @@ class AppThemeSettings {
   static ThemeData get themeD {
     buttonColor = Colors.redAccent;
     buttonSplashColor = Colors.lightGreen;
-    iconColor = Colors.black;
-    appBarColor = Colors.green[800];
-    tabBarColor = Colors.white;
+    appBarColor = Colors.grey[900];
+    tabBarColor = Colors.white70;
     timerColor = Colors.cyanAccent;
-    buttonTextColor = Colors.white;
-    textColor = Colors.white;
+    buttonTextColor = Colors.white70;
+    textColor = Colors.white70;
     specialTextColor = Colors.amber;
     primaryColor = Colors.lightGreen[800];
     secondaryColor = Colors.white;
-    calendarIconColor = Colors.white;
-    titleColor = Colors.white;
+    iconColor = Colors.white70;
+    tabBarIconColor = Colors.white70;
+    titleColor = Colors.white70;
     backgroundColor = Colors.black;
     indicatorColor = Colors.red;
-    borderColor = Colors.blueGrey;
+    borderColor = Colors.red;
     drawerColor = Colors.grey[800];
 
     background = "graphics/background.png";
@@ -35,21 +35,21 @@ class AppThemeSettings {
   static ThemeData get themeL {
     buttonColor = Colors.blue;
     buttonSplashColor = Colors.deepPurpleAccent;
-    iconColor = Colors.black;
     appBarColor = Colors.blue;
-    tabBarColor = Colors.black;
+    tabBarColor = Colors.black87;
     timerColor = Colors.amberAccent;
     buttonTextColor = Colors.white;
-    textColor = Colors.black;
-    specialTextColor = Colors.black;
+    textColor = Colors.black87;
+    specialTextColor = Colors.black87;
     primaryColor = Colors.blue;
     secondaryColor = Colors.white;
-    calendarIconColor = Colors.white;
+    iconColor = Colors.white;
+    tabBarIconColor = Colors.black87;
     titleColor = Colors.white;
     backgroundColor = Colors.white;
     indicatorColor = Colors.blue;
     borderColor = Colors.blue;
-    drawerColor = Colors.blueAccent[100];
+    drawerColor = Colors.blue[100];
 
     background = "graphics/lightBackground.png";
     bodyPartBackground = "graphics/bg-niagara.png";
@@ -59,7 +59,6 @@ class AppThemeSettings {
 
   static Color buttonColor = Colors.red;
   static Color buttonSplashColor = Colors.red;
-  static Color iconColor = Colors.white;
   static Color appBarColor = Colors.red;
   static Color tabBarColor = Colors.white;
   static Color timerColor = Colors.amber;
@@ -68,7 +67,8 @@ class AppThemeSettings {
   static Color specialTextColor = Colors.amber;
   static Color primaryColor = Colors.red;
   static Color secondaryColor = Colors.white;
-  static Color calendarIconColor = Colors.white;
+  static Color iconColor = Colors.white;
+  static Color tabBarIconColor = Colors.white;
   static Color titleColor = Colors.white;
   static Color backgroundColor = Colors.black;
   static Color indicatorColor = Colors.red;

@@ -49,8 +49,8 @@ class _ExerciseView extends State<ExerciseView> {
     _appBarHeightLandscape = _screenHeight * 0.1;
     _exerciseHeight = _screenHeight * 0.2;
     _exerciseWidth = _screenWidth;
-    _columnWidth = _screenWidth * 0.4;
-    _seriesColumnWidth = _screenWidth * 0.2;
+    _columnWidth = _screenWidth * 0.375;
+    _seriesColumnWidth = _screenWidth * 0.25;
     _portraitColumnHeight = _screenHeight * 0.1;
     _headerLandscapeColumnHeight = _screenHeight * 0.15;
     _landscapeColumnHeight = _screenHeight * 0.17;
@@ -107,13 +107,6 @@ class _ExerciseView extends State<ExerciseView> {
                             )));
               },
               child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableHeaderBorderWidth),
-                  ),
-                ),
                 height: _exerciseHeight,
                 width: _exerciseWidth,
                 alignment: FractionalOffset(0.5, 0.5),
@@ -132,21 +125,6 @@ class _ExerciseView extends State<ExerciseView> {
             Row(
               children: <Widget>[
                 Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-
-                      left: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-
-                      right: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                    ),
-                  ),
                   height: _isPortraitOrientation
                       ? _portraitColumnHeight
                       : _headerLandscapeColumnHeight,
@@ -163,21 +141,6 @@ class _ExerciseView extends State<ExerciseView> {
                   ),
                 ),
                 Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-
-                      left: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-
-                      right: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                    ),
-                  ),
                   height: _isPortraitOrientation
                       ? _portraitColumnHeight
                       : _headerLandscapeColumnHeight,
@@ -194,19 +157,6 @@ class _ExerciseView extends State<ExerciseView> {
                   ),
                 ),
                 Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                      left: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                      right: BorderSide(
-                          color: AppThemeSettings.borderColor,
-                          width: AppThemeSettings.tableHeaderBorderWidth),
-                    ),
-                  ),
                   height: _isPortraitOrientation
                       ? _portraitColumnHeight
                       : _headerLandscapeColumnHeight,
@@ -224,6 +174,8 @@ class _ExerciseView extends State<ExerciseView> {
                 ),
               ],
             ),
+
+            Util.addHorizontalLine(screenWidth: _screenWidth),
 
             /// list view builder create series
             Expanded(
@@ -253,6 +205,8 @@ class _ExerciseView extends State<ExerciseView> {
     });
   }
 
+  /// Creates row for every recorder set, with divider at the bottom
+  /// Slidable widget show action when user slide every row
   List<Widget> _createRowsForSeries() {
     List<Widget> wList = List();
     for (int i = 1; i <= widget.workLog.series.length; i++) {
@@ -287,32 +241,51 @@ class _ExerciseView extends State<ExerciseView> {
                   right: _screenWidth * 0.01),
 
               child: IconSlideAction(
-                caption: 'Delete',
-                color: Colors.red,
-                icon: Icons.delete,
-                onTap: () => _deleteSeries(i),
+                caption: 'Edit load',
+                color: Colors.yellow,
+                icon: Icons.edit,
+                onTap: () =>
+                    _editLoadDialog(widget.workLog, i.toString()).then((v) =>
+                    {
+                      /// restore orientation ability to change
+                      SystemChrome.setPreferredOrientations([
+                        DeviceOrientation.landscapeRight,
+                        DeviceOrientation.landscapeLeft,
+                        DeviceOrientation.portraitUp,
+                        DeviceOrientation.portraitDown,
+                      ])
+                    }),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(
+
+                  bottom: _screenHeight * 0.01,
+                  top: _screenHeight * 0.01,
+                  left: _screenWidth * 0.01,
+                  right: _screenWidth * 0.01),
+
+              child: IconSlideAction(
+                caption: 'Edit repeats',
+                color: Colors.green,
+                icon: Icons.edit,
+                onTap: () =>
+                    _editRepeatsDialog(widget.workLog, i.toString()).then((v) =>
+                    {
+                      /// restore orientation ability to change
+                      SystemChrome.setPreferredOrientations([
+                        DeviceOrientation.landscapeRight,
+                        DeviceOrientation.landscapeLeft,
+                        DeviceOrientation.portraitUp,
+                        DeviceOrientation.portraitDown,
+                      ])
+                    }),
               ),
             ),
           ],
           child: Row(
             children: <Widget>[
               Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    left: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    top: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    right: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                  ),
-                ),
                 height: _isPortraitOrientation
                     ? _portraitColumnHeight
                     : _landscapeColumnHeight,
@@ -332,22 +305,6 @@ class _ExerciseView extends State<ExerciseView> {
                 ),
               ),
               Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    left: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    right: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    top: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                  ),
-                ),
                 height: _isPortraitOrientation
                     ? _portraitColumnHeight
                     : _landscapeColumnHeight,
@@ -378,22 +335,6 @@ class _ExerciseView extends State<ExerciseView> {
                     }),
               ),
               Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    left: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    right: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                    top: BorderSide(
-                        color: AppThemeSettings.borderColor,
-                        width: AppThemeSettings.tableCellBorderWidth),
-                  ),
-                ),
                 height: _isPortraitOrientation
                     ? _portraitColumnHeight
                     : _landscapeColumnHeight,
@@ -426,6 +367,9 @@ class _ExerciseView extends State<ExerciseView> {
             ],
           ),
         ),);
+      wList.add(
+        Util.addHorizontalLine(screenWidth: _screenWidth),
+      );
     }
 
     /// add additional container at bottom for better visibility

@@ -6,7 +6,6 @@ import 'package:workout_log/setting/appThemeSettings.dart';
 class Util {
   static bool rebuild = false;
 
-
   static TextEditingController _textController = TextEditingController();
 
   static TextEditingController textController() {
@@ -17,14 +16,22 @@ class Util {
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
 
-  static Widget addHorizontalLine() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppThemeSettings.borderColor),
+  static Widget addHorizontalLine({double screenWidth}) {
+    if (screenWidth == null) {
+      return Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppThemeSettings.borderColor),
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Divider(
+        indent: screenWidth * 0.05,
+        endIndent: screenWidth * 0.05,
+        color: AppThemeSettings.borderColor,
+      );
+    }
   }
 
   static Widget addVerticalLine() {

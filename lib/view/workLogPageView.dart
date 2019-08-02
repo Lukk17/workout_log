@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
@@ -87,7 +85,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
       setupDimensions();
 
       /// need to be called to fetch workLogs for selected date in calendar
-      if(Util.rebuild) {
+      if (Util.rebuild) {
         _updateWorkLogFromDB();
         Util.rebuild = false;
       }
@@ -138,7 +136,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                             await _updateState(),
                             Util.unlockOrientation(),
                           },
-                          child: Icon(Icons.add),
+                          child: Icon(Icons.add, color: AppThemeSettings.iconColor),
                           backgroundColor: AppThemeSettings.buttonColor,
                           foregroundColor: AppThemeSettings.secondaryColor,
                         ),
@@ -211,7 +209,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _seriesMargin,
                   child: Text(
                     "Series: ${workLog.series.length.toString()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
                   ),
                 ),
 
@@ -220,7 +218,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _repsMargin,
                   child: Text(
                     "Reps: ${workLog.getRepsSum()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.textColor),
+                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.buttonTextColor),
                     textAlign: TextAlign.end,
                   ),
                 ),

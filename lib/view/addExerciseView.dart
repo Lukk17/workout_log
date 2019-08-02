@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:workout_log/entity/bodyPart.dart';
@@ -321,10 +319,10 @@ class _AddExerciseView extends State<AddExerciseView> {
     WorkLog workLog = WorkLog(exercise);
     workLog.exercise.bodyParts = exercise.bodyParts; // bodyPart as Set()
     workLog.created = HelloWorldView.date;
-    String json = jsonEncode(workLog);
 
-    //    /// save to json
-    //    Storage.writeToFile(json);
+    //    String json = jsonEncode(workLog);
+    //        /// save to json
+    //        Storage.writeToFile(json);
 
     ///  save workLog to DB
     await _db.newWorkLog(workLog);

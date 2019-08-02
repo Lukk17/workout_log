@@ -103,7 +103,12 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
       preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
       child: AppBar(
         //  changing drawer icon
-        leading: new IconButton(icon: new Icon(Icons.settings), onPressed: () => _scaffoldKey.currentState.openDrawer()),
+        leading: new IconButton(
+            icon: new Icon(
+              Icons.settings,
+              color: AppThemeSettings.iconColor,
+            ),
+            onPressed: () => _scaffoldKey.currentState.openDrawer()),
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -124,17 +129,17 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     children: <Widget>[
                       Icon(
                         Icons.calendar_today,
-                        color: AppThemeSettings.calendarIconColor,
+                        color: AppThemeSettings.iconColor,
                       ),
                       Text(
                         "Calendar",
-                        style: TextStyle(color: AppThemeSettings.calendarIconColor),
+                        style: TextStyle(color: AppThemeSettings.iconColor),
                       ),
                     ],
                   )
                 : Icon(
                     Icons.calendar_today,
-                    color: AppThemeSettings.calendarIconColor,
+                    color: AppThemeSettings.iconColor,
                   ),
           ),
         ],
@@ -152,7 +157,10 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
         tabs: <Widget>[
           Tab(
             text: _isPortraitOrientation ? "log" : null,
-            icon: Icon(Icons.assignment),
+            icon: Icon(
+              Icons.assignment,
+              color: AppThemeSettings.tabBarIconColor,
+            ),
           ),
           //          Tab(
           //            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
@@ -230,6 +238,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     Text(
                       "Dark mode:",
                       style: TextStyle(
+                        color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
@@ -243,6 +252,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     Text(
                       "Background image:",
                       style: TextStyle(
+                        color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
@@ -254,7 +264,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(color: AppThemeSettings.textColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(color: AppThemeSettings.drawerColor, fontSize: AppThemeSettings.fontSize),
                   ),
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView())).then((_) => _rebuildApp()),
                 ),
