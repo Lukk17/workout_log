@@ -18,7 +18,7 @@
     <application
         android:name=".Application"
         android:icon="@mipmap/launcher_icon"
-        android:label="workout_log">
+        android:label="Private Workout Log">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density"
