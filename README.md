@@ -1,4 +1,5 @@
 # workout_log
+[![Codemagic build status](https://api.codemagic.io/apps/5d0d2a8999fdb7001415b9b2/5d0d2a8999fdb7001415b9b1/status_badge.svg)](https://codemagic.io/apps/5d0d2a8999fdb7001415b9b2/5d0d2a8999fdb7001415b9b1/latest_build)
 
 Save workouts logs !
 
