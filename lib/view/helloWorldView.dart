@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
@@ -31,6 +32,7 @@ class HelloWorldView extends StatefulWidget {
 
 class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
   final Logger _log = new Logger("HelloWorldView");
+  final DBProvider _db = DBProvider.db;
 
   static const String BACKGROUND_IMAGE = "backgroundImage";
   static const String IS_DARK = "isDark";
@@ -259,7 +261,15 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
                   ],
                 ),
-                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.3) : Util.spacerSelectable(top: _screenHeight * 0.1),
+                MaterialButton(
+                  color: AppThemeSettings.buttonColor,
+                  child: Text(
+                    "Create backup",
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                  ),
+                  onPressed: () => _db.backup(),
+                ),
+                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.2) : Util.spacerSelectable(top: _screenHeight * 0.1),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
