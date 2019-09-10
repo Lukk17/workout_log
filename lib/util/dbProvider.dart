@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -97,7 +98,11 @@ class DBProvider {
 
         //  db exercise as workLog exercise (to save one with correct ID)
         workLog.exercise = dbExercise;
-        idFromDB = await db.insert(workLogTable, workLog.toMap());
+        try {
+          idFromDB = await db.insert(workLogTable, workLog.toMap());
+        } on Exception catch (e) {
+          _log.warning("entry with this ID already existing in DB - probably is the same. Skiping...");
+        }
 
         _log.fine("ADDING NEW WORKLOG: ${workLog.toString()}");
 
@@ -185,7 +190,7 @@ class DBProvider {
     List<WorkLog> workLogList = new List();
     final db = await database;
 
-    var res = await db.query("worklog");
+    var res = await db.query(workLogTable);
 
     for (var l in res) {
       ///  exercise need to be pulled from DB
@@ -278,4 +283,44 @@ class DBProvider {
   }
 
   Future close() async => _database.close();
+
+  void backup() async {
+    final Directory externalDirectory = await getExternalStorageDirectory();
+
+    String backupJsonPath = join(externalDirectory.path, "backup.json");
+
+    //  backup DB
+    //    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    //    String dbPath = join(documentsDirectory.path, "worklog.db");
+    //    String backupPath = join(externalDirectory.path, "dbBackup");
+    //    ByteData data = await rootBundle.load(dbPath);
+    //    List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    //
+    //    await File(backupPath).writeAsBytes(bytes, flush: true);
+
+    //        backup as json
+    List<WorkLog> list = await getAllWorkLogs();
+    Map<String, dynamic> jsons = Map();
+
+    for (WorkLog w in list) {
+      jsons.addAll(w.toMap());
+    }
+
+    String backupJ = jsonEncode(list);
+    File(backupJsonPath).writeAsString(backupJ);
+  }
+
+  void restore() async {
+    final Directory externalDirectory = await getExternalStorageDirectory();
+    String backupJsonPath = join(externalDirectory.path, "backup.json");
+
+    File file = File(backupJsonPath);
+    String backup = await file.readAsString();
+
+    List<dynamic> jsonToRestore = jsonDecode(backup);
+
+    for (var v in jsonToRestore) {
+      db.newWorkLog(WorkLog.fromJson(v));
+    }
+  }
 }

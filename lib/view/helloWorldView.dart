@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/appBuilder.dart';
 import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/backupView.dart';
 import 'package:workout_log/view/calendarView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
@@ -259,7 +260,16 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                     Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
                   ],
                 ),
-                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.3) : Util.spacerSelectable(top: _screenHeight * 0.1),
+                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.1) : Util.spacerSelectable(top: _screenHeight * 0.05),
+                MaterialButton(
+                  color: AppThemeSettings.buttonColor,
+                  child: Text(
+                    "Backup",
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                  ),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BackupView())).then((_) => _rebuildApp()),
+                ),
+                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.2) : Util.spacerSelectable(top: _screenHeight * 0.1),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
