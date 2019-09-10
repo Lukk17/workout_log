@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -99,7 +98,11 @@ class DBProvider {
 
         //  db exercise as workLog exercise (to save one with correct ID)
         workLog.exercise = dbExercise;
-        idFromDB = await db.insert(workLogTable, workLog.toMap());
+        try {
+          idFromDB = await db.insert(workLogTable, workLog.toMap());
+        } on Exception catch (e) {
+          _log.warning("entry with this ID already existing in DB - probably is the same. Skiping...");
+        }
 
         _log.fine("ADDING NEW WORKLOG: ${workLog.toString()}");
 
@@ -307,7 +310,13 @@ class DBProvider {
     File(backupJsonPath).writeAsString(backupJ);
   }
 
-  void restore(String backup) {
+  void restore() async {
+    final Directory externalDirectory = await getExternalStorageDirectory();
+    String backupJsonPath = join(externalDirectory.path, "backup.json");
+
+    File file = File(backupJsonPath);
+    String backup = await file.readAsString();
+
     List<dynamic> jsonToRestore = jsonDecode(backup);
 
     for (var v in jsonToRestore) {
