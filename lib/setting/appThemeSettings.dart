@@ -28,7 +28,6 @@ class AppThemeSettings {
     drawerColor = Colors.grey[800];
 
     background = "graphics/background.png";
-    bodyPartBackground = "graphics/bg-leaves.png";
 
     return _themeD;
   }
@@ -54,7 +53,6 @@ class AppThemeSettings {
     drawerColor = Colors.blue[100];
 
     background = "graphics/lightBackground.png";
-    bodyPartBackground = "graphics/bg-niagara.png";
 
     return _themeL;
   }
@@ -110,7 +108,6 @@ class AppThemeSettings {
   static PaintingStyle paintingStyle = PaintingStyle.stroke;
 
   static String background;
-  static String bodyPartBackground;
 
   static List<Shadow> textBorder = [
     Shadow(

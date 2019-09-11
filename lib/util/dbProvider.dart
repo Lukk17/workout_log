@@ -100,7 +100,7 @@ class DBProvider {
         workLog.exercise = dbExercise;
         try {
           idFromDB = await db.insert(workLogTable, workLog.toMap());
-        } on Exception catch (e) {
+        } on DatabaseException {
           _log.warning("entry with this ID already existing in DB - probably is the same. Skiping...");
         }
 

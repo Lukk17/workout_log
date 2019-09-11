@@ -69,8 +69,6 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   void initState() {
     super.initState();
 
-    MyApp.timerService.setTickerProvider(this);
-    MyApp.notificationService.init();
     MyApp.globalKey = this._scaffoldKey;
     _tabController = new TabController(length: 1, vsync: this);
 

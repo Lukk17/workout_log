@@ -14,7 +14,6 @@ class _BackupViewState extends State<BackupView> {
   final DBProvider _db = DBProvider.db;
 
   double _screenHeight;
-  double _screenWidth;
   bool _isPortraitOrientation;
 
   double _appBarHeightPortrait;
@@ -22,7 +21,6 @@ class _BackupViewState extends State<BackupView> {
 
   void setupDimensions() {
     _getScreenHeight();
-    _getScreenWidth();
 
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
@@ -63,7 +61,9 @@ class _BackupViewState extends State<BackupView> {
                   "Import backup",
                   style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                 ),
-                onPressed: () => _db.restore(),
+                onPressed: () => {
+                  _log.fine("Restoring from backup..."),
+                  _db.restore()},
               ),
               Util.spacerSelectable(top: _screenHeight * 0.25),
               Center(
@@ -75,7 +75,9 @@ class _BackupViewState extends State<BackupView> {
                   "Create backup",
                   style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                 ),
-                onPressed: () => _db.backup(),
+                onPressed: () => {
+                  _log.fine("Creating backup..."),
+                  _db.backup()},
               ),
             ],
           ));
@@ -84,9 +86,5 @@ class _BackupViewState extends State<BackupView> {
 
   _getScreenHeight() {
     _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
   }
 }
