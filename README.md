@@ -1,17 +1,15 @@
 # workout_log
 [![Codemagic build status](https://api.codemagic.io/apps/5d0d2a8999fdb7001415b9b2/5d0d2a8999fdb7001415b9b1/status_badge.svg)](https://codemagic.io/apps/5d0d2a8999fdb7001415b9b2/5d0d2a8999fdb7001415b9b1/latest_build)
 
-Save workouts logs !
 
-## Getting Started
+## Application for saving workout logs.
 
-This project is a starting point for a Flutter application.
+In logs you can add date, exercise name, body part which you train, how many sets and repeats in each one did you do. 
 
-A few resources to get you started if this is your first Flutter project:
+<br>
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
+ You can find it on Play Store:
+ <br>
+https://play.google.com/store/apps/details?id=com.lukk.workoutlog
 
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.io/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+
