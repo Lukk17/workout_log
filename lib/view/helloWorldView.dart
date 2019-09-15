@@ -30,7 +30,8 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
+class _HelloWorldViewState extends State<HelloWorldView>
+    with TickerProviderStateMixin {
   final Logger _log = new Logger("HelloWorldView");
 
   static const String BACKGROUND_IMAGE = "backgroundImage";
@@ -68,10 +69,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   @override
   void initState() {
     super.initState();
-
-    MyApp.globalKey = this._scaffoldKey;
     _tabController = new TabController(length: 1, vsync: this);
-
     _getPrefs();
   }
 
@@ -99,7 +97,9 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
 
   Widget _createAppBar() {
     return PreferredSize(
-      preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
+      preferredSize: Size.fromHeight(_isPortraitOrientation
+          ? _appBarHeightPortrait
+          : _appBarHeightLandscape),
       child: AppBar(
         //  changing drawer icon
         leading: new IconButton(
@@ -113,7 +113,11 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
         // the App.build method, and use it to set our appbar title.
         title: Text(
           MyApp.TITLE,
-          style: TextStyle(color: AppThemeSettings.titleColor, fontSize: _isPortraitOrientation ? titleFontSizePortrait : titleFontSizeLandscape),
+          style: TextStyle(
+              color: AppThemeSettings.titleColor,
+              fontSize: _isPortraitOrientation
+                  ? titleFontSizePortrait
+                  : titleFontSizeLandscape),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
         centerTitle: _isPortraitOrientation ? false : true,
@@ -225,10 +229,15 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
             Center(
               child: Text(
                 "Settings",
-                style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold, fontSize: AppThemeSettings.headerSize),
+                style: TextStyle(
+                    color: AppThemeSettings.textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppThemeSettings.headerSize),
               ),
             ),
-            _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.2) : Util.spacerSelectable(top: _screenHeight * 0.1),
+            _isPortraitOrientation
+                ? Util.spacerSelectable(top: _screenHeight * 0.2)
+                : Util.spacerSelectable(top: _screenHeight * 0.1),
             Column(
               children: <Widget>[
                 Row(
@@ -241,10 +250,14 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
-                    Switch(value: AppThemeSettings.theme == ThemeData.dark(), onChanged: (isDark) => _changeTheme(isDark))
+                    Switch(
+                        value: AppThemeSettings.theme == ThemeData.dark(),
+                        onChanged: (isDark) => _changeTheme(isDark))
                   ],
                 ),
-                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.1) : Util.spacerSelectable(top: _screenHeight * 0.1),
+                _isPortraitOrientation
+                    ? Util.spacerSelectable(top: _screenHeight * 0.1)
+                    : Util.spacerSelectable(top: _screenHeight * 0.1),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
@@ -255,26 +268,42 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
-                    Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
+                    Switch(
+                        value: _backgroundImage,
+                        onChanged: (isImage) => _changeBackground(isImage))
                   ],
                 ),
-                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.1) : Util.spacerSelectable(top: _screenHeight * 0.05),
+                _isPortraitOrientation
+                    ? Util.spacerSelectable(top: _screenHeight * 0.1)
+                    : Util.spacerSelectable(top: _screenHeight * 0.05),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Backup",
-                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(
+                        color: AppThemeSettings.buttonTextColor,
+                        fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BackupView())).then((_) => _rebuildApp()),
+                  onPressed: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => BackupView()))
+                      .then((_) => _rebuildApp()),
                 ),
-                _isPortraitOrientation ? Util.spacerSelectable(top: _screenHeight * 0.2) : Util.spacerSelectable(top: _screenHeight * 0.1),
+                _isPortraitOrientation
+                    ? Util.spacerSelectable(top: _screenHeight * 0.2)
+                    : Util.spacerSelectable(top: _screenHeight * 0.1),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(
+                        color: AppThemeSettings.buttonTextColor,
+                        fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView())).then((_) => _rebuildApp()),
+                  onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ExerciseListView()))
+                      .then((_) => _rebuildApp()),
                 ),
               ],
             ),
@@ -329,7 +358,8 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     } else {
       _prefs.setBool(IS_DARK, true);
     }
-    _log.fine("Shared Preference: backgroundImage: ${_prefs.get(BACKGROUND_IMAGE)}, isDark: ${_prefs.getBool(IS_DARK)}");
+    _log.fine(
+        "Shared Preference: backgroundImage: ${_prefs.get(BACKGROUND_IMAGE)}, isDark: ${_prefs.getBool(IS_DARK)}");
   }
 
   _getScreenHeight() {

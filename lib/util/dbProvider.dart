@@ -160,6 +160,7 @@ class DBProvider {
     for (var dbExercise in allExercises) {
       if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts = exercise.bodyParts;
+        dbExercise.secondaryBodyParts = exercise.secondaryBodyParts;
         dbExercise.name = exercise.name;
         id = await db.update(exerciseTable, dbExercise.toMap(),
             where: "id = ?", whereArgs: [dbExercise.id]);

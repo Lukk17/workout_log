@@ -9,7 +9,7 @@ import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/exerciseView.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
-import 'addExerciseView.dart';
+import 'exerciseManipulationView.dart';
 
 /// This is main WorkLog view.
 ///
@@ -353,7 +353,8 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                               await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => AddExerciseView())),
+                                      builder: (_) =>
+                                          ExerciseManipulationView())),
                               Navigator.pop(context),
                             }),
                     MaterialButton(

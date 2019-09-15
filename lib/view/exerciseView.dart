@@ -6,7 +6,8 @@ import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
-import 'package:workout_log/view/editExerciseView.dart';
+
+import 'exerciseManipulationView.dart';
 
 /// This is most detailed view for each WorkLog.
 ///
@@ -104,7 +105,7 @@ class _ExerciseView extends State<ExerciseView> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            EditExerciseView(
+                            ExerciseManipulationView(
                               exercise: widget.workLog.exercise,
                             )));
               },
@@ -361,7 +362,8 @@ class _ExerciseView extends State<ExerciseView> {
                       ),
                     ),
                     onPressed: () {
-                      _editRepeatsDialog(widget.workLog, i.toString()).then((v) =>
+                      _editRepeatsDialog(widget.workLog, i.toString()).then((
+                          v) =>
                       {
                         /// restore orientation ability to change
                         SystemChrome.setPreferredOrientations([
@@ -395,7 +397,8 @@ class _ExerciseView extends State<ExerciseView> {
     ///  add new series (with incremented number) to workLog with 0 repeats
     widget.workLog.series
         .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
-    widget.workLog.load.putIfAbsent((widget.workLog.load.length + 1).toString(), () => "0");
+    widget.workLog.load.putIfAbsent(
+        (widget.workLog.load.length + 1).toString(), () => "0");
     await _db.updateWorkLog(widget.workLog);
 
     setState(() {});
@@ -444,7 +447,9 @@ class _ExerciseView extends State<ExerciseView> {
                       int.parse(textEditingController.text).toString();
                   await _db.updateWorkLog(workLog);
 
-                  _log.fine("Repeats change to ${workLog.series[set]} for ${workLog.toString()}");
+                  _log.fine(
+                      "Repeats change to ${workLog.series[set]} for ${workLog
+                          .toString()}");
 
                   Navigator.pop(context);
                 }),
@@ -505,7 +510,8 @@ class _ExerciseView extends State<ExerciseView> {
                       int.parse(textEditingController.text).toString();
                   await _db.updateWorkLog(workLog);
 
-                  _log.fine("Load change to ${workLog.load} for ${workLog.toString()}");
+                  _log.fine("Load change to ${workLog.load} for ${workLog
+                      .toString()}");
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -621,7 +627,8 @@ class _ExerciseView extends State<ExerciseView> {
         width: _screenWidth * 0.3,
         child: Container(
           color: Util.getBpColor(bp),
-          child: Center(child: Text(Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
+          child: Center(child: Text(
+            Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
         ),
       ))
     });
