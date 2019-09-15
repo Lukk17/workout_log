@@ -151,24 +151,52 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
               ),
               if (!_isPortraitOrientation)
                 Util.spacerSelectable(top: _screenHeight * 0.1),
-              Column(
-                children: <Widget>[
-                  Text("Main Body Parts:"),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: _primaryBodyPartsList,
-                  ),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  Text("Secodary Body Parts:"),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: _secondaryBodyPartsList,
-                  ),
-                ],
-              ),
+              _isPortraitOrientation
+                  ? Column(
+                      children: <Widget>[
+                        Column(
+                          children: <Widget>[
+                            Text("Main Body Parts:"),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: _primaryBodyPartsList,
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: <Widget>[
+                            Text("Secodary Body Parts:"),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: _secondaryBodyPartsList,
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        Column(
+                          children: <Widget>[
+                            Text("Main Body Parts:"),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: _primaryBodyPartsList,
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: <Widget>[
+                            Text("Secodary Body Parts:"),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: _secondaryBodyPartsList,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
               if (!_isPortraitOrientation)
                 Util.spacerSelectable(top: _screenHeight * 0.08),
               _isPortraitOrientation
@@ -240,7 +268,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
       //  if simultaneously click on both primary and secondary checkboxes
       //  will remove this body part from first clicked list
       _secondaryBodyParts.remove(bodyPart);
-    }else
+    } else
       _primaryBodyParts.remove(bodyPart);
   }
 
@@ -250,7 +278,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
       //  if simultaneously click on both primary and secondary checkboxes
       //  will remove this body part from first clicked list
       _primaryBodyParts.remove(bodyPart);
-    }else
+    } else
       _secondaryBodyParts.remove(bodyPart);
   }
 
@@ -329,6 +357,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
           children: tempList));
     }
   }
+
   /// get checkboxes for secondary body parts
   /// unchecked ones means that this body part is not primary or secondary
   /// if it is secondary it checkbox will be checked here
