@@ -44,7 +44,8 @@ class DBProvider {
       await db.execute("CREATE TABLE IF NOT EXISTS $exerciseTable ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
-          "bodyPart TEXT"
+          "bodyPart TEXT,"
+          "secondaryBodyPart"
           ")");
 
       //  foreign key here because workLog can have only one exercise
@@ -62,11 +63,33 @@ class DBProvider {
 
       //  adding some basic exercises to db
       List<Exercise> exercises = List();
-
-      exercises.add(Exercise("Push Up", {BodyPart.CHEST, BodyPart.ARM}));
-      exercises.add(Exercise("Pull Up", {BodyPart.BACK, BodyPart.ARM}));
-      exercises.add(Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG, BodyPart.ARM}));
+      exercises.add(Exercise("Push Up", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Pull Up", {BodyPart.BACK}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG}, {BodyPart.ARM}));
       exercises.add(Exercise("Running", {BodyPart.CARDIO}));
+      exercises.add(Exercise("Back Lat Pull-Downs", {BodyPart.BACK}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbbell Flys", {BodyPart.CHEST}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Bench Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Barbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Machine Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Back Extensions", {BodyPart.BACK}, {BodyPart.LEG, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Machine Low Row", {BodyPart.BACK}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Machine Lat Pulldown", {BodyPart.BACK}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Barbell Squats", {BodyPart.LEG}, {BodyPart.BACK}));
+      exercises.add(Exercise("Back Presses", {BodyPart.ARM}, {BodyPart.BACK, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Plank", {BodyPart.ABDOMINAL}, {BodyPart.LEG}));
+      exercises.add(Exercise("Leg Raises", {BodyPart.ABDOMINAL}, {BodyPart.LEG}));
+      exercises.add(Exercise("Incline Presses", {BodyPart.CHEST, BodyPart.ARM}));
+      exercises.add(Exercise("Decline Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Concentration Dumbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbell Front Arm Raises", {BodyPart.ARM}, {BodyPart.ABDOMINAL, BodyPart.CHEST}));
+      exercises.add(Exercise("Muscle-Up", {BodyPart.BACK, BodyPart.ARM}, {BodyPart.CHEST, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Burpees", {BodyPart.CARDIO}, {BodyPart.CHEST, BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Cable Crossover Flys", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Barbell Rows", {BodyPart.BACK}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbbell Shrugs", {BodyPart.ARM}, {BodyPart.BACK}));
+      exercises.add(Exercise("Dumbbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Bent-Over Lateral Raises", {BodyPart.ARM}, {BodyPart.BACK}));
 
       exercises.forEach(
         (exercise) => db.insert(exerciseTable, exercise.toMap()),
@@ -153,6 +176,7 @@ class DBProvider {
     for (var dbExercise in allExercises) {
       if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts = exercise.bodyParts;
+        dbExercise.secondaryBodyParts = exercise.secondaryBodyParts;
         dbExercise.name = exercise.name;
         id = await db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 

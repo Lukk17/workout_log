@@ -12,14 +12,20 @@ Exercise _$ExerciseFromJson(Map<String, dynamic> json) {
       (json['bodyParts'] as List)
           ?.map((e) => _$enumDecodeNullable(_$BodyPartEnumMap, e))
           ?.toSet())
-    ..id = json['id'] as String;
+    ..id = json['id'] as String
+    ..secondaryBodyParts = (json['secondaryBodyParts'] as List)
+        ?.map((e) => _$enumDecodeNullable(_$BodyPartEnumMap, e))
+        ?.toSet();
 }
 
 Map<String, dynamic> _$ExerciseToJson(Exercise instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'bodyParts':
-          instance.bodyParts?.map((e) => _$BodyPartEnumMap[e])?.toList()
+          instance.bodyParts?.map((e) => _$BodyPartEnumMap[e])?.toList(),
+      'secondaryBodyParts': instance.secondaryBodyParts
+          ?.map((e) => _$BodyPartEnumMap[e])
+          ?.toList()
     };
 
 T _$enumDecode<T>(Map<T, dynamic> enumValues, dynamic source) {

@@ -9,7 +9,7 @@ import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/exerciseView.dart';
 import 'package:workout_log/view/helloWorldView.dart';
 
-import 'addExerciseView.dart';
+import 'exerciseManipulationView.dart';
 
 /// This is main WorkLog view.
 ///
@@ -332,7 +332,8 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                         ),
                         onPressed: () async => {
                               Util.unlockOrientation(),
-                              await Navigator.push(context, MaterialPageRoute(builder: (_) => AddExerciseView())),
+                              await Navigator.push(
+                                  context, MaterialPageRoute(builder: (_) => ExerciseManipulationView())),
                               Navigator.pop(context),
                             }),
                     MaterialButton(
@@ -399,9 +400,23 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
           });
 
       /// add all body parts when less than 3 in exercise
-    } else {
+    } else if (workLog.exercise.bodyParts.length == 3) {
       workLog.exercise.bodyParts.forEach((bp) => {
             result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+          });
+    } else {
+      int counter = 0;
+      workLog.exercise.bodyParts.forEach((bp) => {
+            counter++,
+            result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+          });
+
+      workLog.exercise.secondaryBodyParts.forEach((bp) => {
+            if (counter < 3)
+              {
+                counter++,
+                result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
+              }
           });
     }
 

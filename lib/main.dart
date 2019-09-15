@@ -13,7 +13,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
 
-  static GlobalKey<ScaffoldState> globalKey;
   static const String TITLE = "Private WorkoutLog";
 
   @override
@@ -21,13 +20,13 @@ class MyApp extends StatelessWidget {
     /// setup logger
     Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((LogRecord rec) {
-      print('${rec.level.name}: \t ${rec.time}: ===================================== > \t ${rec.loggerName}: \t ${rec.message}');
+      print(
+          '${rec.level.name}: \t ${rec.time}: ===================================== > \t ${rec.loggerName}: \t ${rec.message}');
     });
     final Logger _log = new Logger("Application");
     _log.fine("started");
 
     return AppBuilder(builder: (context) {
-
       return MaterialApp(
         title: TITLE,
         theme: AppThemeSettings.theme,

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
+import 'package:workout_log/entity/bodyPart.dart';
 import 'package:workout_log/entity/workLog.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 import 'package:workout_log/util/util.dart';
-import 'package:workout_log/view/editExerciseView.dart';
+
+import 'exerciseManipulationView.dart';
 
 /// This is most detailed view for each WorkLog.
 ///
@@ -41,6 +43,8 @@ class _ExerciseView extends State<ExerciseView> {
   double _headerLandscapeColumnHeight;
   double _portraitColumnHeight;
   double _landscapeColumnHeight;
+  double _titleFontSizePortrait;
+  double _titleFontSizeLandscape;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -48,14 +52,16 @@ class _ExerciseView extends State<ExerciseView> {
 
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
-    _exerciseHeightPortrait = _screenHeight * 0.15;
-    _exerciseHeightLandscape = _screenHeight * 0.2;
+    _exerciseHeightPortrait = _screenHeight * 0.1;
+    _exerciseHeightLandscape = _screenHeight * 0.15;
     _exerciseWidth = _screenWidth;
     _columnWidth = _screenWidth * 0.375;
     _seriesColumnWidth = _screenWidth * 0.25;
     _portraitColumnHeight = _screenHeight * 0.1;
     _headerLandscapeColumnHeight = _screenHeight * 0.15;
     _landscapeColumnHeight = _screenHeight * 0.17;
+    _titleFontSizePortrait = _screenWidth * 0.055;
+    _titleFontSizeLandscape = _screenWidth * 0.03;
   }
 
   @override
@@ -104,7 +110,7 @@ class _ExerciseView extends State<ExerciseView> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            EditExerciseView(
+                            ExerciseManipulationView(
                               exercise: widget.workLog.exercise,
                             )));
               },
@@ -116,6 +122,7 @@ class _ExerciseView extends State<ExerciseView> {
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   widget.workLog.exercise.name,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppThemeSettings.textColor,
                     fontSize: AppThemeSettings.headerSize,
@@ -127,7 +134,7 @@ class _ExerciseView extends State<ExerciseView> {
 
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: getBodyPartsBlocks(widget.workLog),
+              children: _getAllBodyParts(widget.workLog),
             ),
 
             /// table header
@@ -395,7 +402,8 @@ class _ExerciseView extends State<ExerciseView> {
     ///  add new series (with incremented number) to workLog with 0 repeats
     widget.workLog.series
         .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
-    widget.workLog.load.putIfAbsent((widget.workLog.load.length + 1).toString(), () => "0");
+    widget.workLog.load.putIfAbsent(
+        (widget.workLog.load.length + 1).toString(), () => "0");
     await _db.updateWorkLog(widget.workLog);
 
     setState(() {});
@@ -444,7 +452,9 @@ class _ExerciseView extends State<ExerciseView> {
                       int.parse(textEditingController.text).toString();
                   await _db.updateWorkLog(workLog);
 
-                  _log.fine("Repeats change to ${workLog.series[set]} for ${workLog.toString()}");
+                  _log.fine(
+                      "Repeats change to ${workLog.series[set]} for ${workLog
+                          .toString()}");
 
                   Navigator.pop(context);
                 }),
@@ -505,7 +515,8 @@ class _ExerciseView extends State<ExerciseView> {
                       int.parse(textEditingController.text).toString();
                   await _db.updateWorkLog(workLog);
 
-                  _log.fine("Load change to ${workLog.load} for ${workLog.toString()}");
+                  _log.fine("Load change to ${workLog.load} for ${workLog
+                      .toString()}");
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -547,7 +558,7 @@ class _ExerciseView extends State<ExerciseView> {
   }
 
 
-  _deleteSeries(int i) async {
+  void _deleteSeries(int i) async {
     Map<dynamic, dynamic> updatedSeries = Map();
     Map<dynamic, dynamic> updatedLoad = Map();
 
@@ -609,19 +620,38 @@ class _ExerciseView extends State<ExerciseView> {
     _screenWidth = Util.getScreenWidth(context);
   }
 
-  List<Widget> getBodyPartsBlocks(WorkLog workLog) {
+
+  List<Widget> _getAllBodyParts(WorkLog workLog) {
+    List<Widget> result = List();
+    result.add(Text("Primary", style: TextStyle(
+        color: AppThemeSettings.titleColor,
+        fontSize: _isPortraitOrientation
+            ? _titleFontSizePortrait
+            : _titleFontSizeLandscape),));
+    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01));
+    result.add(
+        Column(children: _getBodyPartsBlocks(workLog.exercise.bodyParts)));
+    result.add(Util.spacerSelectable(top: _screenHeight * 0.02));
+    result.add(Text("Secondary"));
+    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01));
+    result.add(Column(
+        children: _getBodyPartsBlocks(workLog.exercise.secondaryBodyParts)));
+    return result;
+  }
+
+  List<Widget> _getBodyPartsBlocks(Set<BodyPart> bodyParts) {
     List<Row> result = List();
     List<SizedBox> boxes = List();
 
-
-    workLog.exercise.bodyParts.forEach((bp) =>
+    bodyParts.forEach((bp) =>
     {
       boxes.add(SizedBox(
         height: _screenHeight * 0.05,
         width: _screenWidth * 0.3,
         child: Container(
           color: Util.getBpColor(bp),
-          child: Center(child: Text(Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
+          child: Center(child: Text(
+            Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
         ),
       ))
     });

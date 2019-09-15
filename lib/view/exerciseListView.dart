@@ -4,7 +4,7 @@ import 'package:workout_log/entity/exercise.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
 import 'package:workout_log/util/dbProvider.dart';
 
-import 'editExerciseView.dart';
+import 'exerciseManipulationView.dart';
 
 class ExerciseListView extends StatefulWidget {
   @override
@@ -56,7 +56,8 @@ class _ExerciseListViewState extends State<ExerciseListView> {
       result.add(MaterialButton(
         key: Key(e.name),
         onPressed: () async {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => EditExerciseView(exercise: e))).then((val) => _getExercises());
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseManipulationView(exercise: e)))
+              .then((val) => _getExercises());
         },
         child: Text(
           e.name,
