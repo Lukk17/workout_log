@@ -40,8 +40,7 @@ class DBProvider {
     // join need 'dart:async' lib imported
     String path = join(documentsDirectory.path, "worklog.db");
 
-    return await openDatabase(path, version: 1, onOpen: (db) {},
-        onCreate: (Database db, int version) async {
+    return await openDatabase(path, version: 1, onOpen: (db) {}, onCreate: (Database db, int version) async {
       await db.execute("CREATE TABLE IF NOT EXISTS $exerciseTable ("
           "id VARCHAR(32) PRIMARY KEY,"
           "name TEXT,"
@@ -64,12 +63,33 @@ class DBProvider {
 
       //  adding some basic exercises to db
       List<Exercise> exercises = List();
-
       exercises.add(Exercise("Push Up", {BodyPart.CHEST}, {BodyPart.ARM}));
       exercises.add(Exercise("Pull Up", {BodyPart.BACK}, {BodyPart.ARM}));
-      exercises.add(
-          Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dead Lift", {BodyPart.BACK, BodyPart.LEG}, {BodyPart.ARM}));
       exercises.add(Exercise("Running", {BodyPart.CARDIO}));
+      exercises.add(Exercise("Back Lat Pull-Downs", {BodyPart.BACK}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbbell Flys", {BodyPart.CHEST}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Bench Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Barbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Machine Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Back Extensions", {BodyPart.BACK}, {BodyPart.LEG, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Machine Low Row", {BodyPart.BACK}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Machine Lat Pulldown", {BodyPart.BACK}, {BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Barbell Squats", {BodyPart.LEG}, {BodyPart.BACK}));
+      exercises.add(Exercise("Back Presses", {BodyPart.ARM}, {BodyPart.BACK, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Plank", {BodyPart.ABDOMINAL}, {BodyPart.LEG}));
+      exercises.add(Exercise("Leg Raises", {BodyPart.ABDOMINAL}, {BodyPart.LEG}));
+      exercises.add(Exercise("Incline Presses", {BodyPart.CHEST, BodyPart.ARM}));
+      exercises.add(Exercise("Decline Presses", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Concentration Dumbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbell Front Arm Raises", {BodyPart.ARM}, {BodyPart.ABDOMINAL, BodyPart.CHEST}));
+      exercises.add(Exercise("Muscle-Up", {BodyPart.BACK, BodyPart.ARM}, {BodyPart.CHEST, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Burpees", {BodyPart.CARDIO}, {BodyPart.CHEST, BodyPart.ARM, BodyPart.ABDOMINAL}));
+      exercises.add(Exercise("Cable Crossover Flys", {BodyPart.CHEST}, {BodyPart.ARM}));
+      exercises.add(Exercise("Barbell Rows", {BodyPart.BACK}, {BodyPart.ARM}));
+      exercises.add(Exercise("Dumbbell Shrugs", {BodyPart.ARM}, {BodyPart.BACK}));
+      exercises.add(Exercise("Dumbbell Curls", {BodyPart.ARM}));
+      exercises.add(Exercise("Bent-Over Lateral Raises", {BodyPart.ARM}, {BodyPart.BACK}));
 
       exercises.forEach(
         (exercise) => db.insert(exerciseTable, exercise.toMap()),
@@ -94,11 +114,9 @@ class DBProvider {
         ///  add this new bodyPart to exercise's bp list and update db
         if (!dbExercise.bodyParts.contains(workLog.exercise.bodyParts.first)) {
           dbExercise.bodyParts.addAll(workLog.exercise.bodyParts);
-          db.update(exerciseTable, dbExercise.toMap(),
-              where: "id = ?", whereArgs: [dbExercise.id]);
+          db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 
-          _log.fine(
-              "[newWorkLog] UPDATING EXERCISE : ${dbExercise.toString()}");
+          _log.fine("[newWorkLog] UPDATING EXERCISE : ${dbExercise.toString()}");
         }
 
         //  db exercise as workLog exercise (to save one with correct ID)
@@ -106,8 +124,7 @@ class DBProvider {
         try {
           idFromDB = await db.insert(workLogTable, workLog.toMap());
         } on DatabaseException {
-          _log.warning(
-              "entry with this ID already existing in DB - probably is the same. Skiping...");
+          _log.warning("entry with this ID already existing in DB - probably is the same. Skiping...");
         }
 
         _log.fine("ADDING NEW WORKLOG: ${workLog.toString()}");
@@ -140,8 +157,7 @@ class DBProvider {
     for (var dbExercise in allExercises) {
       if (dbExercise.id == exercise.id) {
         dbExercise.bodyParts.addAll(exercise.bodyParts);
-        id = await db.update(exerciseTable, dbExercise.toMap(),
-            where: "id = ?", whereArgs: [dbExercise.id]);
+        id = await db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 
         _log.fine("UPDATE EXERCISE: ${dbExercise.toString()}");
       }
@@ -162,8 +178,7 @@ class DBProvider {
         dbExercise.bodyParts = exercise.bodyParts;
         dbExercise.secondaryBodyParts = exercise.secondaryBodyParts;
         dbExercise.name = exercise.name;
-        id = await db.update(exerciseTable, dbExercise.toMap(),
-            where: "id = ?", whereArgs: [dbExercise.id]);
+        id = await db.update(exerciseTable, dbExercise.toMap(), where: "id = ?", whereArgs: [dbExercise.id]);
 
         _log.fine("UPDATE EXERCISE: ${dbExercise.toString()}");
       }
@@ -176,10 +191,8 @@ class DBProvider {
 
     _log.fine("UPDATE WORKLOG: ${workLog.toString()}");
 
-    await db.update(exerciseTable, workLog.exercise.toMap(),
-        where: "id = ?", whereArgs: [workLog.exercise.id]);
-    int id = await db.update(workLogTable, workLog.toMap(),
-        where: "id = ?", whereArgs: [workLog.id]);
+    await db.update(exerciseTable, workLog.exercise.toMap(), where: "id = ?", whereArgs: [workLog.exercise.id]);
+    int id = await db.update(workLogTable, workLog.toMap(), where: "id = ?", whereArgs: [workLog.id]);
 
     return id;
   }
@@ -218,8 +231,7 @@ class DBProvider {
     List<WorkLog> workLogList = new List();
     final db = await database;
 
-    var res =
-        await db.query("worklog", where: "created = ?", whereArgs: [date]);
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
 
     for (var l in res) {
       ///  exercise need to be pulled from DB
@@ -267,8 +279,7 @@ class DBProvider {
     String date = Util.formatter.format(HelloWorldView.date);
 
     // pull every workLog from given date
-    var res =
-        await db.query("worklog", where: "created = ?", whereArgs: [date]);
+    var res = await db.query("worklog", where: "created = ?", whereArgs: [date]);
 
     for (var l in res) {
       //  exercise need to be pulled from DB

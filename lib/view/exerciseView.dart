@@ -122,6 +122,7 @@ class _ExerciseView extends State<ExerciseView> {
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   widget.workLog.exercise.name,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppThemeSettings.textColor,
                     fontSize: AppThemeSettings.headerSize,
@@ -367,8 +368,7 @@ class _ExerciseView extends State<ExerciseView> {
                       ),
                     ),
                     onPressed: () {
-                      _editRepeatsDialog(widget.workLog, i.toString()).then((
-                          v) =>
+                      _editRepeatsDialog(widget.workLog, i.toString()).then((v) =>
                       {
                         /// restore orientation ability to change
                         SystemChrome.setPreferredOrientations([

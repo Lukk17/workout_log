@@ -96,7 +96,7 @@ class AppThemeSettings {
   static Color specialButtonColor = Colors.red;
 
   static double fontSize = 20;
-  static double headerSize = 40;
+  static double headerSize = 30;
   static double buttonFontSize = 20;
   static double bodyPartFontSize = 20;
 

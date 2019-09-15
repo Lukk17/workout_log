@@ -56,11 +56,7 @@ class _ExerciseListViewState extends State<ExerciseListView> {
       result.add(MaterialButton(
         key: Key(e.name),
         onPressed: () async {
-          Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ExerciseManipulationView(exercise: e)))
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseManipulationView(exercise: e)))
               .then((val) => _getExercises());
         },
         child: Text(

@@ -30,8 +30,7 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView>
-    with TickerProviderStateMixin {
+class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
   final Logger _log = new Logger("HelloWorldView");
 
   static const String BACKGROUND_IMAGE = "backgroundImage";
@@ -97,9 +96,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
 
   Widget _createAppBar() {
     return PreferredSize(
-      preferredSize: Size.fromHeight(_isPortraitOrientation
-          ? _appBarHeightPortrait
-          : _appBarHeightLandscape),
+      preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
       child: AppBar(
         //  changing drawer icon
         leading: new IconButton(
@@ -115,9 +112,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
           MyApp.TITLE,
           style: TextStyle(
               color: AppThemeSettings.titleColor,
-              fontSize: _isPortraitOrientation
-                  ? titleFontSizePortrait
-                  : titleFontSizeLandscape),
+              fontSize: _isPortraitOrientation ? titleFontSizePortrait : titleFontSizeLandscape),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
         centerTitle: _isPortraitOrientation ? false : true,
@@ -251,8 +246,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
                       ),
                     ),
                     Switch(
-                        value: AppThemeSettings.theme == ThemeData.dark(),
-                        onChanged: (isDark) => _changeTheme(isDark))
+                        value: AppThemeSettings.theme == ThemeData.dark(), onChanged: (isDark) => _changeTheme(isDark))
                   ],
                 ),
                 _isPortraitOrientation
@@ -268,9 +262,7 @@ class _HelloWorldViewState extends State<HelloWorldView>
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
-                    Switch(
-                        value: _backgroundImage,
-                        onChanged: (isImage) => _changeBackground(isImage))
+                    Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
                   ],
                 ),
                 _isPortraitOrientation
@@ -280,12 +272,9 @@ class _HelloWorldViewState extends State<HelloWorldView>
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Backup",
-                    style: TextStyle(
-                        color: AppThemeSettings.buttonTextColor,
-                        fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => BackupView()))
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BackupView()))
                       .then((_) => _rebuildApp()),
                 ),
                 _isPortraitOrientation
@@ -295,14 +284,9 @@ class _HelloWorldViewState extends State<HelloWorldView>
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(
-                        color: AppThemeSettings.buttonTextColor,
-                        fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ExerciseListView()))
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView()))
                       .then((_) => _rebuildApp()),
                 ),
               ],

@@ -61,9 +61,7 @@ class _BackupViewState extends State<BackupView> {
                   "Import backup",
                   style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                 ),
-                onPressed: () => {
-                  _log.fine("Restoring from backup..."),
-                  _db.restore()},
+                onPressed: () => {_log.fine("Restoring from backup..."), _db.restore()},
               ),
               Util.spacerSelectable(top: _screenHeight * 0.25),
               Center(
@@ -75,9 +73,7 @@ class _BackupViewState extends State<BackupView> {
                   "Create backup",
                   style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
                 ),
-                onPressed: () => {
-                  _log.fine("Creating backup..."),
-                  _db.backup()},
+                onPressed: () => {_log.fine("Creating backup..."), _db.backup()},
               ),
             ],
           ));

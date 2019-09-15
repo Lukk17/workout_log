@@ -32,8 +32,7 @@ class Exercise {
 
   // for Json serializable
   // auto-create addition files for file XXX.dart - XXX.g.dart
-  factory Exercise.fromJson(Map<String, dynamic> json) =>
-      _$ExerciseFromJson(json);
+  factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 

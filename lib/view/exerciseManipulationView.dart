@@ -115,9 +115,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
 
         key: _key,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(_isPortraitOrientation
-              ? _appBarHeightPortrait
-              : _appBarHeightLandscape),
+          preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
           child: AppBar(
               centerTitle: true,
               title: Text(
@@ -131,9 +129,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
         ),
         body: Container(
           child: Column(
-            mainAxisAlignment: _isPortraitOrientation
-                ? MainAxisAlignment.spaceEvenly
-                : MainAxisAlignment.start,
+            mainAxisAlignment: _isPortraitOrientation ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.start,
             children: <Widget>[
               Column(
                 children: <Widget>[
@@ -149,8 +145,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
                   ),
                 ],
               ),
-              if (!_isPortraitOrientation)
-                Util.spacerSelectable(top: _screenHeight * 0.1),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
               _isPortraitOrientation
                   ? Column(
                       children: <Widget>[
@@ -197,8 +192,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
                         ),
                       ],
                     ),
-              if (!_isPortraitOrientation)
-                Util.spacerSelectable(top: _screenHeight * 0.08),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
               _isPortraitOrientation
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,12 +215,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
     result.add(
       MaterialButton(
         onPressed: () => _saveExercise(),
-        height: _isPortraitOrientation
-            ? _buttonHeightPortrait
-            : _buttonHeightLandscape,
-        minWidth: _isPortraitOrientation
-            ? _buttonWidthPortrait
-            : _buttonWidthLandscape,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.greenButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -246,12 +236,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
           Util.hideKeyboard(context),
           Navigator.pop(context),
         },
-        height: _isPortraitOrientation
-            ? _buttonHeightPortrait
-            : _buttonHeightLandscape,
-        minWidth: _isPortraitOrientation
-            ? _buttonWidthPortrait
-            : _buttonWidthLandscape,
+        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
+        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
         color: AppThemeSettings.cancelButtonColor,
         splashColor: AppThemeSettings.buttonSplashColor,
         textColor: AppThemeSettings.buttonTextColor,
@@ -348,13 +334,9 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: firstHalf,
       ));
-      _primaryBodyPartsList.add(Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: secondHalf));
+      _primaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: secondHalf));
     } else {
-      _primaryBodyPartsList.add(Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: tempList));
+      _primaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList));
     }
   }
 
@@ -394,26 +376,20 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: firstHalf,
       ));
-      _secondaryBodyPartsList.add(Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: secondHalf));
+      _secondaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: secondHalf));
     } else {
-      _secondaryBodyPartsList.add(Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: tempList));
+      _secondaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList));
     }
   }
 
   void _saveExercise() async {
     if (_myController.text == null || _myController.text.isEmpty) {
-      _key.currentState.showSnackBar(
-          SnackBar(content: Text("You forgot about exercise name :)")));
+      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise name :)")));
       return;
     }
 
     if (_primaryBodyParts == null || _primaryBodyParts.isEmpty) {
-      _key.currentState.showSnackBar(
-          SnackBar(content: Text("You forgot about exercise body part :)")));
+      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise body part :)")));
       return;
     }
 
@@ -425,11 +401,9 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
       _log.fine("Updating exercise: ${widget.exercise.toString()}");
 
       await Util.hideKeyboard(context);
-      Navigator.popUntil(
-          context, ModalRoute.withName(Navigator.defaultRouteName));
+      Navigator.popUntil(context, ModalRoute.withName(Navigator.defaultRouteName));
     } else {
-      await addWorkLog(
-          Exercise(_myController.text, _primaryBodyParts, _secondaryBodyParts));
+      await addWorkLog(Exercise(_myController.text, _primaryBodyParts, _secondaryBodyParts));
       //  hide keyboard before navigate to previous view
       FocusScope.of(context).requestFocus(new FocusNode());
       Navigator.pop(context);
