@@ -20,23 +20,33 @@ class Exercise {
   String name = "";
 
   Set<BodyPart> bodyParts;
+  Set<BodyPart> secondaryBodyParts;
 
-  Exercise(this.name, this.bodyParts);
+  Exercise(this.name, this.bodyParts, [secondaryBodyParts]) {
+    if (secondaryBodyParts == null) {
+      this.secondaryBodyParts = Set();
+    } else {
+      this.secondaryBodyParts = secondaryBodyParts;
+    }
+  }
 
   // for Json serializable
   // auto-create addition files for file XXX.dart - XXX.g.dart
-  factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
+  factory Exercise.fromJson(Map<String, dynamic> json) =>
+      _$ExerciseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 
   //  needed for SQLite
   factory Exercise.fromMap(Map<String, dynamic> json) {
     Set<BodyPart> bp = recreateBodyPart(json["bodyPart"]);
+    Set<BodyPart> secondaryBp = recreateBodyPart(json["secondaryBodyPart"]);
 
     Exercise e = Exercise(
       //  get from given map
       json["name"],
       bp,
+      secondaryBp,
     );
 
     ///  id needed to be saved as it is in json,
@@ -49,13 +59,14 @@ class Exercise {
   Map<String, dynamic> toMap() => {
         "id": id,
         "name": name,
-        "bodyPart": bodyPartsToString(),
+        "bodyPart": bodyPartsToString(bodyParts),
+        "secondaryBodyPart": bodyPartsToString(secondaryBodyParts),
       };
 
-  String bodyPartsToString() {
+  String bodyPartsToString(Set<BodyPart> bodyPartsList) {
     StringBuffer result = StringBuffer();
 
-    for (var b in bodyParts) {
+    for (var b in bodyPartsList) {
       result.write(b.toString().substring(b.toString().indexOf('.') + 1));
       result.write("&");
     }
@@ -114,6 +125,8 @@ class Exercise {
     result.write(this.name);
     result.write(" BODY PARTS: ");
     result.write(this.bodyParts.toString());
+    result.write(" SECONDARY BODY PARTS: ");
+    result.write(this.secondaryBodyParts.toString());
 
     return result.toString();
   }
