@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/entity/bodyPart.dart';
 
@@ -13,6 +14,8 @@ part 'exercise.g.dart';
 
 @JsonSerializable()
 class Exercise {
+  static final Logger _log = new Logger("Exercise");
+
   //  ID generate based on time (UUID.v1)
   String id = Uuid().v1();
 
@@ -76,40 +79,45 @@ class Exercise {
     Set<BodyPart> result = Set();
     //  BodyParts are divided by "&" symbol
     //  need to split by it and compare with enum types
-    List<String> bodyParts = bodyPart.split("&");
+    // try/catch if list is empty
+    try {
+      List<String> bodyParts = bodyPart.split("&");
 
-    for (var s in bodyParts) {
-      if (s.isNotEmpty) {
-        switch (s) {
-          case "CHEST":
-            result.add(BodyPart.CHEST);
-            break;
+      for (var s in bodyParts) {
+        if (s.isNotEmpty) {
+          switch (s) {
+            case "CHEST":
+              result.add(BodyPart.CHEST);
+              break;
 
-          case "BACK":
-            result.add(BodyPart.BACK);
-            break;
+            case "BACK":
+              result.add(BodyPart.BACK);
+              break;
 
-          case "LEG":
-            result.add(BodyPart.LEG);
-            break;
+            case "LEG":
+              result.add(BodyPart.LEG);
+              break;
 
-          case "ARM":
-            result.add(BodyPart.ARM);
-            break;
+            case "ARM":
+              result.add(BodyPart.ARM);
+              break;
 
-          case "CARDIO":
-            result.add(BodyPart.CARDIO);
-            break;
+            case "CARDIO":
+              result.add(BodyPart.CARDIO);
+              break;
 
-          case "ABDOMINAL":
-            result.add(BodyPart.ABDOMINAL);
-            break;
+            case "ABDOMINAL":
+              result.add(BodyPart.ABDOMINAL);
+              break;
 
-          default:
-            result.add(BodyPart.UNDEFINED);
-            break;
+            default:
+              result.add(BodyPart.UNDEFINED);
+              break;
+          }
         }
       }
+    } on Exception catch (e){
+      _log.warning("empty list", e.toString());
     }
     return result;
   }
