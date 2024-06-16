@@ -17,7 +17,7 @@ class Util {
   static String pattern = "yyyy-MM-dd";
   static DateFormat formatter = new DateFormat(pattern);
 
-  static Widget addHorizontalLine({double screenWidth}) {
+  static Widget addHorizontalLine({required double? screenWidth}) {
     if (screenWidth == null) {
       return Container(
         decoration: BoxDecoration(
@@ -49,7 +49,8 @@ class Util {
     return Container(margin: EdgeInsets.all(size));
   }
 
-  static Widget spacerSelectable({double top, double bottom, double left, double right}) {
+  static Widget spacerSelectable({required double top, required double bottom,
+    required double left, required double right}) {
     if (top == null) top = 0;
     if (bottom == null) bottom = 0;
     if (left == null) left = 0;

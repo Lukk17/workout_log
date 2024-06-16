@@ -12,7 +12,7 @@ class ExerciseListView extends StatefulWidget {
 }
 
 class _ExerciseListViewState extends State<ExerciseListView> {
-  List<MaterialButton> exerciseList = List();
+  List<MaterialButton> exerciseList = <MaterialButton>[];
 
   //  get DB from singleton global provider
   final DBProvider _db = DBProvider.db;
@@ -47,7 +47,7 @@ class _ExerciseListViewState extends State<ExerciseListView> {
   }
 
   _getExercises() async {
-    List<MaterialButton> result = List();
+    List<MaterialButton> result = <MaterialButton>[];
     List<Exercise> exercises = await _db.getAllExercise();
 
     _log.fine('List of DB exercise: ${exercises.toString()}');

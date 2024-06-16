@@ -18,7 +18,7 @@ import 'exerciseManipulationView.dart';
 class ExerciseView extends StatefulWidget {
   final WorkLog workLog;
 
-  ExerciseView({Key key, @required this.workLog}) : super(key: key);
+  ExerciseView({required this.workLog});
 
   @override
   State<StatefulWidget> createState() => _ExerciseView();
@@ -29,22 +29,22 @@ class _ExerciseView extends State<ExerciseView> {
   final DBProvider _db = DBProvider.db;
   final Logger _log = new Logger("ExerciseView");
 
-  double _screenHeight;
-  double _screenWidth;
-  bool _isPortraitOrientation;
+  late double _screenHeight;
+  late double _screenWidth;
+  late bool _isPortraitOrientation;
 
-  double _appBarHeightPortrait;
-  double _appBarHeightLandscape;
-  double _exerciseHeightPortrait;
-  double _exerciseHeightLandscape;
-  double _exerciseWidth;
-  double _columnWidth;
-  double _seriesColumnWidth;
-  double _headerLandscapeColumnHeight;
-  double _portraitColumnHeight;
-  double _landscapeColumnHeight;
-  double _titleFontSizePortrait;
-  double _titleFontSizeLandscape;
+  late double _appBarHeightPortrait;
+  late double _appBarHeightLandscape;
+  late double _exerciseHeightPortrait;
+  late double _exerciseHeightLandscape;
+  late double _exerciseWidth;
+  late double _columnWidth;
+  late double _seriesColumnWidth;
+  late double _headerLandscapeColumnHeight;
+  late double _portraitColumnHeight;
+  late double _landscapeColumnHeight;
+  late double _titleFontSizePortrait;
+  late double _titleFontSizeLandscape;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -224,7 +224,7 @@ class _ExerciseView extends State<ExerciseView> {
   /// Creates row for every recorder set, with divider at the bottom
   /// Slidable widget show action when user slide every row
   List<Widget> _createRowsForSeries() {
-    List<Widget> wList = List();
+    List<Widget> wList = <Widget>[];
     for (int i = 1; i <= widget.workLog.series.length; i++) {
       wList.add(
         Slidable(
@@ -418,7 +418,7 @@ class _ExerciseView extends State<ExerciseView> {
     Util.blockOrientation(_isPortraitOrientation);
 
     /// create required widgets due to different dialogs depending on screen orientation
-    List<Widget> dialogWidgets = List();
+    List<Widget> dialogWidgets = <Widget>[];
 
     dialogWidgets.add(
 
@@ -481,7 +481,7 @@ class _ExerciseView extends State<ExerciseView> {
     Util.blockOrientation(_isPortraitOrientation);
 
     /// create required widgets due to different dialogs depending on screen orientation
-    List<Widget> dialogWidgets = List();
+    List<Widget> dialogWidgets = <Widget>[];
 
     dialogWidgets.add(
 
@@ -562,8 +562,7 @@ class _ExerciseView extends State<ExerciseView> {
     Map<dynamic, dynamic> updatedSeries = Map();
     Map<dynamic, dynamic> updatedLoad = Map();
 
-    widget.workLog.series.forEach((key, value) =>
-    {
+    widget.workLog.series.forEach((key, value) {
       if(int.parse(key) == i){
         //  do not save it to new map - this way it will be deleted
       }
@@ -572,19 +571,18 @@ class _ExerciseView extends State<ExerciseView> {
       else
         if (int.parse(key) > i)
           {
-            key = (int.parse(key) - 1).toString(),
-            updatedSeries.putIfAbsent(key, () => value.toString())
+            key = (int.parse(key) - 1).toString();
+            updatedSeries.putIfAbsent(key, () => value.toString());
           }
 
         /// series number
         else
           {
-            updatedSeries.putIfAbsent(key, () => value.toString())
-          }
+            updatedSeries.putIfAbsent(key, () => value.toString());
+          };
     });
 
-    widget.workLog.load.forEach((key, value) =>
-    {
+    widget.workLog.load.forEach((key, value) {
       if(int.parse(key) == i){
         //  do not save it to new map - this way it will be deleted
       }
@@ -593,15 +591,15 @@ class _ExerciseView extends State<ExerciseView> {
       else
         if (int.parse(key) > i)
           {
-            key = (int.parse(key) - 1).toString(),
-            updatedLoad.putIfAbsent(key, () => value.toString())
+            key = (int.parse(key) - 1).toString();
+            updatedLoad.putIfAbsent(key, () => value.toString());
           }
 
         /// series number
         else
           {
-            updatedLoad.putIfAbsent(key, () => value.toString())
-          }
+            updatedLoad.putIfAbsent(key, () => value.toString());
+          };
     });
 
     widget.workLog.series = updatedSeries;
@@ -622,29 +620,28 @@ class _ExerciseView extends State<ExerciseView> {
 
 
   List<Widget> _getAllBodyParts(WorkLog workLog) {
-    List<Widget> result = List();
+    List<Widget> result = <Widget>[];
     result.add(Text("Primary", style: TextStyle(
         color: AppThemeSettings.titleColor,
         fontSize: _isPortraitOrientation
             ? _titleFontSizePortrait
             : _titleFontSizeLandscape),));
-    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01));
+    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0));
     result.add(
         Column(children: _getBodyPartsBlocks(workLog.exercise.bodyParts)));
-    result.add(Util.spacerSelectable(top: _screenHeight * 0.02));
+    result.add(Util.spacerSelectable(top: _screenHeight * 0.02, bottom: 0, left: 0, right: 0));
     result.add(Text("Secondary"));
-    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01));
+    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0));
     result.add(Column(
         children: _getBodyPartsBlocks(workLog.exercise.secondaryBodyParts)));
     return result;
   }
 
   List<Widget> _getBodyPartsBlocks(Set<BodyPart> bodyParts) {
-    List<Row> result = List();
-    List<SizedBox> boxes = List();
+    List<Row> result = <Row>[];
+    List<SizedBox> boxes = <SizedBox>[];
 
-    bodyParts.forEach((bp) =>
-    {
+    bodyParts.forEach((bp) {
       boxes.add(SizedBox(
         height: _screenHeight * 0.05,
         width: _screenWidth * 0.3,
@@ -653,7 +650,7 @@ class _ExerciseView extends State<ExerciseView> {
           child: Center(child: Text(
             Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
         ),
-      ))
+      ));
     });
 
 
@@ -666,21 +663,20 @@ class _ExerciseView extends State<ExerciseView> {
       ));
     }
     else {
-      List<SizedBox> firstRowBoxes = List();
-      List<SizedBox> secondRowBoxes = List();
+      List<SizedBox> firstRowBoxes = <SizedBox>[];
+      List<SizedBox> secondRowBoxes = <SizedBox>[];
 
       int counter = 0;
-      boxes.forEach((box) =>
-      {
-        counter++,
+      boxes.forEach((box) {
+        counter++;
 
         if(counter < 4){
-          firstRowBoxes.add(box)
+          firstRowBoxes.add(box);
         }
         else
           {
-            secondRowBoxes.add(box)
-          }
+            secondRowBoxes.add(box);
+          };
       });
 
       result.add(Row(
@@ -688,7 +684,7 @@ class _ExerciseView extends State<ExerciseView> {
         children: firstRowBoxes,
       ));
       result.add(Row(children: <Widget>[
-        Util.spacerSelectable(top: _screenHeight * 0.01)
+        Util.spacerSelectable(top: _screenHeight * 0.01, bottom: 0, left: 0, right: 0)
       ],));
       result.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

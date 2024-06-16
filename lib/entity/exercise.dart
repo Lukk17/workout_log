@@ -23,19 +23,16 @@ class Exercise {
   String name = "";
 
   Set<BodyPart> bodyParts;
-  Set<BodyPart> secondaryBodyParts;
+  Set<BodyPart> secondaryBodyParts = Set();
 
   Exercise(this.name, this.bodyParts, [secondaryBodyParts]) {
-    if (secondaryBodyParts == null) {
-      this.secondaryBodyParts = Set();
-    } else {
-      this.secondaryBodyParts = secondaryBodyParts;
-    }
+    this.secondaryBodyParts = secondaryBodyParts;
   }
 
   // for Json serializable
   // auto-create addition files for file XXX.dart - XXX.g.dart
-  factory Exercise.fromJson(Map<String, dynamic> json) => _$ExerciseFromJson(json);
+  factory Exercise.fromJson(Map<String, dynamic> json) =>
+      _$ExerciseFromJson(json);
 
   Map<String, dynamic> toJson() => _$ExerciseToJson(this);
 
@@ -116,7 +113,7 @@ class Exercise {
           }
         }
       }
-    } on Exception catch (e){
+    } on Exception catch (e) {
       _log.warning("empty list", e.toString());
     }
     return result;

@@ -10,9 +10,9 @@ import 'package:workout_log/util/util.dart';
 import 'helloWorldView.dart';
 
 class ExerciseManipulationView extends StatefulWidget {
-  final Exercise exercise;
+  final Exercise? exercise;
 
-  ExerciseManipulationView({Key key, this.exercise});
+  ExerciseManipulationView({required this.exercise});
 
   @override
   State<StatefulWidget> createState() => _ExerciseManipulationView();
@@ -25,26 +25,26 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   final Logger _log = new Logger("ExerciseManipulationView");
 
   Set<BodyPart> _primaryBodyParts = Set();
-  List<Widget> _primaryBodyPartsList = List();
+  List<Widget> _primaryBodyPartsList = <Widget>[];
   Set<BodyPart> _secondaryBodyParts = Set();
-  List<Widget> _secondaryBodyPartsList = List();
+  List<Widget> _secondaryBodyPartsList = <Widget>[];
   Map<String, bool> _valuesMap = Map();
   bool _edit = false;
 
-  TextEditingController _myController;
-  GlobalKey<ScaffoldState> _key;
+  late TextEditingController _myController;
+  late GlobalKey<ScaffoldState> _key;
 
-  double _screenHeight;
-  double _screenWidth;
-  bool _isPortraitOrientation;
+  late double _screenHeight;
+  late double _screenWidth;
+  late bool _isPortraitOrientation;
 
-  double _appBarHeightPortrait;
-  double _appBarHeightLandscape;
-  double _textFieldWidth;
-  double _buttonHeightPortrait;
-  double _buttonHeightLandscape;
-  double _buttonWidthPortrait;
-  double _buttonWidthLandscape;
+  late double _appBarHeightPortrait;
+  late double _appBarHeightLandscape;
+  late double _textFieldWidth;
+  late double _buttonHeightPortrait;
+  late double _buttonHeightLandscape;
+  late double _buttonWidthPortrait;
+  late double _buttonWidthLandscape;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -71,17 +71,17 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   checkIfEdit() {
     if (widget.exercise != null) {
       _edit = true;
-      for (BodyPart bp in widget.exercise.bodyParts) {
+      for (BodyPart bp in widget.exercise!.bodyParts) {
         _updateBP(bp, true);
         _valuesMap[Util.getBpName(bp)] = true;
       }
-      for (BodyPart bp in widget.exercise.secondaryBodyParts) {
+      for (BodyPart bp in widget.exercise!.secondaryBodyParts) {
         _updateSecondaryBP(bp, true);
         _valuesMap[Util.getBpName(bp)] = true;
       }
 
       ///  set initial textField text
-      _myController = TextEditingController(text: widget.exercise.name);
+      _myController = TextEditingController(text: widget.exercise?.name);
     } else {
       ///  set initial textField text
       _myController = TextEditingController();
@@ -145,7 +145,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
                   ),
                 ],
               ),
-              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
               _isPortraitOrientation
                   ? Column(
                       children: <Widget>[
@@ -192,7 +192,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
                         ),
                       ],
                     ),
-              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08),
+              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08, bottom: 0, left: 0, right: 0),
               _isPortraitOrientation
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,7 +210,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   }
 
   List<Widget> _getControlButtons() {
-    List<Widget> result = List();
+    List<Widget> result = <Widget>[];
 
     result.add(
       MaterialButton(
@@ -225,9 +225,9 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
     );
 
     if (_isPortraitOrientation) {
-      result.add(Util.spacerSelectable(top: _screenHeight * 0.05));
+      result.add(Util.spacerSelectable(top: _screenHeight * 0.05, bottom: 0, left: 0, right: 0));
     } else {
-      result.add(Util.spacerSelectable(right: _screenWidth * 0.1));
+      result.add(Util.spacerSelectable(right: _screenWidth * 0.1, bottom: 0, left: 0, top: 0));
     }
     result.add(
       MaterialButton(
@@ -283,7 +283,7 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
             value: _valuesMap[name],
             onChanged: (value) {
               setState(() {
-                _valuesMap[name] = value;
+                _valuesMap[name] = value!;
                 if (secondary) {
                   _updateSecondaryBP(bp, value);
                 } else {
@@ -302,8 +302,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   /// if it is primary it checkbox will be checked here
   /// and not displayed in secondary body parts list
   _getPrimaryBPlist() {
-    List<Widget> tempList = List();
-    _primaryBodyPartsList = List();
+    List<Widget> tempList = <Widget>[];
+    _primaryBodyPartsList = [];
     for (BodyPart bp in BodyPart.values) {
       if (bp == BodyPart.UNDEFINED) {
         // skip undefined
@@ -319,8 +319,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
     // cut widgets to 2 rows (for visual)
     if (tempList.length > 3) {
       int counter = 0;
-      List<Widget> firstHalf = List();
-      List<Widget> secondHalf = List();
+      List<Widget> firstHalf = <Widget>[];
+      List<Widget> secondHalf = <Widget>[];
       for (Widget w in tempList) {
         if (counter < 3) {
           firstHalf.add(w);
@@ -345,8 +345,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   /// if it is secondary it checkbox will be checked here
   /// and not displayed in primary body parts list
   _getSecondaryBPlist() {
-    List<Widget> tempList = List();
-    _secondaryBodyPartsList = List();
+    List<Widget> tempList = <Widget>[];
+    _secondaryBodyPartsList = [];
     for (BodyPart bp in BodyPart.values) {
       if (bp == BodyPart.UNDEFINED) {
         //skip undefined
@@ -362,8 +362,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
     // cut widgets to 2 rows (for visual)
     if (tempList.length > 3) {
       int counter = 0;
-      List<Widget> firstHalf = List();
-      List<Widget> secondHalf = List();
+      List<Widget> firstHalf = <Widget>[];
+      List<Widget> secondHalf = <Widget>[];
       for (Widget w in tempList) {
         if (counter < 3) {
           firstHalf.add(w);
@@ -384,20 +384,20 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
 
   void _saveExercise() async {
     if (_myController.text == null || _myController.text.isEmpty) {
-      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise name :)")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You forgot about exercise name :)")));
       return;
     }
 
     if (_primaryBodyParts == null || _primaryBodyParts.isEmpty) {
-      _key.currentState.showSnackBar(SnackBar(content: Text("You forgot about exercise body part :)")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You forgot about exercise body part :)")));
       return;
     }
 
     if (_edit) {
-      widget.exercise.name = _myController.text;
-      widget.exercise.bodyParts = _primaryBodyParts;
-      widget.exercise.secondaryBodyParts = _secondaryBodyParts;
-      _db.editExercise(widget.exercise);
+      widget.exercise?.name = _myController.text;
+      widget.exercise?.bodyParts = _primaryBodyParts;
+      widget.exercise?.secondaryBodyParts = _secondaryBodyParts;
+      _db.editExercise(widget.exercise!);
       _log.fine("Updating exercise: ${widget.exercise.toString()}");
 
       await Util.hideKeyboard(context);

@@ -13,11 +13,11 @@ class _BackupViewState extends State<BackupView> {
   final Logger _log = new Logger("backupView");
   final DBProvider _db = DBProvider.db;
 
-  double _screenHeight;
-  bool _isPortraitOrientation;
+  double _screenHeight=100;
+  bool _isPortraitOrientation = false;
 
-  double _appBarHeightPortrait;
-  double _appBarHeightLandscape;
+  double _appBarHeightPortrait =30;
+  double _appBarHeightLandscape =30;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -63,7 +63,7 @@ class _BackupViewState extends State<BackupView> {
                 ),
                 onPressed: () => {_log.fine("Restoring from backup..."), _db.restore()},
               ),
-              Util.spacerSelectable(top: _screenHeight * 0.25),
+              Util.spacerSelectable(top: _screenHeight * 0.25, bottom: 0, left: 0, right: 0),
               Center(
                 child: Text("Backup will be created inside:\n Android/data/com.lukk.workoutlog/files/backup.json \n"),
               ),

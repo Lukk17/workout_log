@@ -13,3 +13,9 @@ In logs you can add date, exercise name, body part which you train, how many set
 https://play.google.com/store/apps/details?id=com.lukk.workoutlog
 
 
+---
+
+To generate classes:
+```
+flutter pub run build_runner build
+```
