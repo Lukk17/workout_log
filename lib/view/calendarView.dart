@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
@@ -166,7 +164,12 @@ class _CalendarViewState extends State<CalendarView> {
     return TableCalendar(
       rowHeight: _isPortraitOrientation ? _calendarRowHeightPortrait : _calendarRowHeightLandscape,
       locale: 'en_US',
-      onDaySelected: (day, list) => {_selectedDate(day)},
+      onDaySelected: (day, focusedDay)  {
+        _selectedDate(day);
+      },
+      selectedDayPredicate: (day) {
+        return isSameDay(_selected, day);
+      },
       startingDayOfWeek: StartingDayOfWeek.monday,
       headerStyle: HeaderStyle(
           leftChevronIcon: Icon(
@@ -184,8 +187,16 @@ class _CalendarViewState extends State<CalendarView> {
     );
   }
 
-  _setDate() {
-    DatePicker.showDatePicker(context, currentTime: DateTime.now(), onConfirm: (date) => _pickDate(date));
+  _setDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _selected) {
+      _pickDate(picked);
+    }
   }
 
   _today() {

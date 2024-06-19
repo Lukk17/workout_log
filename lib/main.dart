@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     final Logger _log = new Logger("Application");
     _log.fine("started");
 
-    return AppBuilder(super.key!, builder: (context) {
+    return AppBuilder(builder: (context) {
       return MaterialApp(
         title: TITLE,
         theme: AppThemeSettings.theme,

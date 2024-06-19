@@ -24,14 +24,14 @@ class DBProvider {
   static final DBProvider db = DBProvider._();
 
   //  check if there is already database
-  static late Database _database;
+  static Database? _database;
 
   Future<Database> get database async {
-    if (_database != null) return _database;
+    if (_database != null) return _database!;
 
     // if _database is null - instantiate it
     _database = await initDB();
-    return _database;
+    return _database!;
   }
 
   initDB() async {
@@ -336,7 +336,7 @@ class DBProvider {
     _log.fine("Deleted workLog: ${workLog.toString()}");
   }
 
-  Future close() async => _database.close();
+  Future close() async => _database!.close();
 
   void backup() async {
     final Directory? externalDirectory = await getExternalStorageDirectory();

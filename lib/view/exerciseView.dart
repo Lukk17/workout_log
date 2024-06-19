@@ -225,164 +225,153 @@ class _ExerciseView extends State<ExerciseView> {
   /// Slidable widget show action when user slide every row
   List<Widget> _createRowsForSeries() {
     List<Widget> wList = <Widget>[];
-    for (int i = 1; i <= widget.workLog.series.length; i++) {
+    List keys = widget.workLog.series.keys.toList();
+
+    for (int i = 0; i < keys.length; i++) {
       wList.add(
-        Slidable(
-          actionPane: SlidableDrawerActionPane(),
-          actionExtentRatio: 0.25,
-          secondaryActions: <Widget>[
-            Container(
-              margin: EdgeInsets.only(
-
-                  bottom: _screenHeight * 0.01,
-                  top: _screenHeight * 0.01,
-                  left: _screenWidth * 0.01,
-                  right: _screenWidth * 0.01),
-
-              child: IconSlideAction(
-                caption: 'Delete',
-                color: Colors.red,
-                icon: Icons.delete,
-                onTap: () => _deleteSeries(i),
-              ),
-            )
-          ],
-          actions: <Widget>[
-            Container(
-              margin: EdgeInsets.only(
-
-                  bottom: _screenHeight * 0.01,
-                  top: _screenHeight * 0.01,
-                  left: _screenWidth * 0.01,
-                  right: _screenWidth * 0.01),
-
-              child: IconSlideAction(
-                caption: 'Edit load',
-                color: Colors.yellow,
-                icon: Icons.edit,
-                onTap: () =>
-                    _editLoadDialog(widget.workLog, i.toString()).then((v) =>
-                    {
-                      /// restore orientation ability to change
+          Slidable(
+            key: ValueKey(keys[i]), // Ensure unique key
+            startActionPane: ActionPane(
+              motion: const ScrollMotion(),
+              extentRatio: 0.25,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                      bottom: _screenHeight * 0.01,
+                      top: _screenHeight * 0.01,
+                      left: _screenWidth * 0.01,
+                      right: _screenWidth * 0.01),
+                  child: SlidableAction(
+                    onPressed: (context) => _deleteSeries(i),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete,
+                    label: 'Delete',
+                  ),
+                ),
+              ],
+            ),
+            endActionPane: ActionPane(
+              motion: const ScrollMotion(),
+              extentRatio: 0.25,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(
+                      bottom: _screenHeight * 0.01,
+                      top: _screenHeight * 0.01,
+                      left: _screenWidth * 0.01,
+                      right: _screenWidth * 0.01),
+                  child: SlidableAction(
+                    onPressed: (context) => _editLoadDialog(widget.workLog, keys[i]).then((v) {
                       SystemChrome.setPreferredOrientations([
                         DeviceOrientation.landscapeRight,
                         DeviceOrientation.landscapeLeft,
                         DeviceOrientation.portraitUp,
                         DeviceOrientation.portraitDown,
-                      ])
+                      ]);
                     }),
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(
-
-                  bottom: _screenHeight * 0.01,
-                  top: _screenHeight * 0.01,
-                  left: _screenWidth * 0.01,
-                  right: _screenWidth * 0.01),
-
-              child: IconSlideAction(
-                caption: 'Edit repeats',
-                color: Colors.green,
-                icon: Icons.edit,
-                onTap: () =>
-                    _editRepeatsDialog(widget.workLog, i.toString()).then((v) =>
-                    {
-                      /// restore orientation ability to change
+                    backgroundColor: Colors.yellow,
+                    foregroundColor: Colors.black,
+                    icon: Icons.edit,
+                    label: 'Edit load',
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(
+                      bottom: _screenHeight * 0.01,
+                      top: _screenHeight * 0.01,
+                      left: _screenWidth * 0.01,
+                      right: _screenWidth * 0.01),
+                  child: SlidableAction(
+                    onPressed: (context) => _editRepeatsDialog(widget.workLog, i.toString()).then((v) {
                       SystemChrome.setPreferredOrientations([
                         DeviceOrientation.landscapeRight,
                         DeviceOrientation.landscapeLeft,
                         DeviceOrientation.portraitUp,
                         DeviceOrientation.portraitDown,
-                      ])
+                      ]);
                     }),
-              ),
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit,
+                    label: 'Edit repeats',
+                  ),
+                ),
+              ],
             ),
-          ],
-          child: Row(
-            children: <Widget>[
-              Container(
-                height: _isPortraitOrientation
-                    ? _portraitColumnHeight
-                    : _landscapeColumnHeight,
-
-                width: _seriesColumnWidth,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Center(
-
-                  ///  series number start from 1 as iteration
-                  child: Text(
-                    i.toString(),
-                    style: TextStyle(
-                      color: AppThemeSettings.textColor,
-                      fontSize: AppThemeSettings.fontSize,
+            child: Row(
+              children: <Widget>[
+                Container(
+                  height: _isPortraitOrientation
+                      ? _portraitColumnHeight
+                      : _landscapeColumnHeight,
+                  width: _seriesColumnWidth,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: Center(
+                    child: Text(
+                      i.toString(),
+                      style: TextStyle(
+                        color: AppThemeSettings.textColor,
+                        fontSize: AppThemeSettings.fontSize,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Container(
-                height: _isPortraitOrientation
-                    ? _portraitColumnHeight
-                    : _landscapeColumnHeight,
-
-                width: _columnWidth,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: MaterialButton(
-
-                  ///  get load value
+                Container(
+                  height: _isPortraitOrientation
+                      ? _portraitColumnHeight
+                      : _landscapeColumnHeight,
+                  width: _columnWidth,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: MaterialButton(
                     child: Text(
-                      widget.workLog.getLoad(i.toString()),
+                      widget.workLog.getLoad(keys[i]),
                       style: TextStyle(
                         color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
                     onPressed: () {
-                      _editLoadDialog(widget.workLog, i.toString()).then((v) =>
-                      {
-                        /// restore orientation ability to change
+                      _editLoadDialog(widget.workLog, keys[i]).then((v) {
                         SystemChrome.setPreferredOrientations([
                           DeviceOrientation.landscapeRight,
                           DeviceOrientation.landscapeLeft,
                           DeviceOrientation.portraitUp,
                           DeviceOrientation.portraitDown,
-                        ])
+                        ]);
                       });
-                    }),
-              ),
-              Container(
-                height: _isPortraitOrientation
-                    ? _portraitColumnHeight
-                    : _landscapeColumnHeight,
-
-                width: _columnWidth,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: MaterialButton(
-
-                  ///  get repeats number
+                    },
+                  ),
+                ),
+                Container(
+                  height: _isPortraitOrientation
+                      ? _portraitColumnHeight
+                      : _landscapeColumnHeight,
+                  width: _columnWidth,
+                  alignment: FractionalOffset(0.5, 0.5),
+                  child: MaterialButton(
                     child: Text(
-                      widget.workLog.getReps(i.toString()),
+                      widget.workLog.getReps(keys[i]),
                       style: TextStyle(
                         color: AppThemeSettings.textColor,
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
                     onPressed: () {
-                      _editRepeatsDialog(widget.workLog, i.toString()).then((v) =>
-                      {
-                        /// restore orientation ability to change
+                      _editRepeatsDialog(widget.workLog, keys[i]).then((v) {
                         SystemChrome.setPreferredOrientations([
                           DeviceOrientation.landscapeRight,
                           DeviceOrientation.landscapeLeft,
                           DeviceOrientation.portraitUp,
                           DeviceOrientation.portraitDown,
-                        ])
+                        ]);
                       });
-                    }),
-              ),
-            ],
-          ),
-        ),);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),);
       wList.add(
         Util.addHorizontalLine(screenWidth: _screenWidth),
       );

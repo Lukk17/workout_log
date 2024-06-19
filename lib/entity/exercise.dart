@@ -25,8 +25,8 @@ class Exercise {
   Set<BodyPart> bodyParts;
   Set<BodyPart> secondaryBodyParts = Set();
 
-  Exercise(this.name, this.bodyParts, [secondaryBodyParts]) {
-    this.secondaryBodyParts = secondaryBodyParts;
+  Exercise(this.name, this.bodyParts, [Set<BodyPart>? secondaryBodyParts]) {
+    this.secondaryBodyParts = secondaryBodyParts ?? {};
   }
 
   // for Json serializable

@@ -177,32 +177,41 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     return Container(
       margin: EdgeInsets.only(bottom: _cardOutsideMargin),
       child: Slidable(
-        actionPane: SlidableDrawerActionPane(),
-        actionExtentRatio: 0.25,
-        secondaryActions: <Widget>[
-          Container(
-            margin: EdgeInsets.only(
-                bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-            child: IconSlideAction(
-              caption: 'Delete',
-              color: Colors.red,
-              icon: Icons.delete,
-              onTap: () => _deleteWorkLog(workLog),
+        key: ValueKey(workLog.id), // Ensure each slidable has a unique key
+        startActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.25,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+              child: SlidableAction(
+                onPressed: (context) => _deleteWorkLog(workLog),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
             ),
-          )
-        ],
-        actions: <Widget>[
-          Container(
-            margin: EdgeInsets.only(
-                bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-            child: IconSlideAction(
-              caption: 'Delete',
-              color: Colors.red,
-              icon: Icons.delete,
-              onTap: () => _deleteWorkLog(workLog),
+          ],
+        ),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.25,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+              child: SlidableAction(
+                onPressed: (context) => _deleteWorkLog(workLog),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
         child: Card(
           color: AppThemeSettings.primaryColor,
           elevation: 8,
@@ -257,11 +266,11 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
 
             ///  push workLog and bodyPartInterface to new screen to display it's details
             onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
+                context,
+                MaterialPageRoute(
 
-                        ///  using Navigator.then to update parent state as well
-                        builder: (context) => ExerciseView(workLog: workLog)))
+                  ///  using Navigator.then to update parent state as well
+                    builder: (context) => ExerciseView(workLog: workLog)))
                 .then((v) => _updateState()),
           ),
         ),

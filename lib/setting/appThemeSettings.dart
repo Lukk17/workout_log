@@ -27,7 +27,7 @@ class AppThemeSettings {
     borderColor = Colors.red;
     drawerColor = Colors.grey[800]!;
 
-    background = "graphics/background.png";
+    background = "graphics/dark_gym_room_with_barbell.jpg";
 
     return _themeD;
   }
@@ -52,7 +52,7 @@ class AppThemeSettings {
     borderColor = Colors.blue;
     drawerColor = Colors.blue[100]!;
 
-    background = "graphics/lightBackground.png";
+    background = "graphics/lightBackground.jpg";
 
     return _themeL;
   }
