@@ -56,6 +56,11 @@ flutter build appbundle
 ```
 build/app/outputs/bundle/release/app.aab
 ```
+rename to 
+```
+workout_log-X.Y.Z.aab
+```
+`X.Y.Z` - version number
 
 ---
 
