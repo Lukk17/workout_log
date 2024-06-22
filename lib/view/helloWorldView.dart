@@ -22,7 +22,7 @@ class HelloWorldView extends StatefulWidget {
   static DateTime date = DateTime.now();
   final Function(Widget) callback;
 
-  HelloWorldView({Key key, @required this.callback}) : super(key: key);
+  HelloWorldView({required this.callback});
 
   // override to manually creates private (starting with _ ) subclass
   // to update state of counter widget
@@ -30,7 +30,8 @@ class HelloWorldView extends StatefulWidget {
   _HelloWorldViewState createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStateMixin {
+class _HelloWorldViewState extends State<HelloWorldView>
+    with TickerProviderStateMixin {
   final Logger _log = new Logger("HelloWorldView");
 
   static const String BACKGROUND_IMAGE = "backgroundImage";
@@ -39,21 +40,21 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   //  creating key to change drawer icon
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  TabController _tabController;
-  SharedPreferences _prefs;
+  late TabController _tabController;
+  late SharedPreferences _prefs;
   bool _backgroundImage = true;
 
-  Orientation _screenOrientation;
-  bool _isPortraitOrientation;
-  double _screenHeight;
-  double _screenWidth;
+  Orientation? _screenOrientation;
+  late bool _isPortraitOrientation;
+  late double _screenHeight;
+  late double _screenWidth;
 
-  double _appBarHeightPortrait;
-  double _appBarHeightLandscape;
-  double titleFontSizePortrait;
-  double titleFontSizeLandscape;
+  late double _appBarHeightPortrait;
+  late double _appBarHeightLandscape;
+  late double titleFontSizePortrait;
+  late double titleFontSizeLandscape;
 
-  BuildContext helloContext;
+  BuildContext? helloContext;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -94,9 +95,11 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     });
   }
 
-  Widget _createAppBar() {
+  PreferredSize _createAppBar() {
     return PreferredSize(
-      preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
+      preferredSize: Size.fromHeight(_isPortraitOrientation
+          ? _appBarHeightPortrait
+          : _appBarHeightLandscape),
       child: AppBar(
         //  changing drawer icon
         leading: new IconButton(
@@ -104,7 +107,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
               Icons.settings,
               color: AppThemeSettings.titleColor,
             ),
-            onPressed: () => _scaffoldKey.currentState.openDrawer()),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer()),
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -112,7 +115,9 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
           MyApp.TITLE,
           style: TextStyle(
               color: AppThemeSettings.titleColor,
-              fontSize: _isPortraitOrientation ? titleFontSizePortrait : titleFontSizeLandscape),
+              fontSize: _isPortraitOrientation
+                  ? titleFontSizePortrait
+                  : titleFontSizeLandscape),
         ),
         backgroundColor: AppThemeSettings.appBarColor,
         centerTitle: _isPortraitOrientation ? false : true,
@@ -208,7 +213,7 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
       builder: (context) => SimpleDialog(
         children: <Widget>[
           //  send screen orientation to dialog creator
-          CalendarView((widget) => {}, _screenOrientation),
+          CalendarView((widget) => {}, _screenOrientation!),
         ],
       ),
     );
@@ -231,8 +236,10 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
               ),
             ),
             _isPortraitOrientation
-                ? Util.spacerSelectable(top: _screenHeight * 0.2)
-                : Util.spacerSelectable(top: _screenHeight * 0.1),
+                ? Util.spacerSelectable(
+                    top: _screenHeight * 0.2, bottom: 0, left: 0, right: 0)
+                : Util.spacerSelectable(
+                    top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
             Column(
               children: <Widget>[
                 Row(
@@ -246,12 +253,15 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                       ),
                     ),
                     Switch(
-                        value: AppThemeSettings.theme == ThemeData.dark(), onChanged: (isDark) => _changeTheme(isDark))
+                        value: AppThemeSettings.theme == ThemeData.dark(),
+                        onChanged: (isDark) => _changeTheme(isDark))
                   ],
                 ),
                 _isPortraitOrientation
-                    ? Util.spacerSelectable(top: _screenHeight * 0.1)
-                    : Util.spacerSelectable(top: _screenHeight * 0.1),
+                    ? Util.spacerSelectable(
+                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0)
+                    : Util.spacerSelectable(
+                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
@@ -262,31 +272,48 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
                         fontSize: AppThemeSettings.fontSize,
                       ),
                     ),
-                    Switch(value: _backgroundImage, onChanged: (isImage) => _changeBackground(isImage))
+                    Switch(
+                        value: _backgroundImage,
+                        onChanged: (isImage) => _changeBackground(isImage))
                   ],
                 ),
                 _isPortraitOrientation
-                    ? Util.spacerSelectable(top: _screenHeight * 0.1)
-                    : Util.spacerSelectable(top: _screenHeight * 0.05),
+                    ? Util.spacerSelectable(
+                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0)
+                    : Util.spacerSelectable(
+                        top: _screenHeight * 0.05,
+                        bottom: 0,
+                        left: 0,
+                        right: 0),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Backup",
-                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(
+                        color: AppThemeSettings.buttonTextColor,
+                        fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => BackupView()))
+                  onPressed: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => BackupView()))
                       .then((_) => _rebuildApp()),
                 ),
                 _isPortraitOrientation
-                    ? Util.spacerSelectable(top: _screenHeight * 0.2)
-                    : Util.spacerSelectable(top: _screenHeight * 0.1),
+                    ? Util.spacerSelectable(
+                        top: _screenHeight * 0.2, bottom: 0, left: 0, right: 0)
+                    : Util.spacerSelectable(
+                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
                 MaterialButton(
                   color: AppThemeSettings.buttonColor,
                   child: Text(
                     "Edit Exercises",
-                    style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+                    style: TextStyle(
+                        color: AppThemeSettings.buttonTextColor,
+                        fontSize: AppThemeSettings.fontSize),
                   ),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExerciseListView()))
+                  onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ExerciseListView()))
                       .then((_) => _rebuildApp()),
                 ),
               ],
@@ -331,14 +358,14 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
     Set<String> prefKeys = _prefs.getKeys();
 
     if (prefKeys.contains(BACKGROUND_IMAGE)) {
-      _backgroundImage = _prefs.get(BACKGROUND_IMAGE);
+      _backgroundImage = _prefs.getBool(BACKGROUND_IMAGE)!;
     } else {
       _backgroundImage = true;
       _prefs.setBool(BACKGROUND_IMAGE, true);
     }
 
     if (prefKeys.contains(IS_DARK)) {
-      _changeTheme(_prefs.getBool(IS_DARK));
+      _changeTheme(_prefs.getBool(IS_DARK)!);
     } else {
       _prefs.setBool(IS_DARK, true);
     }
@@ -357,6 +384,6 @@ class _HelloWorldViewState extends State<HelloWorldView> with TickerProviderStat
   _rebuildApp() {
     _log.fine("App rebuilded");
     Util.rebuild = true;
-    AppBuilder.of(context).rebuild();
+    AppBuilder.of(context)?.rebuild();
   }
 }

@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class Storage {
-  static Directory _dir;
-  static String _path;
+  static Directory _dir = Directory("");
+  static String _path = "";
   static const String _FILENAME = "worklogBackup.txt";
 
   static void writeToFile(String content) async {

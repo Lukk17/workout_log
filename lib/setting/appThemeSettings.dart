@@ -10,14 +10,14 @@ class AppThemeSettings {
   static ThemeData get themeD {
     buttonColor = Colors.red;
     buttonSplashColor = Colors.lightGreen;
-    appBarColor = Colors.grey[900];
+    appBarColor = Colors.grey[900]!;
     tabBarColor = Colors.amber;
     timerColor = Colors.cyanAccent;
-    buttonTextColor = Colors.grey[800];
+    buttonTextColor = Colors.grey[800]!;
     cardTextColor = Colors.amber;
     textColor = Colors.amber;
-    specialTextColor = Colors.lightGreen[300];
-    primaryColor = Colors.lightGreen[800];
+    specialTextColor = Colors.lightGreen[300]!;
+    primaryColor = Colors.lightGreen[800]!;
     secondaryColor = Colors.white;
     iconColor = Colors.amber;
     tabBarIconColor = Colors.amber;
@@ -25,9 +25,9 @@ class AppThemeSettings {
     backgroundColor = Colors.black;
     indicatorColor = Colors.red;
     borderColor = Colors.red;
-    drawerColor = Colors.grey[800];
+    drawerColor = Colors.grey[800]!;
 
-    background = "graphics/background.png";
+    background = "graphics/background.jpg";
 
     return _themeD;
   }
@@ -50,31 +50,31 @@ class AppThemeSettings {
     backgroundColor = Colors.white;
     indicatorColor = Colors.blue;
     borderColor = Colors.blue;
-    drawerColor = Colors.blue[100];
+    drawerColor = Colors.blue[100]!;
 
-    background = "graphics/lightBackground.png";
+    background = "graphics/lightBackground.jpg";
 
     return _themeL;
   }
 
-  static Color buttonColor;
-  static Color buttonSplashColor;
-  static Color appBarColor;
-  static Color tabBarColor;
-  static Color timerColor;
-  static Color buttonTextColor;
-  static Color cardTextColor;
-  static Color textColor;
-  static Color specialTextColor;
-  static Color primaryColor;
-  static Color secondaryColor;
-  static Color iconColor;
-  static Color tabBarIconColor;
-  static Color titleColor;
-  static Color backgroundColor;
-  static Color indicatorColor;
-  static Color borderColor;
-  static Color drawerColor;
+  static Color buttonColor = Colors.red;
+  static Color buttonSplashColor = Colors.lightGreen;
+  static Color appBarColor = Colors.grey[900]!;
+  static Color tabBarColor = Colors.amber;
+  static Color timerColor = Colors.cyanAccent;
+  static Color buttonTextColor = Colors.grey[800]!;
+  static Color cardTextColor = Colors.amber;
+  static Color textColor = Colors.amber;
+  static Color specialTextColor = Colors.lightGreen[300]!;
+  static Color primaryColor = Colors.lightGreen[800]!;
+  static Color secondaryColor = Colors.white;
+  static Color iconColor = Colors.amber;
+  static Color tabBarIconColor = Colors.amber;
+  static Color titleColor = Colors.amber;
+  static Color backgroundColor = Colors.black;
+  static Color indicatorColor = Colors.red;
+  static Color borderColor = Colors.red;
+  static Color drawerColor = Colors.grey[800]!;
 
   static Color chestColor = Colors.red;
   static Color backColor = Colors.white;
@@ -107,7 +107,7 @@ class AppThemeSettings {
   static StrokeCap strokeCap = StrokeCap.round;
   static PaintingStyle paintingStyle = PaintingStyle.stroke;
 
-  static String background;
+  static String background = "";
 
   static List<Shadow> textBorder = [
     Shadow(

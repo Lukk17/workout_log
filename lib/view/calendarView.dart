@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/setting/appThemeSettings.dart';
@@ -25,22 +23,22 @@ class _CalendarViewState extends State<CalendarView> {
 
   final Logger _log = new Logger("CalendarView");
 
-  double _screenHeight;
-  double _screenWidth;
-  bool _isPortraitOrientation;
+  double _screenHeight = 0;
+  double _screenWidth = 0;
+  bool _isPortraitOrientation = false;
 
-  double _dialogHeightPortrait;
-  double _dialogHeightLandscape;
-  double _dialogWidth;
-  double _naviButtonHeightPortrait;
-  double _naviButtonHeightLandscape;
-  double _naviButtonWidth;
-  double _saveButtonHeightPortrait;
-  double _saveButtonWidthPortrait;
-  double _saveButtonHeightLandscape;
-  double _saveButtonWidthLandscape;
-  double _calendarRowHeightPortrait;
-  double _calendarRowHeightLandscape;
+  double _dialogHeightPortrait = 0;
+  double _dialogHeightLandscape = 0;
+  double _dialogWidth = 0;
+  double _naviButtonHeightPortrait = 0;
+  double _naviButtonHeightLandscape = 0;
+  double _naviButtonWidth = 0;
+  double _saveButtonHeightPortrait = 0;
+  double _saveButtonWidthPortrait = 0;
+  double _saveButtonHeightLandscape = 0;
+  double _saveButtonWidthLandscape = 0;
+  double _calendarRowHeightPortrait = 0;
+  double _calendarRowHeightLandscape = 0;
 
   void setupDimensions() {
     _getScreenHeight();
@@ -110,14 +108,16 @@ class _CalendarViewState extends State<CalendarView> {
             )
           : Row(
               children: <Widget>[
-                Util.spacerSelectable(left: _screenWidth * 0.01),
+                Util.spacerSelectable(left: _screenWidth * 0.01,
+                    bottom: 0, top: 0, right: 0),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Column(
                       children: <Widget>[
                         createNaviButton(name: "Go to date..", onPressed: _setDate),
-                        Util.spacerSelectable(top: _screenHeight * 0.03),
+                        Util.spacerSelectable(top: _screenHeight * 0.03,
+                            bottom: 0, left: 0, right: 0),
                         createNaviButton(name: "Go to today", onPressed: _today),
                       ],
                     ),
@@ -132,7 +132,7 @@ class _CalendarViewState extends State<CalendarView> {
     );
   }
 
-  Widget createNaviButton({@required Function onPressed, @required String name}) {
+  Widget createNaviButton({required VoidCallback onPressed, required String name}) {
     return Center(
       child: MaterialButton(
         height: _isPortraitOrientation ? _naviButtonHeightPortrait : _naviButtonHeightLandscape,
@@ -164,8 +164,12 @@ class _CalendarViewState extends State<CalendarView> {
     return TableCalendar(
       rowHeight: _isPortraitOrientation ? _calendarRowHeightPortrait : _calendarRowHeightLandscape,
       locale: 'en_US',
-      selectedDay: _selected,
-      onDaySelected: (day, list) => {_selectedDate(day)},
+      onDaySelected: (day, focusedDay)  {
+        _selectedDate(day);
+      },
+      selectedDayPredicate: (day) {
+        return isSameDay(_selected, day);
+      },
       startingDayOfWeek: StartingDayOfWeek.monday,
       headerStyle: HeaderStyle(
           leftChevronIcon: Icon(
@@ -177,11 +181,22 @@ class _CalendarViewState extends State<CalendarView> {
             color: AppThemeSettings.nextButton,
           ),
           formatButtonVisible: false),
+      focusedDay: _selected,
+      firstDay: DateTime(2000),
+      lastDay: DateTime(2100),
     );
   }
 
-  _setDate() {
-    DatePicker.showDatePicker(context, currentTime: DateTime.now(), onConfirm: (date) => _pickDate(date));
+  _setDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _selected) {
+      _pickDate(picked);
+    }
   }
 
   _today() {
@@ -204,7 +219,7 @@ class _CalendarViewState extends State<CalendarView> {
   _save() {
     HelloWorldView.date = _selected;
 
-    _log.fine("Choosen date: $_selected");
+    _log.fine("Chosen date: $_selected");
 
     Navigator.pop(context);
   }

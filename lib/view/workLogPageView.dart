@@ -26,24 +26,24 @@ class WorkLogPageView extends StatefulWidget {
 }
 
 class _WorkLogPageViewState extends State<WorkLogPageView> {
-  List<Widget> _wList = List();
-  List<MaterialButton> _exerciseList = List();
-  bool _isPortraitOrientation;
-  double _screenHeight;
-  double _screenWidth;
+  List<Widget> _wList = <Widget>[];
+  List<MaterialButton> _exerciseList = <MaterialButton>[];
+  bool _isPortraitOrientation = false;
+  double _screenHeight = 0;
+  double _screenWidth = 0;
 
   final Logger _log = new Logger("WorkLogPageView");
 
-  double _datePortraitHeight;
-  double _dateLandscapeHeight;
-  double _dateTextScale;
-  double _cardMargin;
-  double _cardOutsideMargin;
-  EdgeInsets _seriesMargin;
-  EdgeInsets _repsMargin;
-  double _exerciseDialogHeight;
-  double _exerciseDialogWidth;
-  double _bottomEmptyContainerHeight;
+  double _datePortraitHeight = 0;
+  double _dateLandscapeHeight = 0;
+  double _dateTextScale = 0;
+  double _cardMargin = 0;
+  double _cardOutsideMargin = 0;
+  EdgeInsets _seriesMargin = EdgeInsets.zero;
+  EdgeInsets _repsMargin = EdgeInsets.zero;
+  double _exerciseDialogHeight = 0;
+  double _exerciseDialogWidth = 0;
+  double _bottomEmptyContainerHeight = 0;
 
   //  get DB from singleton global provider
   final DBProvider _db = DBProvider.db;
@@ -68,8 +68,10 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     _dateTextScale = 3;
     _cardMargin = _screenHeight * 0.01;
     _cardOutsideMargin = _screenHeight * 0.01;
-    _seriesMargin = EdgeInsets.only(right: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
-    _repsMargin = EdgeInsets.only(left: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _seriesMargin = EdgeInsets.only(
+        right: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
+    _repsMargin = EdgeInsets.only(
+        left: _screenWidth * 0.02, bottom: _screenHeight * 0.01);
     _exerciseDialogHeight = _screenHeight * 0.5;
     _exerciseDialogWidth = _screenWidth * 0.7;
     _bottomEmptyContainerHeight = _screenHeight * 0.15;
@@ -94,14 +96,19 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           Container(
-            height: _isPortraitOrientation ? _datePortraitHeight : _dateLandscapeHeight,
+            height: _isPortraitOrientation
+                ? _datePortraitHeight
+                : _dateLandscapeHeight,
             alignment: Alignment(0, 0),
             child: Text(
-              Util.formatter.format(HelloWorldView.date) == Util.formatter.format(DateTime.now())
+              Util.formatter.format(HelloWorldView.date) ==
+                      Util.formatter.format(DateTime.now())
                   ? "Today"
                   : Util.formatter.format(HelloWorldView.date),
               textScaleFactor: _dateTextScale,
-              style: TextStyle(color: AppThemeSettings.textColor, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppThemeSettings.textColor,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -123,7 +130,8 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Util.spacerSelectable(bottom: _screenHeight * 0.3),
+                    Util.spacerSelectable(
+                        bottom: _screenHeight * 0.3, top: 0, left: 0, right: 0),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -136,16 +144,20 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                             await _updateState(),
                             Util.unlockOrientation(),
                           },
-                          child: Icon(Icons.add, color: AppThemeSettings.buttonTextColor),
+                          child: Icon(Icons.add,
+                              color: AppThemeSettings.buttonTextColor),
                           backgroundColor: AppThemeSettings.buttonColor,
                           foregroundColor: AppThemeSettings.secondaryColor,
                         ),
                         Util.spacerSelectable(
-                          right: _screenWidth * 0.1,
-                        ),
+                            right: _screenWidth * 0.1,
+                            bottom: 0,
+                            left: 0,
+                            top: 0),
                       ],
                     ),
-                    Util.spacerSelectable(bottom: _screenHeight * 0.01)
+                    Util.spacerSelectable(
+                        bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0)
                   ],
                 ),
               ],
@@ -165,30 +177,41 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     return Container(
       margin: EdgeInsets.only(bottom: _cardOutsideMargin),
       child: Slidable(
-        actionPane: SlidableDrawerActionPane(),
-        actionExtentRatio: 0.25,
-        secondaryActions: <Widget>[
-          Container(
-            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-            child: IconSlideAction(
-              caption: 'Delete',
-              color: Colors.red,
-              icon: Icons.delete,
-              onTap: () => _deleteWorkLog(workLog),
+        key: ValueKey(workLog.id), // Ensure each slidable has a unique key
+        startActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.25,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+              child: SlidableAction(
+                onPressed: (context) => _deleteWorkLog(workLog),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
             ),
-          )
-        ],
-        actions: <Widget>[
-          Container(
-            margin: EdgeInsets.only(bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-            child: IconSlideAction(
-              caption: 'Delete',
-              color: Colors.red,
-              icon: Icons.delete,
-              onTap: () => _deleteWorkLog(workLog),
+          ],
+        ),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          extentRatio: 0.25,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+              child: SlidableAction(
+                onPressed: (context) => _deleteWorkLog(workLog),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
         child: Card(
           color: AppThemeSettings.primaryColor,
           elevation: 8,
@@ -197,7 +220,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               margin: EdgeInsets.all(_cardMargin),
               child: Text(
                 workLog.exercise.name,
-                style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                style: TextStyle(
+                    fontSize: AppThemeSettings.fontSize,
+                    color: AppThemeSettings.cardTextColor),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -209,7 +234,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _seriesMargin,
                   child: Text(
                     "Series: ${workLog.series.length.toString()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                    style: TextStyle(
+                        fontSize: AppThemeSettings.fontSize,
+                        color: AppThemeSettings.cardTextColor),
                   ),
                 ),
 
@@ -218,7 +245,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   margin: _repsMargin,
                   child: Text(
                     "Reps: ${workLog.getRepsSum()}",
-                    style: TextStyle(fontSize: AppThemeSettings.fontSize, color: AppThemeSettings.cardTextColor),
+                    style: TextStyle(
+                        fontSize: AppThemeSettings.fontSize,
+                        color: AppThemeSettings.cardTextColor),
                     textAlign: TextAlign.end,
                   ),
                 ),
@@ -240,8 +269,9 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                 context,
                 MaterialPageRoute(
 
-                    ///  using Navigator.then to update parent state as well
-                    builder: (context) => ExerciseView(workLog: workLog))).then((v) => _updateState()),
+                  ///  using Navigator.then to update parent state as well
+                    builder: (context) => ExerciseView(workLog: workLog)))
+                .then((v) => _updateState()),
           ),
         ),
       ),
@@ -249,7 +279,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   }
 
   _getExercises() async {
-    List<MaterialButton> result = List();
+    List<MaterialButton> result = <MaterialButton>[];
     List<Exercise> exercises = await _db.getAllExercise();
 
     for (Exercise e in exercises) {
@@ -295,7 +325,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
           style: TextStyle(color: AppThemeSettings.textColor),
         ),
         children: <Widget>[
-          Util.addHorizontalLine(),
+          Util.addHorizontalLine(screenWidth: null),
           Column(
             children: <Widget>[
               Row(
@@ -312,13 +342,17 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                   Column(
                     children: <Widget>[
                       Icon(Icons.arrow_upward),
-                      Util.spacerSelectable(top: _screenHeight * 0.3),
+                      Util.spacerSelectable(
+                          top: _screenHeight * 0.3,
+                          bottom: 0,
+                          left: 0,
+                          right: 0),
                       Icon(Icons.arrow_downward),
                     ],
                   )
                 ],
               ),
-              Util.addHorizontalLine(),
+              Util.addHorizontalLine(screenWidth: null),
               Container(
                 height: _screenHeight * 0.1,
                 child: Row(
@@ -328,17 +362,23 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
                         color: AppThemeSettings.greenButtonColor,
                         child: Text(
                           "New",
-                          style: TextStyle(color: AppThemeSettings.buttonTextColor),
+                          style: TextStyle(
+                              color: AppThemeSettings.buttonTextColor),
                         ),
                         onPressed: () async => {
                               Util.unlockOrientation(),
                               await Navigator.push(
-                                  context, MaterialPageRoute(builder: (_) => ExerciseManipulationView())),
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          ExerciseManipulationView(exercise: null,))),
                               Navigator.pop(context),
                             }),
                     MaterialButton(
                         color: AppThemeSettings.cancelButtonColor,
-                        child: Text('CANCEL', style: TextStyle(color: AppThemeSettings.buttonTextColor)),
+                        child: Text('CANCEL',
+                            style: TextStyle(
+                                color: AppThemeSettings.buttonTextColor)),
                         onPressed: () {
                           Navigator.pop(context);
                         }),
@@ -386,38 +426,42 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   }
 
   List<Widget> _getMainBodyParts(WorkLog workLog) {
-    List<Text> result = List();
+    List<Text> result = <Text>[];
 
     /// add only first 3 when more than 3 body parts in exercise
     if (workLog.exercise.bodyParts.length > 3) {
       int counter = 0;
-      workLog.exercise.bodyParts.forEach((bp) => {
-            if (counter < 3)
-              {
-                counter++,
-                result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
-              }
-          });
+      workLog.exercise.bodyParts.forEach((bp) {
+        if (counter < 3) {
+          counter++;
+          result.add(Text(Util.getBpName(bp),
+              style: TextStyle(color: Util.getBpColor(bp))));
+        }
+        ;
+      });
 
       /// add all body parts when less than 3 in exercise
     } else if (workLog.exercise.bodyParts.length == 3) {
-      workLog.exercise.bodyParts.forEach((bp) => {
-            result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
-          });
+      workLog.exercise.bodyParts.forEach((bp) {
+        result.add(Text(Util.getBpName(bp),
+            style: TextStyle(color: Util.getBpColor(bp))));
+      });
     } else {
       int counter = 0;
-      workLog.exercise.bodyParts.forEach((bp) => {
-            counter++,
-            result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
-          });
+      workLog.exercise.bodyParts.forEach((bp) {
+        counter++;
+        result.add(Text(Util.getBpName(bp),
+            style: TextStyle(color: Util.getBpColor(bp))));
+      });
 
-      workLog.exercise.secondaryBodyParts.forEach((bp) => {
-            if (counter < 3)
-              {
-                counter++,
-                result.add(Text(Util.getBpName(bp), style: TextStyle(color: Util.getBpColor(bp)))),
-              }
-          });
+      workLog.exercise.secondaryBodyParts.forEach((bp) {
+        if (counter < 3) {
+          counter++;
+          result.add(Text(Util.getBpName(bp),
+              style: TextStyle(color: Util.getBpColor(bp))));
+        }
+        ;
+      });
     }
 
     return result;
@@ -434,7 +478,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     workLogList = await _db.getDateAllWorkLogs();
     setState(() {
       if (workLogList != null && workLogList.isNotEmpty) {
-        List<Widget> dbList = List();
+        List<Widget> dbList = <Widget>[];
 
         for (WorkLog workLog in workLogList) {
           _log.fine("Loaded from DB: ${workLog.exercise.toString()}");
@@ -446,7 +490,7 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
       // this is needed to refresh state even if there is no entries
       // if not artifacts from different bodyPart will appear
       else {
-        _wList = List();
+        _wList = [];
       }
       _wList.add(Card(
         child: Container(),

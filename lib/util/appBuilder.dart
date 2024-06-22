@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 class AppBuilder extends StatefulWidget {
   final Function(BuildContext) builder;
 
-  const AppBuilder({Key key, this.builder}) : super(key: key);
+  const AppBuilder({required this.builder});
 
   @override
   AppBuilderState createState() => new AppBuilderState();
 
   // return AppBuilder of given context so rebuild can be called
-  static AppBuilderState of(BuildContext context) {
-    return context.ancestorStateOfType(const TypeMatcher<AppBuilderState>());
+  static AppBuilderState? of(BuildContext context) {
+    return context.findAncestorStateOfType<AppBuilderState>();
   }
 }
 
