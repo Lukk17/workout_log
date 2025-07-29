@@ -3,10 +3,10 @@ description: Save workouts logs !
 
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
-version: 1.2.2+7
+version: 1.2.3+8
 
 environment:
-  sdk: '>=2.18.5 <4.0.0'
+  sdk: '>=3.8.0 <4.0.0'
 
 dependencies:
   flutter:
