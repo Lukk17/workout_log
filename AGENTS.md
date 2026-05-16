@@ -51,8 +51,23 @@ Use multiline prompts when you need to include logs or detailed context with a c
 
 ## What This Repo Is
 
-<!-- Describe your project here -->
+`workout_log` is a Flutter mobile application (Android-first, iOS-capable) for logging gym workouts — exercises, body parts, sets, reps, and dates. It is published on the Google Play Store (`com.lukk.workoutlog`). Single-app repo, owned by Łukasz Sarna. Current version `1.2.3+8` (see `pubspec.yaml`).
 
 ## Architecture
 
-<!-- Describe key architectural decisions, patterns, and constraints here -->
+- **Framework**: Flutter (Dart SDK `>=3.8.0 <4.0.0`), Material Design.
+- **State management**: Riverpod (`flutter_riverpod` 3.x). `ProviderScope` at the root; pages are `ConsumerWidget` / `ConsumerStatefulWidget`. Static mutable shared state is forbidden — themes, the selected date, and async data flow through providers.
+- **Layout under `lib/`**:
+  - `data/db/` — `DBProvider` (sqflite DAO).
+  - `domain/models/` — freezed immutable value types (`Exercise`, `WorkLog`, `BodyPart`) with generated `*.freezed.dart` + `*.g.dart`.
+  - `presentation/providers/` — Riverpod providers (`theme_providers`, `selected_date_provider`, `data_providers`).
+  - `presentation/theme/` — `WorkoutColors` `ThemeExtension`, `lightTheme` / `darkTheme`.
+  - `presentation/widgets/` — shared widgets (`ResponsiveScaffold`, `ResponsiveDimensions`).
+  - `view/` — page widgets (kept at `view/` for now; pending a rename pass to `presentation/pages/*_snake.dart`).
+  - `util/util.dart` — screen-size + orientation + date-formatter helpers.
+  - `main.dart` — bootstrap (`runApp(ProviderScope(child: MyApp()))`).
+- **Persistence**: local-only — `sqflite` for workouts, `shared_preferences` for theme + background-image prefs, `path_provider` for backup file paths. No backend; no network deps.
+- **Codegen**: `build_runner` 2.15 driving `freezed` 3.x + `json_serializable` 6.14. Regenerate with `dart run build_runner build`.
+- **Key packages**: `flutter_riverpod`, `freezed_annotation`, `table_calendar`, `flutter_slidable`, `intl`, `uuid`, `logging`. Test: `sqflite_common_ffi` for on-host DB tests.
+- **Deploy target**: Android (signed AAB to Play Store). iOS configured but not actively published.
+- **Constraints**: offline-first (no network layer), single-developer project, conventions enforced via skills in `.agents/skills/` and the OpenSpec workflow for non-trivial changes.
