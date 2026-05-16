@@ -8,27 +8,27 @@ import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
-import 'exerciseManipulationView.dart';
+import 'exercise_form_page.dart';
 
 /// This is most detailed view for each WorkLog.
 ///
 /// In Tab bar there is body part name and date.
 /// Main view have name of exercise,
 /// below it series and repeats in each series shown as table.
-class ExerciseView extends ConsumerStatefulWidget {
+class ExerciseDetailPage extends ConsumerStatefulWidget {
   final WorkLog workLog;
 
-  const ExerciseView({super.key, required this.workLog});
+  const ExerciseDetailPage({super.key, required this.workLog});
 
   @override
-  ConsumerState<ExerciseView> createState() => _ExerciseView();
+  ConsumerState<ExerciseDetailPage> createState() => _ExerciseDetailPageState();
 }
 
-class _ExerciseView extends ConsumerState<ExerciseView> {
+class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   DBProvider get _db => ref.read(dbProvider);
-  final Logger _log = Logger("ExerciseView");
+  final Logger _log = Logger("ExerciseDetailPage");
 
   late double _screenHeight;
   late double _screenWidth;
@@ -111,7 +111,7 @@ class _ExerciseView extends ConsumerState<ExerciseView> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            ExerciseManipulationView(
+                            ExerciseFormPage(
                               exercise: widget.workLog.exercise,
                             )));
               },

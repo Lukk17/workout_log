@@ -9,7 +9,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
 /// Raised when external (shared) storage is not available on the device,
 /// so backup/restore cannot read or write the backup file.

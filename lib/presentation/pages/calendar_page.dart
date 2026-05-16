@@ -4,24 +4,24 @@ import 'package:logging/logging.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
 DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
-class CalendarView extends ConsumerStatefulWidget {
+class CalendarPage extends ConsumerStatefulWidget {
   final Function(Widget) callback;
   final Orientation screenOrientation;
 
-  const CalendarView(this.callback, this.screenOrientation, {super.key});
+  const CalendarPage(this.callback, this.screenOrientation, {super.key});
 
   @override
-  ConsumerState<CalendarView> createState() => _CalendarViewState();
+  ConsumerState<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarViewState extends ConsumerState<CalendarView> {
+class _CalendarPageState extends ConsumerState<CalendarPage> {
   late DateTime _selected;
 
-  final Logger _log = Logger('CalendarView');
+  final Logger _log = Logger('CalendarPage');
 
   double _screenHeight = 0;
   double _screenWidth = 0;

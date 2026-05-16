@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/domain/models/exercise.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
 part 'work_log.freezed.dart';
 part 'work_log.g.dart';

@@ -5,16 +5,16 @@ import 'package:workout_log/data/db/db_provider.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
-class BackupView extends ConsumerStatefulWidget {
-  const BackupView({super.key});
+class BackupPage extends ConsumerStatefulWidget {
+  const BackupPage({super.key});
 
   @override
-  ConsumerState<BackupView> createState() => _BackupViewState();
+  ConsumerState<BackupPage> createState() => _BackupPageState();
 }
 
-class _BackupViewState extends ConsumerState<BackupView> {
+class _BackupPageState extends ConsumerState<BackupPage> {
   final Logger _log = Logger('backupView');
 
   double _screenHeight = 100;

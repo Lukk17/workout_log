@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/view/exerciseManipulationView.dart';
+import 'package:workout_log/presentation/pages/exercise_form_page.dart';
 
-class ExerciseListView extends ConsumerWidget {
-  const ExerciseListView({super.key});
+class ExerciseListPage extends ConsumerWidget {
+  const ExerciseListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +37,7 @@ class ExerciseListView extends ConsumerWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          ExerciseManipulationView(exercise: e)),
+                          ExerciseFormPage(exercise: e)),
                 );
                 ref.invalidate(exercisesProvider);
               },

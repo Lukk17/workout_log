@@ -107,7 +107,7 @@ void main() {
   });
 
   group('date-filtered queries', () {
-    test('getDateAllWorkLogs returns only entries created on HelloWorldView.date', () async {
+    test('getDateAllWorkLogs returns only entries created on HomePage.date', () async {
       final pushUp = (await DBProvider.db.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
 

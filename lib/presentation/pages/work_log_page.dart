@@ -8,20 +8,20 @@ import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
-import 'package:workout_log/view/exerciseManipulationView.dart';
-import 'package:workout_log/view/exerciseView.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/pages/exercise_form_page.dart';
+import 'package:workout_log/presentation/pages/exercise_detail_page.dart';
 
 /// Main WorkLog view — shows the selected date and its workouts.
-class WorkLogPageView extends ConsumerStatefulWidget {
-  const WorkLogPageView({super.key});
+class WorkLogPage extends ConsumerStatefulWidget {
+  const WorkLogPage({super.key});
 
   @override
-  ConsumerState<WorkLogPageView> createState() => _WorkLogPageViewState();
+  ConsumerState<WorkLogPage> createState() => _WorkLogPageState();
 }
 
-class _WorkLogPageViewState extends ConsumerState<WorkLogPageView> {
-  final Logger _log = Logger('WorkLogPageView');
+class _WorkLogPageState extends ConsumerState<WorkLogPage> {
+  final Logger _log = Logger('WorkLogPage');
 
   bool _isPortraitOrientation = false;
   double _screenHeight = 0;
@@ -197,7 +197,7 @@ class _WorkLogPageViewState extends ConsumerState<WorkLogPageView> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ExerciseView(workLog: workLog)),
+                    builder: (context) => ExerciseDetailPage(workLog: workLog)),
               );
               if (!mounted) return;
               _invalidateWorkLogs();
@@ -292,7 +292,7 @@ class _WorkLogPageViewState extends ConsumerState<WorkLogPageView> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const ExerciseManipulationView(
+                              builder: (_) => const ExerciseFormPage(
                                     exercise: null,
                                   )),
                         );

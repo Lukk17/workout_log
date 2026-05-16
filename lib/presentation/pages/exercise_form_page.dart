@@ -8,19 +8,19 @@ import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
 
-class ExerciseManipulationView extends ConsumerStatefulWidget {
+class ExerciseFormPage extends ConsumerStatefulWidget {
   final Exercise? exercise;
 
-  const ExerciseManipulationView({super.key, required this.exercise});
+  const ExerciseFormPage({super.key, required this.exercise});
 
   @override
-  ConsumerState<ExerciseManipulationView> createState() => _ExerciseManipulationView();
+  ConsumerState<ExerciseFormPage> createState() => _ExerciseFormPageState();
 }
 
-class _ExerciseManipulationView extends ConsumerState<ExerciseManipulationView> {
-  final Logger _log = Logger("ExerciseManipulationView");
+class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
+  final Logger _log = Logger("ExerciseFormPage");
 
   final Set<BodyPart> _primaryBodyParts = <BodyPart>{};
   List<Widget> _primaryBodyPartsList = <Widget>[];

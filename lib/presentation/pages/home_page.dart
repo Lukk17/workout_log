@@ -3,28 +3,28 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/main.dart';
+import 'package:workout_log/presentation/app.dart';
 import 'package:workout_log/presentation/providers/theme_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/util/util.dart';
-import 'package:workout_log/view/backupView.dart';
-import 'package:workout_log/view/calendarView.dart';
-import 'package:workout_log/view/exerciseListView.dart';
-import 'package:workout_log/view/workLogPageView.dart';
+import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/pages/backup_page.dart';
+import 'package:workout_log/presentation/pages/calendar_page.dart';
+import 'package:workout_log/presentation/pages/exercise_list_page.dart';
+import 'package:workout_log/presentation/pages/work_log_page.dart';
 
 /// Main page of application.
-class HelloWorldView extends ConsumerStatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   final Function(Widget) callback;
 
-  const HelloWorldView({super.key, required this.callback});
+  const HomePage({super.key, required this.callback});
 
   @override
-  ConsumerState<HelloWorldView> createState() => _HelloWorldViewState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HelloWorldViewState extends ConsumerState<HelloWorldView>
+class _HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
-  final Logger _log = Logger('HelloWorldView');
+  final Logger _log = Logger('HomePage');
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -156,7 +156,7 @@ class _HelloWorldViewState extends ConsumerState<HelloWorldView>
         child: TabBarView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _tabController,
-          children: const [WorkLogPageView()],
+          children: const [WorkLogPage()],
         ),
       ),
     );
@@ -167,7 +167,7 @@ class _HelloWorldViewState extends ConsumerState<HelloWorldView>
       context: context,
       builder: (context) => SimpleDialog(
         children: <Widget>[
-          CalendarView((widget) => {}, _screenOrientation!),
+          CalendarPage((widget) => {}, _screenOrientation!),
         ],
       ),
     );
@@ -248,7 +248,7 @@ class _HelloWorldViewState extends ConsumerState<HelloWorldView>
                   onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const BackupView())),
+                          builder: (context) => const BackupPage())),
                 ),
                 SizedBox(
                   height: _screenHeight * (_isPortraitOrientation ? 0.2 : 0.1),
@@ -265,7 +265,7 @@ class _HelloWorldViewState extends ConsumerState<HelloWorldView>
                   onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const ExerciseListView())),
+                          builder: (context) => const ExerciseListPage())),
                 ),
               ],
             ),
