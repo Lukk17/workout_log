@@ -1,86 +1,122 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/dbProvider.dart';
+import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/presentation/providers/data_providers.dart';
+import 'package:workout_log/presentation/providers/selected_date_provider.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
 
-class BackupView extends StatefulWidget {
+class BackupView extends ConsumerStatefulWidget {
+  const BackupView({super.key});
+
   @override
-  _BackupViewState createState() => _BackupViewState();
+  ConsumerState<BackupView> createState() => _BackupViewState();
 }
 
-class _BackupViewState extends State<BackupView> {
-  final Logger _log = new Logger("backupView");
-  final DBProvider _db = DBProvider.db;
+class _BackupViewState extends ConsumerState<BackupView> {
+  final Logger _log = Logger('backupView');
 
-  double _screenHeight=100;
+  double _screenHeight = 100;
   bool _isPortraitOrientation = false;
 
-  double _appBarHeightPortrait =30;
-  double _appBarHeightLandscape =30;
+  double _appBarHeightPortrait = 30;
+  double _appBarHeightLandscape = 30;
 
   void setupDimensions() {
-    _getScreenHeight();
-
+    _screenHeight = Util.getScreenHeight(context);
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
     return OrientationBuilder(builder: (context, orientation) {
-      /// check if new orientation is portrait
-      /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
-
       setupDimensions();
 
       return Scaffold(
-          appBar: PreferredSize(
-            preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
-            child: AppBar(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text("Backup"),
-                  ],
-                ),
-                backgroundColor: AppThemeSettings.appBarColor),
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(_isPortraitOrientation
+              ? _appBarHeightPortrait
+              : _appBarHeightLandscape),
+          child: AppBar(
+            title: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[Text('Backup')],
+            ),
+            backgroundColor: colors.appBarColor,
           ),
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Center(
-                child: Text("Make sure to put backup file under: \n Android/data/com.lukk.workoutlog/files/\n"
-                    " and name it: backup.json\n"),
-              ),
-              MaterialButton(
-                color: AppThemeSettings.buttonColor,
-                child: Text(
-                  "Import backup",
-                  style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            const Center(
+              child: Text(
+                  'Make sure to put backup file under: \n Android/data/com.lukk.workoutlog/files/\n'
+                  ' and name it: backup.json\n'),
+            ),
+            MaterialButton(
+              color: colors.buttonColor,
+              child: Text(
+                'Import backup',
+                style: TextStyle(
+                  color: colors.buttonTextColor,
+                  fontSize: WorkoutTypography.fontSize,
                 ),
-                onPressed: () => {_log.fine("Restoring from backup..."), _db.restore()},
               ),
-              Util.spacerSelectable(top: _screenHeight * 0.25, bottom: 0, left: 0, right: 0),
-              Center(
-                child: Text("Backup will be created inside:\n Android/data/com.lukk.workoutlog/files/backup.json \n"),
-              ),
-              MaterialButton(
-                color: AppThemeSettings.buttonColor,
-                child: Text(
-                  "Create backup",
-                  style: TextStyle(color: AppThemeSettings.buttonTextColor, fontSize: AppThemeSettings.fontSize),
+              onPressed: _restore,
+            ),
+            SizedBox(height: _screenHeight * 0.25),
+            const Center(
+              child: Text(
+                  'Backup will be created inside:\n Android/data/com.lukk.workoutlog/files/backup.json \n'),
+            ),
+            MaterialButton(
+              color: colors.buttonColor,
+              child: Text(
+                'Create backup',
+                style: TextStyle(
+                  color: colors.buttonTextColor,
+                  fontSize: WorkoutTypography.fontSize,
                 ),
-                onPressed: () => {_log.fine("Creating backup..."), _db.backup()},
               ),
-            ],
-          ));
+              onPressed: _backup,
+            ),
+          ],
+        ),
+      );
     });
   }
 
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
+  Future<void> _backup() async {
+    _log.fine('Creating backup...');
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(dbProvider).backup();
+      if (!mounted) return;
+      messenger.showSnackBar(const SnackBar(content: Text('Backup created.')));
+    } on ExternalStorageUnavailableException catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Backup failed: $e')));
+    }
+  }
+
+  Future<void> _restore() async {
+    _log.fine('Restoring from backup...');
+    final messenger = ScaffoldMessenger.of(context);
+    final selectedDate = ref.read(selectedDateProvider);
+    try {
+      await ref.read(dbProvider).restore();
+      if (!mounted) return;
+      ref.invalidate(exercisesProvider);
+      ref.invalidate(workLogsByDateProvider(selectedDate));
+      messenger.showSnackBar(const SnackBar(content: Text('Backup restored.')));
+    } on ExternalStorageUnavailableException catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+    }
   }
 }

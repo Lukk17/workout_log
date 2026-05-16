@@ -1,48 +1,34 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/appBuilder.dart';
+import 'package:workout_log/main.dart';
+import 'package:workout_log/presentation/providers/theme_providers.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
 import 'package:workout_log/view/backupView.dart';
 import 'package:workout_log/view/calendarView.dart';
+import 'package:workout_log/view/exerciseListView.dart';
 import 'package:workout_log/view/workLogPageView.dart';
 
-import '../main.dart';
-import 'exerciseListView.dart';
-
 /// Main page of application.
-///
-/// Contains links to settings, calendar, workLogs and timer.
-class HelloWorldView extends StatefulWidget {
-  // This widget is the home page of your application.
-  // Fields in a Widget subclass are always marked "final".
-  static DateTime date = DateTime.now();
+class HelloWorldView extends ConsumerStatefulWidget {
   final Function(Widget) callback;
 
-  HelloWorldView({required this.callback});
+  const HelloWorldView({super.key, required this.callback});
 
-  // override to manually creates private (starting with _ ) subclass
-  // to update state of counter widget
   @override
-  _HelloWorldViewState createState() => _HelloWorldViewState();
+  ConsumerState<HelloWorldView> createState() => _HelloWorldViewState();
 }
 
-class _HelloWorldViewState extends State<HelloWorldView>
+class _HelloWorldViewState extends ConsumerState<HelloWorldView>
     with TickerProviderStateMixin {
-  final Logger _log = new Logger("HelloWorldView");
+  final Logger _log = Logger('HelloWorldView');
 
-  static const String BACKGROUND_IMAGE = "backgroundImage";
-  static const String IS_DARK = "isDark";
-
-  //  creating key to change drawer icon
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late TabController _tabController;
-  late SharedPreferences _prefs;
-  bool _backgroundImage = true;
 
   Orientation? _screenOrientation;
   late bool _isPortraitOrientation;
@@ -54,11 +40,9 @@ class _HelloWorldViewState extends State<HelloWorldView>
   late double titleFontSizePortrait;
   late double titleFontSizeLandscape;
 
-  BuildContext? helloContext;
-
   void setupDimensions() {
-    _getScreenHeight();
-    _getScreenWidth();
+    _screenHeight = Util.getScreenHeight(context);
+    _screenWidth = Util.getScreenWidth(context);
 
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
@@ -69,20 +53,21 @@ class _HelloWorldViewState extends State<HelloWorldView>
   @override
   void initState() {
     super.initState();
-    _tabController = new TabController(length: 1, vsync: this);
-    _getPrefs();
+    _tabController = TabController(length: 1, vsync: this);
+    _log.fine('started');
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
     return OrientationBuilder(builder: (context, orientation) {
       _isPortraitOrientation = orientation == Orientation.portrait;
-
       _screenOrientation = orientation;
-      helloContext = context;
-
       setupDimensions();
 
       return Scaffold(
@@ -96,54 +81,40 @@ class _HelloWorldViewState extends State<HelloWorldView>
   }
 
   PreferredSize _createAppBar() {
+    final colors = WorkoutColors.of(context);
     return PreferredSize(
       preferredSize: Size.fromHeight(_isPortraitOrientation
           ? _appBarHeightPortrait
           : _appBarHeightLandscape),
       child: AppBar(
-        //  changing drawer icon
-        leading: new IconButton(
-            icon: new Icon(
-              Icons.settings,
-              color: AppThemeSettings.titleColor,
-            ),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer()),
-
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(
-          MyApp.TITLE,
-          style: TextStyle(
-              color: AppThemeSettings.titleColor,
-              fontSize: _isPortraitOrientation
-                  ? titleFontSizePortrait
-                  : titleFontSizeLandscape),
+        leading: IconButton(
+          icon: Icon(Icons.settings, color: colors.titleColor),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        backgroundColor: AppThemeSettings.appBarColor,
-        centerTitle: _isPortraitOrientation ? false : true,
+        title: Text(
+          MyApp.title,
+          style: TextStyle(
+            color: colors.titleColor,
+            fontSize: _isPortraitOrientation
+                ? titleFontSizePortrait
+                : titleFontSizeLandscape,
+          ),
+        ),
+        backgroundColor: colors.appBarColor,
+        centerTitle: !_isPortraitOrientation,
         actions: <Widget>[
           MaterialButton(
-            padding: EdgeInsets.all(5),
-            onPressed: () async => {
-              await _openCalendar(),
-            },
+            padding: const EdgeInsets.all(5),
+            onPressed: () async => _openCalendar(),
             child: _isPortraitOrientation
                 ? Column(
                     children: <Widget>[
-                      Icon(
-                        Icons.calendar_today,
-                        color: AppThemeSettings.titleColor,
-                      ),
-                      Text(
-                        "Calendar",
-                        style: TextStyle(color: AppThemeSettings.titleColor),
-                      ),
+                      Icon(Icons.calendar_today, color: colors.titleColor),
+                      Text('Calendar',
+                          style: TextStyle(color: colors.titleColor)),
                     ],
                   )
-                : Icon(
-                    Icons.calendar_today,
-                    color: AppThemeSettings.iconColor,
-                  ),
+                : Icon(Icons.calendar_today, color: colors.iconColor),
           ),
         ],
       ),
@@ -151,170 +122,150 @@ class _HelloWorldViewState extends State<HelloWorldView>
   }
 
   Widget _createTabBar() {
+    final colors = WorkoutColors.of(context);
     return Container(
-      color: AppThemeSettings.backgroundColor,
+      color: colors.backgroundColor,
       child: TabBar(
-        indicatorColor: AppThemeSettings.indicatorColor,
-        labelColor: AppThemeSettings.tabBarColor,
+        indicatorColor: colors.indicatorColor,
+        labelColor: colors.tabBarColor,
         controller: _tabController,
         tabs: <Widget>[
           Tab(
-            text: _isPortraitOrientation ? "log" : null,
-            icon: Icon(
-              Icons.assignment,
-              color: AppThemeSettings.tabBarIconColor,
-            ),
+            text: _isPortraitOrientation ? 'log' : null,
+            icon: Icon(Icons.assignment, color: colors.tabBarIconColor),
           ),
-          //          Tab(
-          //            text: (screenOrientation == Orientation.portrait) ? "timer" : null,
-          //            icon: Icon(Icons.timer),
-          //          ),
-          //          Tab(
-          //            text: (screenOrientation == Orientation.portrait)
-          //                ? "statistic"
-          //                : null,
-          //            icon: Icon(Icons.assessment),
-          //          ),
         ],
       ),
     );
   }
 
   Widget _createBody() {
+    final colors = WorkoutColors.of(context);
+    final showBackground = ref.watch(backgroundImageProvider);
     return Container(
-      decoration: _backgroundImage
+      decoration: showBackground
           ? BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(AppThemeSettings.background),
+                image: AssetImage(colors.backgroundImage),
                 fit: BoxFit.fitHeight,
               ),
             )
-          : BoxDecoration(),
+          : const BoxDecoration(),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
         child: TabBarView(
-            // disable scrolling tabView by dragging
-            physics: NeverScrollableScrollPhysics(),
-            controller: _tabController,
-            children: [
-              // calling builder to get callback (Widget)
-              WorkLogPageView((widget) => {}, HelloWorldView.date),
-              //              TimerView((widget) => {}),
-              //          Center(),
-            ]),
+          physics: const NeverScrollableScrollPhysics(),
+          controller: _tabController,
+          children: const [WorkLogPageView()],
+        ),
       ),
     );
   }
 
-  /// async to wait for dialog close and refresh state
-  _openCalendar() async {
+  Future<void> _openCalendar() async {
     await showDialog(
       context: context,
       builder: (context) => SimpleDialog(
         children: <Widget>[
-          //  send screen orientation to dialog creator
           CalendarView((widget) => {}, _screenOrientation!),
         ],
       ),
     );
-    _rebuildApp();
   }
 
-  _openSettings() {
+  Widget _openSettings() {
+    final colors = WorkoutColors.of(context);
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
+    final showBackground = ref.watch(backgroundImageProvider);
     return Drawer(
       child: Container(
-        color: AppThemeSettings.drawerColor,
+        color: colors.drawerColor,
         child: ListView(
           children: <Widget>[
             Center(
               child: Text(
-                "Settings",
+                'Settings',
                 style: TextStyle(
-                    color: AppThemeSettings.textColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: AppThemeSettings.headerSize),
+                  color: colors.textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: WorkoutTypography.headerSize,
+                ),
               ),
             ),
-            _isPortraitOrientation
-                ? Util.spacerSelectable(
-                    top: _screenHeight * 0.2, bottom: 0, left: 0, right: 0)
-                : Util.spacerSelectable(
-                    top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
+            SizedBox(
+              height: _screenHeight * (_isPortraitOrientation ? 0.2 : 0.1),
+            ),
             Column(
               children: <Widget>[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      "Dark mode:",
+                      'Dark mode:',
                       style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize,
+                        color: colors.textColor,
+                        fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     Switch(
-                        value: AppThemeSettings.theme == ThemeData.dark(),
-                        onChanged: (isDark) => _changeTheme(isDark))
+                      value: isDark,
+                      onChanged: (value) =>
+                          ref.read(themeModeProvider.notifier).toggle(value),
+                    ),
                   ],
                 ),
-                _isPortraitOrientation
-                    ? Util.spacerSelectable(
-                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0)
-                    : Util.spacerSelectable(
-                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
+                SizedBox(height: _screenHeight * 0.1),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      "Background image:",
+                      'Background image:',
                       style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize,
+                        color: colors.textColor,
+                        fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     Switch(
-                        value: _backgroundImage,
-                        onChanged: (isImage) => _changeBackground(isImage))
+                      value: showBackground,
+                      onChanged: (value) => ref
+                          .read(backgroundImageProvider.notifier)
+                          .set(value),
+                    ),
                   ],
                 ),
-                _isPortraitOrientation
-                    ? Util.spacerSelectable(
-                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0)
-                    : Util.spacerSelectable(
-                        top: _screenHeight * 0.05,
-                        bottom: 0,
-                        left: 0,
-                        right: 0),
-                MaterialButton(
-                  color: AppThemeSettings.buttonColor,
-                  child: Text(
-                    "Backup",
-                    style: TextStyle(
-                        color: AppThemeSettings.buttonTextColor,
-                        fontSize: AppThemeSettings.fontSize),
-                  ),
-                  onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => BackupView()))
-                      .then((_) => _rebuildApp()),
+                SizedBox(
+                  height: _screenHeight * (_isPortraitOrientation ? 0.1 : 0.05),
                 ),
-                _isPortraitOrientation
-                    ? Util.spacerSelectable(
-                        top: _screenHeight * 0.2, bottom: 0, left: 0, right: 0)
-                    : Util.spacerSelectable(
-                        top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
                 MaterialButton(
-                  color: AppThemeSettings.buttonColor,
+                  color: colors.buttonColor,
                   child: Text(
-                    "Edit Exercises",
+                    'Backup',
                     style: TextStyle(
-                        color: AppThemeSettings.buttonTextColor,
-                        fontSize: AppThemeSettings.fontSize),
+                      color: colors.buttonTextColor,
+                      fontSize: WorkoutTypography.fontSize,
+                    ),
                   ),
                   onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ExerciseListView()))
-                      .then((_) => _rebuildApp()),
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BackupView())),
+                ),
+                SizedBox(
+                  height: _screenHeight * (_isPortraitOrientation ? 0.2 : 0.1),
+                ),
+                MaterialButton(
+                  color: colors.buttonColor,
+                  child: Text(
+                    'Edit Exercises',
+                    style: TextStyle(
+                      color: colors.buttonTextColor,
+                      fontSize: WorkoutTypography.fontSize,
+                    ),
+                  ),
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ExerciseListView())),
                 ),
               ],
             ),
@@ -322,68 +273,5 @@ class _HelloWorldViewState extends State<HelloWorldView>
         ),
       ),
     );
-  }
-
-  _changeBackground(bool isImage) {
-    _log.fine("Background image: $isImage");
-
-    if (isImage) {
-      _backgroundImage = true;
-      _prefs.setBool(BACKGROUND_IMAGE, true);
-    } else {
-      _backgroundImage = false;
-      _prefs.setBool(BACKGROUND_IMAGE, false);
-    }
-    _rebuildApp();
-  }
-
-  _changeTheme(bool isDark) async {
-    _log.fine("Dark theme: $isDark");
-
-    _prefs = await SharedPreferences.getInstance();
-
-    if (isDark) {
-      _prefs.setBool(IS_DARK, true);
-      AppThemeSettings.theme = AppThemeSettings.themeD;
-    } else {
-      _prefs.setBool(IS_DARK, false);
-      AppThemeSettings.theme = AppThemeSettings.themeL;
-    }
-    _rebuildApp();
-  }
-
-  void _getPrefs() async {
-    _prefs = await SharedPreferences.getInstance();
-
-    Set<String> prefKeys = _prefs.getKeys();
-
-    if (prefKeys.contains(BACKGROUND_IMAGE)) {
-      _backgroundImage = _prefs.getBool(BACKGROUND_IMAGE)!;
-    } else {
-      _backgroundImage = true;
-      _prefs.setBool(BACKGROUND_IMAGE, true);
-    }
-
-    if (prefKeys.contains(IS_DARK)) {
-      _changeTheme(_prefs.getBool(IS_DARK)!);
-    } else {
-      _prefs.setBool(IS_DARK, true);
-    }
-    _log.fine(
-        "Shared Preference: backgroundImage: ${_prefs.get(BACKGROUND_IMAGE)}, isDark: ${_prefs.getBool(IS_DARK)}");
-  }
-
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
-  }
-
-  _rebuildApp() {
-    _log.fine("App rebuilded");
-    Util.rebuild = true;
-    AppBuilder.of(context)?.rebuild();
   }
 }

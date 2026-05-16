@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/dbProvider.dart';
+import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/domain/models/body_part.dart';
+import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/providers/data_providers.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
 
 import 'exerciseManipulationView.dart';
@@ -15,19 +17,18 @@ import 'exerciseManipulationView.dart';
 /// In Tab bar there is body part name and date.
 /// Main view have name of exercise,
 /// below it series and repeats in each series shown as table.
-class ExerciseView extends StatefulWidget {
+class ExerciseView extends ConsumerStatefulWidget {
   final WorkLog workLog;
 
-  ExerciseView({required this.workLog});
+  const ExerciseView({super.key, required this.workLog});
 
   @override
-  State<StatefulWidget> createState() => _ExerciseView();
-
+  ConsumerState<ExerciseView> createState() => _ExerciseView();
 }
 
-class _ExerciseView extends State<ExerciseView> {
-  final DBProvider _db = DBProvider.db;
-  final Logger _log = new Logger("ExerciseView");
+class _ExerciseView extends ConsumerState<ExerciseView> {
+  DBProvider get _db => ref.read(dbProvider);
+  final Logger _log = Logger("ExerciseView");
 
   late double _screenHeight;
   late double _screenWidth;
@@ -94,12 +95,12 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       widget.workLog.created.toIso8601String().substring(0, 10),
                       textAlign: TextAlign.end,
-                      style: TextStyle(color: AppThemeSettings.titleColor),
+                      style: TextStyle(color: WorkoutColors.of(context).titleColor),
                     ),
                   ),
                 ],
               ),
-              backgroundColor: AppThemeSettings.appBarColor),),
+              backgroundColor: WorkoutColors.of(context).appBarColor),),
         body: Column(
           children: <Widget>[
 
@@ -124,8 +125,8 @@ class _ExerciseView extends State<ExerciseView> {
                   widget.workLog.exercise.name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppThemeSettings.textColor,
-                    fontSize: AppThemeSettings.headerSize,
+                    color: WorkoutColors.of(context).textColor,
+                    fontSize: WorkoutTypography.headerSize,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -150,8 +151,8 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "series",
                     style: TextStyle(
-                      color: AppThemeSettings.textColor,
-                      fontSize: AppThemeSettings.fontSize,
+                      color: WorkoutColors.of(context).textColor,
+                      fontSize: WorkoutTypography.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -166,8 +167,8 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "load",
                     style: TextStyle(
-                      color: AppThemeSettings.textColor,
-                      fontSize: AppThemeSettings.fontSize,
+                      color: WorkoutColors.of(context).textColor,
+                      fontSize: WorkoutTypography.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -182,8 +183,8 @@ class _ExerciseView extends State<ExerciseView> {
                   child: Text(
                     "repeats",
                     style: TextStyle(
-                      color: AppThemeSettings.textColor,
-                      fontSize: AppThemeSettings.fontSize,
+                      color: WorkoutColors.of(context).textColor,
+                      fontSize: WorkoutTypography.fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -191,7 +192,7 @@ class _ExerciseView extends State<ExerciseView> {
               ],
             ),
 
-            Util.addHorizontalLine(screenWidth: _screenWidth),
+            Divider(indent: _screenWidth * 0.05, endIndent: _screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
 
             /// list view builder create series
             Expanded(
@@ -213,9 +214,9 @@ class _ExerciseView extends State<ExerciseView> {
 
           // open pop-up on button press to add new exercise
           onPressed: () => _addSeriesToWorkLog(),
-          child: Icon(Icons.add, color: AppThemeSettings.buttonTextColor),
-          backgroundColor: AppThemeSettings.buttonColor,
-          foregroundColor: AppThemeSettings.secondaryColor,
+          child: Icon(Icons.add, color: WorkoutColors.of(context).buttonTextColor),
+          backgroundColor: WorkoutColors.of(context).buttonColor,
+          foregroundColor: WorkoutColors.of(context).secondaryColor,
         ),
       );
     });
@@ -311,8 +312,8 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       i.toString(),
                       style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize,
+                        color: WorkoutColors.of(context).textColor,
+                        fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                   ),
@@ -327,8 +328,8 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       widget.workLog.getLoad(keys[i]),
                       style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize,
+                        color: WorkoutColors.of(context).textColor,
+                        fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     onPressed: () {
@@ -353,8 +354,8 @@ class _ExerciseView extends State<ExerciseView> {
                     child: Text(
                       widget.workLog.getReps(keys[i]),
                       style: TextStyle(
-                        color: AppThemeSettings.textColor,
-                        fontSize: AppThemeSettings.fontSize,
+                        color: WorkoutColors.of(context).textColor,
+                        fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     onPressed: () {
@@ -373,7 +374,7 @@ class _ExerciseView extends State<ExerciseView> {
             ),
           ),);
       wList.add(
-        Util.addHorizontalLine(screenWidth: _screenWidth),
+        Divider(indent: _screenWidth * 0.05, endIndent: _screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
       );
     }
 
@@ -402,7 +403,7 @@ class _ExerciseView extends State<ExerciseView> {
 
   /// shows dialog for editing repeats number
   Future _editRepeatsDialog(WorkLog workLog, String set) {
-    TextEditingController textEditingController = Util.textController();
+    final textEditingController = TextEditingController();
 
     Util.blockOrientation(_isPortraitOrientation);
 
@@ -427,11 +428,11 @@ class _ExerciseView extends State<ExerciseView> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             MaterialButton(
-                color: AppThemeSettings.greenButtonColor,
+                color: WorkoutColors.of(context).greenButtonColor,
                 child: Text(
                   'SAVE',
                   style: TextStyle(
-                      color: AppThemeSettings.buttonTextColor),
+                      color: WorkoutColors.of(context).buttonTextColor),
                 ),
                 onPressed: () async {
                   ///  set repeat number of this set
@@ -448,11 +449,11 @@ class _ExerciseView extends State<ExerciseView> {
                   Navigator.pop(context);
                 }),
             MaterialButton(
-                color: AppThemeSettings.cancelButtonColor,
+                color: WorkoutColors.of(context).cancelButtonColor,
                 child: Text(
                   'CANCEL',
                   style: TextStyle(
-                      color: AppThemeSettings.buttonTextColor),
+                      color: WorkoutColors.of(context).buttonTextColor),
                 ),
                 onPressed: () {
                   Navigator.pop(context);
@@ -465,7 +466,7 @@ class _ExerciseView extends State<ExerciseView> {
 
   /// shows dialog for editing load value
   Future _editLoadDialog(WorkLog workLog, String set) {
-    TextEditingController textEditingController = Util.textController();
+    final textEditingController = TextEditingController();
 
     Util.blockOrientation(_isPortraitOrientation);
 
@@ -490,11 +491,11 @@ class _ExerciseView extends State<ExerciseView> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             MaterialButton(
-                color: AppThemeSettings.greenButtonColor,
+                color: WorkoutColors.of(context).greenButtonColor,
                 child: Text(
                   'SAVE',
                   style: TextStyle(
-                      color: AppThemeSettings.buttonTextColor),
+                      color: WorkoutColors.of(context).buttonTextColor),
                 ),
                 onPressed: () async {
                   ///  set load value of this set
@@ -509,11 +510,11 @@ class _ExerciseView extends State<ExerciseView> {
                   Navigator.pop(context);
                 }),
             MaterialButton(
-                color: AppThemeSettings.cancelButtonColor,
+                color: WorkoutColors.of(context).cancelButtonColor,
                 child: Text(
                   'CANCEL',
                   style: TextStyle(
-                      color: AppThemeSettings.buttonTextColor),
+                      color: WorkoutColors.of(context).buttonTextColor),
                 ),
                 onPressed: () {
                   Navigator.pop(context);
@@ -591,9 +592,19 @@ class _ExerciseView extends State<ExerciseView> {
           };
     });
 
-    widget.workLog.series = updatedSeries;
-    widget.workLog.load = updatedLoad;
-    await _db.updateWorkLog(widget.workLog);
+    final rebuilt = widget.workLog.copyWith(
+      series: updatedSeries.map((k, v) => MapEntry(k.toString(), v.toString())),
+      load: updatedLoad.map((k, v) => MapEntry(k.toString(), v.toString())),
+    );
+    await _db.updateWorkLog(rebuilt);
+    // Mutate the field maps in place so the existing widget reference keeps
+    // showing the new values until the parent route refetches.
+    widget.workLog.series
+      ..clear()
+      ..addAll(rebuilt.series);
+    widget.workLog.load
+      ..clear()
+      ..addAll(rebuilt.load);
     setState(() {});
 
     _log.fine("Series number $i deleted from ${widget.workLog.toString()}");
@@ -611,16 +622,16 @@ class _ExerciseView extends State<ExerciseView> {
   List<Widget> _getAllBodyParts(WorkLog workLog) {
     List<Widget> result = <Widget>[];
     result.add(Text("Primary", style: TextStyle(
-        color: AppThemeSettings.titleColor,
+        color: WorkoutColors.of(context).titleColor,
         fontSize: _isPortraitOrientation
             ? _titleFontSizePortrait
             : _titleFontSizeLandscape),));
-    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0));
+    result.add(SizedBox(height: _screenHeight * 0.01));
     result.add(
         Column(children: _getBodyPartsBlocks(workLog.exercise.bodyParts)));
-    result.add(Util.spacerSelectable(top: _screenHeight * 0.02, bottom: 0, left: 0, right: 0));
+    result.add(SizedBox(height: _screenHeight * 0.02));
     result.add(Text("Secondary"));
-    result.add(Util.spacerSelectable(bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0));
+    result.add(SizedBox(height: _screenHeight * 0.01));
     result.add(Column(
         children: _getBodyPartsBlocks(workLog.exercise.secondaryBodyParts)));
     return result;
@@ -635,7 +646,7 @@ class _ExerciseView extends State<ExerciseView> {
         height: _screenHeight * 0.05,
         width: _screenWidth * 0.3,
         child: Container(
-          color: Util.getBpColor(bp),
+          color: Util.getBpColor(bp, WorkoutColors.of(context)),
           child: Center(child: Text(
             Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
         ),
@@ -673,7 +684,7 @@ class _ExerciseView extends State<ExerciseView> {
         children: firstRowBoxes,
       ));
       result.add(Row(children: <Widget>[
-        Util.spacerSelectable(top: _screenHeight * 0.01, bottom: 0, left: 0, right: 0)
+        SizedBox(height: _screenHeight * 0.01)
       ],));
       result.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

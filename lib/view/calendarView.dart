@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
+import 'package:workout_log/presentation/providers/selected_date_provider.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
 
-import 'helloWorldView.dart';
+DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
-class CalendarView extends StatefulWidget {
+class CalendarView extends ConsumerStatefulWidget {
   final Function(Widget) callback;
   final Orientation screenOrientation;
 
-  CalendarView(this.callback, this.screenOrientation);
+  const CalendarView(this.callback, this.screenOrientation, {super.key});
 
   @override
-  State<StatefulWidget> createState() => _CalendarViewState();
+  ConsumerState<CalendarView> createState() => _CalendarViewState();
 }
 
-/// on initState block screen orientation
-/// on dispose unlock screen orientation
-class _CalendarViewState extends State<CalendarView> {
-  DateTime _selected = HelloWorldView.date;
+class _CalendarViewState extends ConsumerState<CalendarView> {
+  late DateTime _selected;
 
-  final Logger _log = new Logger("CalendarView");
+  final Logger _log = Logger('CalendarView');
 
   double _screenHeight = 0;
   double _screenWidth = 0;
@@ -41,12 +41,11 @@ class _CalendarViewState extends State<CalendarView> {
   double _calendarRowHeightLandscape = 0;
 
   void setupDimensions() {
-    _getScreenHeight();
-    _getScreenWidth();
+    _screenHeight = Util.getScreenHeight(context);
+    _screenWidth = Util.getScreenWidth(context);
 
     _dialogHeightPortrait = _screenHeight * 0.71;
     _dialogHeightLandscape = _screenHeight * 0.8;
-    // this value of width is required by landscape mode to show it correctly
     _dialogWidth = _screenWidth;
 
     _naviButtonHeightPortrait = _screenHeight * 0.07;
@@ -63,13 +62,13 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   void initState() {
     super.initState();
-
+    _selected = ref.read(selectedDateProvider);
     _isPortraitOrientation = widget.screenOrientation == Orientation.portrait;
     Util.blockOrientation(_isPortraitOrientation);
   }
 
   @override
-  dispose() {
+  void dispose() {
     Util.unlockOrientation();
     super.dispose();
   }
@@ -77,158 +76,133 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   Widget build(BuildContext context) {
     setupDimensions();
+    final colors = WorkoutColors.of(context);
 
-    return _create(context);
-  }
-
-  Widget _create(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: _dialogWidth,
-      height: _isPortraitOrientation ? _dialogHeightPortrait : _dialogHeightLandscape,
-      child: (_isPortraitOrientation)
+      height: _isPortraitOrientation
+          ? _dialogHeightPortrait
+          : _dialogHeightLandscape,
+      child: _isPortraitOrientation
           ? Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    createNaviButton(name: "Go to date..", onPressed: _setDate),
-                    Util.spacer(_screenHeight * 0.01),
-                    createNaviButton(name: "Go to today", onPressed: _today),
+                    _naviButton(colors, name: 'Go to date..', onPressed: _setDate),
+                    SizedBox(width: _screenHeight * 0.02, height: _screenHeight * 0.02),
+                    _naviButton(colors, name: 'Go to today', onPressed: _today),
                   ],
                 ),
-                Util.spacer(_screenHeight * 0.01),
-                Flexible(
-                  child: createTabCalendar(),
-                ),
-                Center(
-                  child: createSaveButton(),
-                ),
+                SizedBox(width: _screenHeight * 0.02, height: _screenHeight * 0.02),
+                Flexible(child: _tabCalendar(colors)),
+                Center(child: _saveButton(colors)),
               ],
             )
           : Row(
               children: <Widget>[
-                Util.spacerSelectable(left: _screenWidth * 0.01,
-                    bottom: 0, top: 0, right: 0),
+                SizedBox(width: _screenWidth * 0.01),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Column(
                       children: <Widget>[
-                        createNaviButton(name: "Go to date..", onPressed: _setDate),
-                        Util.spacerSelectable(top: _screenHeight * 0.03,
-                            bottom: 0, left: 0, right: 0),
-                        createNaviButton(name: "Go to today", onPressed: _today),
+                        _naviButton(colors, name: 'Go to date..', onPressed: _setDate),
+                        SizedBox(height: _screenHeight * 0.03),
+                        _naviButton(colors, name: 'Go to today', onPressed: _today),
                       ],
                     ),
-                    createSaveButton(),
+                    _saveButton(colors),
                   ],
                 ),
-                Expanded(
-                  child: createTabCalendar(),
-                ),
+                Expanded(child: _tabCalendar(colors)),
               ],
             ),
     );
   }
 
-  Widget createNaviButton({required VoidCallback onPressed, required String name}) {
+  Widget _naviButton(WorkoutColors colors,
+      {required VoidCallback onPressed, required String name}) {
     return Center(
       child: MaterialButton(
-        height: _isPortraitOrientation ? _naviButtonHeightPortrait : _naviButtonHeightLandscape,
+        height: _isPortraitOrientation
+            ? _naviButtonHeightPortrait
+            : _naviButtonHeightLandscape,
         minWidth: _naviButtonWidth,
         onPressed: onPressed,
-        color: AppThemeSettings.buttonColor,
-        child: Text(
-          name,
-          style: TextStyle(color: AppThemeSettings.buttonTextColor),
-        ),
+        color: colors.buttonColor,
+        child: Text(name, style: TextStyle(color: colors.buttonTextColor)),
       ),
     );
   }
 
-  Widget createSaveButton() {
+  Widget _saveButton(WorkoutColors colors) {
     return MaterialButton(
-      height: _isPortraitOrientation ? _saveButtonHeightPortrait : _saveButtonHeightLandscape,
-      minWidth: _isPortraitOrientation ? _saveButtonWidthPortrait : _saveButtonWidthLandscape,
+      height: _isPortraitOrientation
+          ? _saveButtonHeightPortrait
+          : _saveButtonHeightLandscape,
+      minWidth: _isPortraitOrientation
+          ? _saveButtonWidthPortrait
+          : _saveButtonWidthLandscape,
       onPressed: _save,
-      color: AppThemeSettings.greenButtonColor,
+      color: colors.greenButtonColor,
       child: Text(
-        "Save",
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppThemeSettings.buttonTextColor),
+        'Save',
+        style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: colors.buttonTextColor),
       ),
     );
   }
 
-  Widget createTabCalendar() {
+  Widget _tabCalendar(WorkoutColors colors) {
     return TableCalendar(
-      rowHeight: _isPortraitOrientation ? _calendarRowHeightPortrait : _calendarRowHeightLandscape,
+      rowHeight: _isPortraitOrientation
+          ? _calendarRowHeightPortrait
+          : _calendarRowHeightLandscape,
       locale: 'en_US',
-      onDaySelected: (day, focusedDay)  {
-        _selectedDate(day);
-      },
-      selectedDayPredicate: (day) {
-        return isSameDay(_selected, day);
-      },
+      onDaySelected: (day, focusedDay) => _selectedDate(day),
+      selectedDayPredicate: (day) => isSameDay(_selected, day),
       startingDayOfWeek: StartingDayOfWeek.monday,
       headerStyle: HeaderStyle(
-          leftChevronIcon: Icon(
-            Icons.arrow_back,
-            color: AppThemeSettings.previousButton,
-          ),
-          rightChevronIcon: Icon(
-            Icons.arrow_forward,
-            color: AppThemeSettings.nextButton,
-          ),
-          formatButtonVisible: false),
+        leftChevronIcon:
+            Icon(Icons.arrow_back, color: colors.previousButton),
+        rightChevronIcon:
+            Icon(Icons.arrow_forward, color: colors.nextButton),
+        formatButtonVisible: false,
+      ),
       focusedDay: _selected,
       firstDay: DateTime(2000),
       lastDay: DateTime(2100),
     );
   }
 
-  _setDate() async {
-    DateTime? picked = await showDatePicker(
+  Future<void> _setDate() async {
+    final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
     if (picked != null && picked != _selected) {
-      _pickDate(picked);
+      setState(() => _selected = picked);
     }
   }
 
-  _today() {
-    _pickDate(DateTime.now());
+  void _today() {
+    setState(() => _selected = DateTime.now());
   }
 
-  _pickDate(DateTime date) {
-    setState(() {
-      _selected = date;
-    });
+  void _selectedDate(DateTime day) {
+    setState(() => _selected = day);
   }
 
-  _selectedDate(DateTime day) {
-    setState(() {
-      _selected = day;
-    });
-    print(day);
-  }
-
-  _save() {
-    HelloWorldView.date = _selected;
-
-    _log.fine("Chosen date: $_selected");
-
+  void _save() {
+    final normalized = _startOfDay(_selected);
+    ref.read(selectedDateProvider.notifier).state = normalized;
+    _log.fine('Chosen date: $normalized');
     Navigator.pop(context);
-  }
-
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
   }
 }

@@ -1,38 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/entity/exercise.dart';
-import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/dbProvider.dart';
+import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/domain/models/body_part.dart';
+import 'package:workout_log/domain/models/exercise.dart';
+import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/providers/data_providers.dart';
+import 'package:workout_log/presentation/providers/selected_date_provider.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
 
-import 'helloWorldView.dart';
-
-class ExerciseManipulationView extends StatefulWidget {
+class ExerciseManipulationView extends ConsumerStatefulWidget {
   final Exercise? exercise;
 
-  ExerciseManipulationView({required this.exercise});
+  const ExerciseManipulationView({super.key, required this.exercise});
 
   @override
-  State<StatefulWidget> createState() => _ExerciseManipulationView();
+  ConsumerState<ExerciseManipulationView> createState() => _ExerciseManipulationView();
 }
 
-class _ExerciseManipulationView extends State<ExerciseManipulationView> {
-  //  get DB from singleton global provider
-  final DBProvider _db = DBProvider.db;
+class _ExerciseManipulationView extends ConsumerState<ExerciseManipulationView> {
+  final Logger _log = Logger("ExerciseManipulationView");
 
-  final Logger _log = new Logger("ExerciseManipulationView");
-
-  Set<BodyPart> _primaryBodyParts = Set();
+  final Set<BodyPart> _primaryBodyParts = <BodyPart>{};
   List<Widget> _primaryBodyPartsList = <Widget>[];
-  Set<BodyPart> _secondaryBodyParts = Set();
+  final Set<BodyPart> _secondaryBodyParts = <BodyPart>{};
   List<Widget> _secondaryBodyPartsList = <Widget>[];
-  Map<String, bool> _valuesMap = Map();
+  Map<String, bool> _valuesMap = <String, bool>{};
   bool _edit = false;
 
   late TextEditingController _myController;
   late GlobalKey<ScaffoldState> _key;
+
+  DBProvider get _db => ref.read(dbProvider);
 
   late double _screenHeight;
   late double _screenWidth;
@@ -47,8 +47,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   late double _buttonWidthLandscape;
 
   void setupDimensions() {
-    _getScreenHeight();
-    _getScreenWidth();
+    _screenHeight = Util.getScreenHeight(context);
+    _screenWidth = Util.getScreenWidth(context);
 
     _appBarHeightPortrait = _screenHeight * 0.08;
     _appBarHeightLandscape = _screenHeight * 0.1;
@@ -60,15 +60,15 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   }
 
   Map<String, bool> setupValues() => {
-        Util.getBpName(BodyPart.CHEST): false,
-        Util.getBpName(BodyPart.LEG): false,
-        Util.getBpName(BodyPart.ABDOMINAL): false,
-        Util.getBpName(BodyPart.ARM): false,
-        Util.getBpName(BodyPart.BACK): false,
-        Util.getBpName(BodyPart.CARDIO): false,
+        Util.getBpName(BodyPart.chest): false,
+        Util.getBpName(BodyPart.leg): false,
+        Util.getBpName(BodyPart.abdominal): false,
+        Util.getBpName(BodyPart.arm): false,
+        Util.getBpName(BodyPart.back): false,
+        Util.getBpName(BodyPart.cardio): false,
       };
 
-  checkIfEdit() {
+  void checkIfEdit() {
     if (widget.exercise != null) {
       _edit = true;
       for (BodyPart bp in widget.exercise!.bodyParts) {
@@ -79,11 +79,8 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
         _updateSecondaryBP(bp, true);
         _valuesMap[Util.getBpName(bp)] = true;
       }
-
-      ///  set initial textField text
       _myController = TextEditingController(text: widget.exercise?.name);
     } else {
-      ///  set initial textField text
       _myController = TextEditingController();
     }
   }
@@ -94,154 +91,128 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
     _key = GlobalObjectKey<ScaffoldState>(17);
     _valuesMap = setupValues();
     checkIfEdit();
+    _rebuildBodyPartLists();
+  }
 
-    _getPrimaryBPlist();
-    _getSecondaryBPlist();
+  void _rebuildBodyPartLists() {
+    _primaryBodyPartsList = _buildBodyPartCheckboxes(secondary: false);
+    _secondaryBodyPartsList = _buildBodyPartCheckboxes(secondary: true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
     return OrientationBuilder(builder: (context, orientation) {
-      /// check if new orientation is portrait
-      /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
-
       setupDimensions();
 
       return Scaffold(
-        /// when keyboard is shown the layout is not rebuild
-        /// thank to this there is no pixel overflow
         resizeToAvoidBottomInset: false,
-
         key: _key,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
           child: AppBar(
               centerTitle: true,
               title: Text(
-                "Add Exercises",
+                'Add Exercises',
                 style: TextStyle(
-                  color: AppThemeSettings.titleColor,
-                  fontSize: AppThemeSettings.fontSize,
+                  color: colors.titleColor,
+                  fontSize: WorkoutTypography.fontSize,
                 ),
               ),
-              backgroundColor: AppThemeSettings.appBarColor),
+              backgroundColor: colors.appBarColor),
         ),
-        body: Container(
-          child: Column(
-            mainAxisAlignment: _isPortraitOrientation ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.start,
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  SizedBox(
-                    width: _textFieldWidth,
-                    child: TextFormField(
-                      textAlign: TextAlign.center,
-                      controller: _myController,
-                      style: TextStyle(
-                        fontSize: AppThemeSettings.headerSize,
-                      ),
-                    ),
-                  ),
-                ],
+        body: Column(
+          mainAxisAlignment: _isPortraitOrientation ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.start,
+          children: <Widget>[
+            Column(children: <Widget>[
+              SizedBox(
+                width: _textFieldWidth,
+                child: TextFormField(
+                  textAlign: TextAlign.center,
+                  controller: _myController,
+                  style: const TextStyle(fontSize: WorkoutTypography.headerSize),
+                ),
               ),
-              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.1, bottom: 0, left: 0, right: 0),
-              _isPortraitOrientation
-                  ? Column(
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Text("Main Body Parts:"),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: _primaryBodyPartsList,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: <Widget>[
-                            Text("Secodary Body Parts:"),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: _secondaryBodyPartsList,
-                            ),
-                          ],
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: <Widget>[
-                        Column(
-                          children: <Widget>[
-                            Text("Main Body Parts:"),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: _primaryBodyPartsList,
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: <Widget>[
-                            Text("Secodary Body Parts:"),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: _secondaryBodyPartsList,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-              if (!_isPortraitOrientation) Util.spacerSelectable(top: _screenHeight * 0.08, bottom: 0, left: 0, right: 0),
-              _isPortraitOrientation
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: _getControlButtons(),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: _getControlButtons(),
-                    )
-            ],
-          ),
+            ]),
+            if (!_isPortraitOrientation)
+              SizedBox(height: _screenHeight * 0.1),
+            _isPortraitOrientation
+                ? Column(children: _bodyPartSections())
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _bodyPartSections(),
+                  ),
+            if (!_isPortraitOrientation)
+              SizedBox(height: _screenHeight * 0.08),
+            _isPortraitOrientation
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: _getControlButtons(colors),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: _getControlButtons(colors),
+                  )
+          ],
         ),
       );
     });
   }
 
-  List<Widget> _getControlButtons() {
-    List<Widget> result = <Widget>[];
+  List<Widget> _bodyPartSections() => [
+        Column(
+          children: <Widget>[
+            const Text('Main Body Parts:'),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: _primaryBodyPartsList,
+            ),
+          ],
+        ),
+        Column(
+          children: <Widget>[
+            const Text('Secodary Body Parts:'),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: _secondaryBodyPartsList,
+            ),
+          ],
+        ),
+      ];
+
+  List<Widget> _getControlButtons(WorkoutColors colors) {
+    final List<Widget> result = <Widget>[];
 
     result.add(
       MaterialButton(
-        onPressed: () => _saveExercise(),
+        onPressed: _saveExercise,
         height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
         minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
-        color: AppThemeSettings.greenButtonColor,
-        splashColor: AppThemeSettings.buttonSplashColor,
-        textColor: AppThemeSettings.buttonTextColor,
-        child: Text("SAVE"),
+        color: colors.greenButtonColor,
+        splashColor: colors.buttonSplashColor,
+        textColor: colors.buttonTextColor,
+        child: const Text('SAVE'),
       ),
     );
 
     if (_isPortraitOrientation) {
-      result.add(Util.spacerSelectable(top: _screenHeight * 0.05, bottom: 0, left: 0, right: 0));
+      result.add(SizedBox(height: _screenHeight * 0.05));
     } else {
-      result.add(Util.spacerSelectable(right: _screenWidth * 0.1, bottom: 0, left: 0, top: 0));
+      result.add(SizedBox(width: _screenWidth * 0.1));
     }
     result.add(
       MaterialButton(
-        onPressed: () => {
-          //  hide keyboard before navigate to previous view
-          Util.hideKeyboard(context),
-          Navigator.pop(context),
+        onPressed: () {
+          Util.hideKeyboard(context);
+          Navigator.pop(context);
         },
         height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
         minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
-        color: AppThemeSettings.cancelButtonColor,
-        splashColor: AppThemeSettings.buttonSplashColor,
-        textColor: AppThemeSettings.buttonTextColor,
-        child: Text("Cancel"),
+        color: colors.cancelButtonColor,
+        splashColor: colors.buttonSplashColor,
+        textColor: colors.buttonTextColor,
+        child: const Text('Cancel'),
       ),
     );
 
@@ -251,204 +222,140 @@ class _ExerciseManipulationView extends State<ExerciseManipulationView> {
   void _updateBP(BodyPart bodyPart, bool value) {
     if (value) {
       _primaryBodyParts.add(bodyPart);
-      //  if simultaneously click on both primary and secondary checkboxes
-      //  will remove this body part from first clicked list
       _secondaryBodyParts.remove(bodyPart);
-    } else
+    } else {
       _primaryBodyParts.remove(bodyPart);
+    }
   }
 
   void _updateSecondaryBP(BodyPart bodyPart, bool value) {
     if (value) {
       _secondaryBodyParts.add(bodyPart);
-      //  if simultaneously click on both primary and secondary checkboxes
-      //  will remove this body part from first clicked list
       _primaryBodyParts.remove(bodyPart);
-    } else
+    } else {
       _secondaryBodyParts.remove(bodyPart);
+    }
   }
 
-  /// factory to get checkbox for given Body Part
-  Widget _getWidgetForBP(BodyPart bp, [bool secondary = false]) {
-    String name = Util.getBpName(bp);
+  Widget _getWidgetForBP(BodyPart bp, {bool secondary = false}) {
+    final String name = Util.getBpName(bp);
+    final colors = WorkoutColors.of(context);
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       alignment: WrapAlignment.center,
       children: <Widget>[
-        Text(
-          name,
-          style: TextStyle(color: AppThemeSettings.textColor),
-        ),
+        Text(name, style: TextStyle(color: colors.textColor)),
         Checkbox(
-            value: _valuesMap[name],
-            onChanged: (value) {
-              setState(() {
-                _valuesMap[name] = value!;
-                if (secondary) {
-                  _updateSecondaryBP(bp, value);
-                } else {
-                  _updateBP(bp, value);
-                }
-                _getPrimaryBPlist();
-                _getSecondaryBPlist();
-              });
-            }),
+          value: _valuesMap[name],
+          onChanged: (value) {
+            setState(() {
+              _valuesMap[name] = value!;
+              if (secondary) {
+                _updateSecondaryBP(bp, value);
+              } else {
+                _updateBP(bp, value);
+              }
+              _rebuildBodyPartLists();
+            });
+          },
+        ),
       ],
     );
   }
 
-  /// get checkboxes for primary body parts
-  /// unchecked ones means that this body part is not primary or secondary
-  /// if it is primary it checkbox will be checked here
-  /// and not displayed in secondary body parts list
-  _getPrimaryBPlist() {
-    List<Widget> tempList = <Widget>[];
-    _primaryBodyPartsList = [];
-    for (BodyPart bp in BodyPart.values) {
-      if (bp == BodyPart.UNDEFINED) {
-        // skip undefined
-        continue;
-      }
-      if (!_secondaryBodyParts.contains(bp)) {
-        // if this body part is not marked as secondary,
-        // empty checkbox can be displayed here
-        tempList.add(_getWidgetForBP(bp));
+  /// Build the list of checkbox rows for one side of the form
+  /// (primary or secondary). The opposite side's selections are excluded
+  /// so each body part appears in exactly one list at a time.
+  List<Widget> _buildBodyPartCheckboxes({required bool secondary}) {
+    final excludeSet = secondary ? _primaryBodyParts : _secondaryBodyParts;
+    final tempList = <Widget>[];
+    for (final bp in BodyPart.values) {
+      if (bp == BodyPart.undefined) continue;
+      if (!excludeSet.contains(bp)) {
+        tempList.add(_getWidgetForBP(bp, secondary: secondary));
       }
     }
 
-    // cut widgets to 2 rows (for visual)
     if (tempList.length > 3) {
-      int counter = 0;
-      List<Widget> firstHalf = <Widget>[];
-      List<Widget> secondHalf = <Widget>[];
-      for (Widget w in tempList) {
-        if (counter < 3) {
-          firstHalf.add(w);
-          counter++;
-        } else {
-          secondHalf.add(w);
-        }
-      }
-
-      _primaryBodyPartsList.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: firstHalf,
-      ));
-      _primaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: secondHalf));
-    } else {
-      _primaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList));
+      return [
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: tempList.take(3).toList()),
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: tempList.skip(3).toList()),
+      ];
     }
+    return [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList),
+    ];
   }
 
-  /// get checkboxes for secondary body parts
-  /// unchecked ones means that this body part is not primary or secondary
-  /// if it is secondary it checkbox will be checked here
-  /// and not displayed in primary body parts list
-  _getSecondaryBPlist() {
-    List<Widget> tempList = <Widget>[];
-    _secondaryBodyPartsList = [];
-    for (BodyPart bp in BodyPart.values) {
-      if (bp == BodyPart.UNDEFINED) {
-        //skip undefined
-        continue;
-      }
-      if (!_primaryBodyParts.contains(bp)) {
-        // if this body part is not marked as primary,
-        // empty checkbox can be displayed here
-        tempList.add(_getWidgetForBP(bp, true));
-      }
-    }
-
-    // cut widgets to 2 rows (for visual)
-    if (tempList.length > 3) {
-      int counter = 0;
-      List<Widget> firstHalf = <Widget>[];
-      List<Widget> secondHalf = <Widget>[];
-      for (Widget w in tempList) {
-        if (counter < 3) {
-          firstHalf.add(w);
-          counter++;
-        } else {
-          secondHalf.add(w);
-        }
-      }
-      _secondaryBodyPartsList.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: firstHalf,
-      ));
-      _secondaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: secondHalf));
-    } else {
-      _secondaryBodyPartsList.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList));
-    }
-  }
-
-  void _saveExercise() async {
-    if (_myController.text == null || _myController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You forgot about exercise name :)")));
+  Future<void> _saveExercise() async {
+    if (_myController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You forgot about exercise name :)')),
+      );
       return;
     }
 
-    if (_primaryBodyParts == null || _primaryBodyParts.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You forgot about exercise body part :)")));
+    if (_primaryBodyParts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You forgot about exercise body part :)')),
+      );
       return;
     }
+
+    final navigator = Navigator.of(context);
+    final selectedDate = ref.read(selectedDateProvider);
 
     if (_edit) {
-      widget.exercise?.name = _myController.text;
-      widget.exercise?.bodyParts = _primaryBodyParts;
-      widget.exercise?.secondaryBodyParts = _secondaryBodyParts;
-      _db.editExercise(widget.exercise!);
-      _log.fine("Updating exercise: ${widget.exercise.toString()}");
+      final updated = widget.exercise!.copyWith(
+        name: _myController.text,
+        bodyParts: _primaryBodyParts,
+        secondaryBodyParts: _secondaryBodyParts,
+      );
+      await _db.editExercise(updated);
+      _log.fine("Updating exercise: $updated");
 
-      await Util.hideKeyboard(context);
-      Navigator.popUntil(context, ModalRoute.withName(Navigator.defaultRouteName));
+      if (!mounted) return;
+      Util.hideKeyboard(context);
+      ref.invalidate(exercisesProvider);
+      ref.invalidate(workLogsByDateProvider(selectedDate));
+      navigator.popUntil(ModalRoute.withName(Navigator.defaultRouteName));
     } else {
-      await addWorkLog(Exercise(_myController.text, _primaryBodyParts, _secondaryBodyParts));
-      //  hide keyboard before navigate to previous view
-      FocusScope.of(context).requestFocus(new FocusNode());
-      Navigator.pop(context);
+      await _addWorkLog(
+        Exercise.create(
+          name: _myController.text,
+          bodyParts: _primaryBodyParts,
+          secondaryBodyParts: _secondaryBodyParts,
+        ),
+        selectedDate,
+      );
+      if (!mounted) return;
+      FocusScope.of(context).requestFocus(FocusNode());
+      ref.invalidate(exercisesProvider);
+      ref.invalidate(workLogsByDateProvider(selectedDate));
+      navigator.pop();
     }
   }
 
-  Future<WorkLog> addWorkLog(Exercise exercise) async {
-    //  get all workLogs from that day
-    List<WorkLog> workLogList = await _db.getDateAllWorkLogs();
-
-    ///  check if workLogs have same exercise name
-    for (var w in workLogList) {
+  Future<WorkLog> _addWorkLog(Exercise exercise, DateTime selectedDate) async {
+    final workLogList = await _db.getWorkLogsForDate(selectedDate);
+    for (final w in workLogList) {
       if (w.exercise.name == exercise.name) {
-        /// if there is workLog with that exercise name on this day,
-        ///  but with different bodyPart
-        /// update db with this new body part
-        w.exercise.bodyParts.addAll(exercise.bodyParts);
-        await _db.updateExercise(w.exercise);
-
-        _log.fine("Worklog updated ${w.exercise.toString()}");
-
-        return w;
+        final merged = w.exercise.copyWith(
+          bodyParts: {...w.exercise.bodyParts, ...exercise.bodyParts},
+        );
+        await _db.updateExercise(merged);
+        _log.fine("Worklog updated $merged");
+        return w.copyWith(exercise: merged);
       }
     }
-    WorkLog workLog = WorkLog(exercise);
-    workLog.exercise.bodyParts = exercise.bodyParts; // bodyPart as Set()
-    workLog.created = HelloWorldView.date;
-
-    //    String json = jsonEncode(workLog);
-    //        /// save to json
-    //        Storage.writeToFile(json);
-
-    ///  save workLog to DB
+    final workLog =
+        WorkLog.create(exercise: exercise).copyWith(created: selectedDate);
     await _db.newWorkLog(workLog);
-
-    _log.fine("New workLog saved to DB: ${workLog.toString()}");
-
+    _log.fine("New workLog saved to DB: $workLog");
     return workLog;
-  }
-
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
   }
 }

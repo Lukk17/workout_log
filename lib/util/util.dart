@@ -1,62 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:workout_log/entity/bodyPart.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
+import 'package:workout_log/domain/models/body_part.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 class Util {
-  static bool rebuild = false;
-
-  static TextEditingController _textController = TextEditingController();
-
-  static TextEditingController textController() {
-    _textController.clear();
-    return _textController;
-  }
-
   static String pattern = "yyyy-MM-dd";
-  static DateFormat formatter = new DateFormat(pattern);
-
-  static Widget addHorizontalLine({required double? screenWidth}) {
-    if (screenWidth == null) {
-      return Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: AppThemeSettings.borderColor),
-          ),
-        ),
-      );
-    } else {
-      return Divider(
-        indent: screenWidth * 0.05,
-        endIndent: screenWidth * 0.05,
-        color: AppThemeSettings.borderColor,
-      );
-    }
-  }
-
-  static Widget addVerticalLine() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          right: BorderSide(color: AppThemeSettings.borderColor),
-        ),
-      ),
-    );
-  }
-
-  static Widget spacer(double size) {
-    return Container(margin: EdgeInsets.all(size));
-  }
-
-  static Widget spacerSelectable({required double top, required double bottom,
-    required double left, required double right}) {
-    if (top == null) top = 0;
-    if (bottom == null) bottom = 0;
-    if (left == null) left = 0;
-    if (right == null) right = 0;
-    return Container(margin: EdgeInsets.fromLTRB(left, top, right, bottom));
-  }
+  static DateFormat formatter = DateFormat(pattern);
 
   static double getScreenHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
@@ -66,13 +16,13 @@ class Util {
     return MediaQuery.of(context).size.width;
   }
 
-  static hideKeyboard(BuildContext context) {
-    FocusScope.of(context).requestFocus(new FocusNode());
+  static void hideKeyboard(BuildContext context) {
+    FocusScope.of(context).requestFocus(FocusNode());
   }
 
   ///  block orientation change
-  static blockOrientation(bool _isPortraitOrientation) {
-    if (_isPortraitOrientation) {
+  static void blockOrientation(bool isPortraitOrientation) {
+    if (isPortraitOrientation) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
@@ -86,7 +36,7 @@ class Util {
   }
 
   /// restore orientation ability to change
-  static unlockOrientation() {
+  static void unlockOrientation() {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
@@ -95,55 +45,47 @@ class Util {
     ]);
   }
 
-  static Color getBpColor(BodyPart bp) {
+  static Color getBpColor(BodyPart bp, WorkoutColors colors) {
     switch (bp) {
-      case BodyPart.CHEST:
-        return AppThemeSettings.chestColor;
-
-      case BodyPart.BACK:
-        return AppThemeSettings.backColor;
-
-      case BodyPart.LEG:
-        return AppThemeSettings.legColor;
-
-      case BodyPart.ARM:
-        return AppThemeSettings.armColor;
-
-      case BodyPart.CARDIO:
-        return AppThemeSettings.cardioColor;
-
-      case BodyPart.ABDOMINAL:
-        return AppThemeSettings.abdominalColor;
-
-      case BodyPart.UNDEFINED:
+      case BodyPart.chest:
+        return colors.chestColor;
+      case BodyPart.back:
+        return colors.backColor;
+      case BodyPart.leg:
+        return colors.legColor;
+      case BodyPart.arm:
+        return colors.armColor;
+      case BodyPart.cardio:
+        return colors.cardioColor;
+      case BodyPart.abdominal:
+        return colors.abdominalColor;
+      case BodyPart.undefined:
         return Colors.white70;
     }
-    return Colors.white70;
   }
 
   static String getBpName(BodyPart bp) {
     switch (bp) {
-      case BodyPart.CHEST:
+      case BodyPart.chest:
         return "chest";
 
-      case BodyPart.BACK:
+      case BodyPart.back:
         return "back";
 
-      case BodyPart.LEG:
+      case BodyPart.leg:
         return "leg";
 
-      case BodyPart.ARM:
+      case BodyPart.arm:
         return "arm";
 
-      case BodyPart.CARDIO:
+      case BodyPart.cardio:
         return "cardio";
 
-      case BodyPart.ABDOMINAL:
+      case BodyPart.abdominal:
         return "abdominal";
 
-      case BodyPart.UNDEFINED:
+      case BodyPart.undefined:
         return "";
     }
-    return "";
   }
 }

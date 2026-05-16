@@ -1,38 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/entity/exercise.dart';
-import 'package:workout_log/entity/workLog.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/dbProvider.dart';
+import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/domain/models/exercise.dart';
+import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/providers/data_providers.dart';
+import 'package:workout_log/presentation/providers/selected_date_provider.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/util/util.dart';
+import 'package:workout_log/view/exerciseManipulationView.dart';
 import 'package:workout_log/view/exerciseView.dart';
-import 'package:workout_log/view/helloWorldView.dart';
 
-import 'exerciseManipulationView.dart';
-
-/// This is main WorkLog view.
-///
-/// It show actual date, and buttons with body parts.
-/// Each buttons leads to BodyPartLogView page of selected body part.
-class WorkLogPageView extends StatefulWidget {
-  final Function(Widget) callback;
-  final DateTime date;
-
-  WorkLogPageView(this.callback, this.date);
+/// Main WorkLog view — shows the selected date and its workouts.
+class WorkLogPageView extends ConsumerStatefulWidget {
+  const WorkLogPageView({super.key});
 
   @override
-  State<StatefulWidget> createState() => _WorkLogPageViewState();
+  ConsumerState<WorkLogPageView> createState() => _WorkLogPageViewState();
 }
 
-class _WorkLogPageViewState extends State<WorkLogPageView> {
-  List<Widget> _wList = <Widget>[];
-  List<MaterialButton> _exerciseList = <MaterialButton>[];
+class _WorkLogPageViewState extends ConsumerState<WorkLogPageView> {
+  final Logger _log = Logger('WorkLogPageView');
+
   bool _isPortraitOrientation = false;
   double _screenHeight = 0;
   double _screenWidth = 0;
-
-  final Logger _log = new Logger("WorkLogPageView");
 
   double _datePortraitHeight = 0;
   double _dateLandscapeHeight = 0;
@@ -45,23 +38,11 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
   double _exerciseDialogWidth = 0;
   double _bottomEmptyContainerHeight = 0;
 
-  //  get DB from singleton global provider
-  final DBProvider _db = DBProvider.db;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateWorkLogFromDB();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  DBProvider get _db => ref.read(dbProvider);
 
   void setupDimensions() {
-    _getScreenHeight();
-    _getScreenWidth();
+    _screenHeight = Util.getScreenHeight(context);
+    _screenWidth = Util.getScreenWidth(context);
 
     _datePortraitHeight = _screenHeight * 0.1;
     _dateLandscapeHeight = _screenHeight * 0.2;
@@ -79,18 +60,13 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedDate = ref.watch(selectedDateProvider);
+    final workLogsAsync = ref.watch(workLogsForSelectedDateProvider);
+    final colors = WorkoutColors.of(context);
+
     return OrientationBuilder(builder: (context, orientation) {
-      /// check if new orientation is portrait
-      /// rebuild from here where orientation will change
       _isPortraitOrientation = orientation == Orientation.portrait;
-
       setupDimensions();
-
-      /// need to be called to fetch workLogs for selected date in calendar
-      if (Util.rebuild) {
-        _updateWorkLogFromDB();
-        Util.rebuild = false;
-      }
 
       return Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -99,65 +75,61 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
             height: _isPortraitOrientation
                 ? _datePortraitHeight
                 : _dateLandscapeHeight,
-            alignment: Alignment(0, 0),
+            alignment: const Alignment(0, 0),
             child: Text(
-              Util.formatter.format(HelloWorldView.date) ==
+              Util.formatter.format(selectedDate) ==
                       Util.formatter.format(DateTime.now())
-                  ? "Today"
-                  : Util.formatter.format(HelloWorldView.date),
-              textScaleFactor: _dateTextScale,
+                  ? 'Today'
+                  : Util.formatter.format(selectedDate),
+              textScaler: TextScaler.linear(_dateTextScale),
               style: TextStyle(
-                  color: AppThemeSettings.textColor,
-                  fontWeight: FontWeight.bold),
+                color: colors.textColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           Expanded(
             child: Stack(
               children: <Widget>[
-                ListView(
-                  shrinkWrap: true,
-                  children: <Widget>[
-                    Column(
-                      children: _wList,
+                workLogsAsync.when(
+                  data: (workLogs) => ListView(
+                    shrinkWrap: true,
+                    children: <Widget>[
+                      Column(
+                        children: workLogs
+                            .map((w) => _createWorkLogRowWidget(w, colors))
+                            .toList(),
+                      ),
+                      SizedBox(height: _bottomEmptyContainerHeight),
+                    ],
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(
+                    child: Text(
+                      'Failed to load workouts: $e',
+                      style: TextStyle(color: colors.textColor),
                     ),
-                    //  container at bottom which make it possible to scroll down
-                    //  and see last workLog fully
-                    Container(
-                      height: _bottomEmptyContainerHeight,
-                    ),
-                  ],
+                  ),
                 ),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Util.spacerSelectable(
-                        bottom: _screenHeight * 0.3, top: 0, left: 0, right: 0),
+                    SizedBox(height: _screenHeight * 0.3),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
                         FloatingActionButton(
-                          // text which will be shown after long press on button
                           tooltip: 'Add exercise',
-                          // open pop-up on button press to add new exercise
-                          onPressed: () async => {
-                            await _showAddExerciseDialog(),
-                            await _updateState(),
-                            Util.unlockOrientation(),
-                          },
-                          child: Icon(Icons.add,
-                              color: AppThemeSettings.buttonTextColor),
-                          backgroundColor: AppThemeSettings.buttonColor,
-                          foregroundColor: AppThemeSettings.secondaryColor,
+                          onPressed: () => _showAddExerciseDialog(),
+                          backgroundColor: colors.buttonColor,
+                          foregroundColor: colors.secondaryColor,
+                          child: Icon(Icons.add, color: colors.buttonTextColor),
                         ),
-                        Util.spacerSelectable(
-                            right: _screenWidth * 0.1,
-                            bottom: 0,
-                            left: 0,
-                            top: 0),
+                        SizedBox(width: _screenWidth * 0.1),
                       ],
                     ),
-                    Util.spacerSelectable(
-                        bottom: _screenHeight * 0.01, top: 0, left: 0, right: 0)
+                    SizedBox(height: _screenHeight * 0.01),
                   ],
                 ),
               ],
@@ -168,52 +140,15 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
     });
   }
 
-  /// create workLog for every entry in given day
-  ///
-  /// require:
-  /// workLog which will be added to widget
-  /// context of application (for screen dimension)
-  Widget _createWorkLogRowWidget(WorkLog workLog) {
+  Widget _createWorkLogRowWidget(WorkLog workLog, WorkoutColors colors) {
     return Container(
       margin: EdgeInsets.only(bottom: _cardOutsideMargin),
       child: Slidable(
-        key: ValueKey(workLog.id), // Ensure each slidable has a unique key
-        startActionPane: ActionPane(
-          motion: const ScrollMotion(),
-          extentRatio: 0.25,
-          children: [
-            Container(
-              margin: EdgeInsets.only(
-                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-              child: SlidableAction(
-                onPressed: (context) => _deleteWorkLog(workLog),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
-              ),
-            ),
-          ],
-        ),
-        endActionPane: ActionPane(
-          motion: const ScrollMotion(),
-          extentRatio: 0.25,
-          children: [
-            Container(
-              margin: EdgeInsets.only(
-                  bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
-              child: SlidableAction(
-                onPressed: (context) => _deleteWorkLog(workLog),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
-              ),
-            ),
-          ],
-        ),
+        key: ValueKey(workLog.id),
+        startActionPane: _slideActions(workLog),
+        endActionPane: _slideActions(workLog),
         child: Card(
-          color: AppThemeSettings.primaryColor,
+          color: colors.primaryColor,
           elevation: 8,
           child: ListTile(
             title: Container(
@@ -221,167 +156,162 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
               child: Text(
                 workLog.exercise.name,
                 style: TextStyle(
-                    fontSize: AppThemeSettings.fontSize,
-                    color: AppThemeSettings.cardTextColor),
+                  fontSize: WorkoutTypography.fontSize,
+                  color: colors.cardTextColor,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
             subtitle: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                ///  sum of workLog series
                 Container(
                   margin: _seriesMargin,
                   child: Text(
-                    "Series: ${workLog.series.length.toString()}",
+                    'Series: ${workLog.series.length}',
                     style: TextStyle(
-                        fontSize: AppThemeSettings.fontSize,
-                        color: AppThemeSettings.cardTextColor),
+                      fontSize: WorkoutTypography.fontSize,
+                      color: colors.cardTextColor,
+                    ),
                   ),
                 ),
-
-                ///  sum of workLog reps in set
                 Container(
                   margin: _repsMargin,
                   child: Text(
-                    "Reps: ${workLog.getRepsSum()}",
+                    'Reps: ${workLog.getRepsSum()}',
                     style: TextStyle(
-                        fontSize: AppThemeSettings.fontSize,
-                        color: AppThemeSettings.cardTextColor),
+                      fontSize: WorkoutTypography.fontSize,
+                      color: colors.cardTextColor,
+                    ),
                     textAlign: TextAlign.end,
                   ),
                 ),
               ],
             ),
-            leading: Column(
-              children: _getMainBodyParts(workLog),
-            ),
+            leading: Column(children: _getMainBodyParts(workLog, colors)),
             trailing: Container(
-              child: Icon(
-                Icons.arrow_forward,
-                color: AppThemeSettings.secondaryColor,
-              ),
               margin: EdgeInsets.only(top: _screenHeight * 0.02),
+              child: Icon(Icons.arrow_forward, color: colors.secondaryColor),
             ),
-
-            ///  push workLog and bodyPartInterface to new screen to display it's details
-            onTap: () => Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
-
-                  ///  using Navigator.then to update parent state as well
-                    builder: (context) => ExerciseView(workLog: workLog)))
-                .then((v) => _updateState()),
+                    builder: (context) => ExerciseView(workLog: workLog)),
+              );
+              if (!mounted) return;
+              _invalidateWorkLogs();
+            },
           ),
         ),
       ),
     );
   }
 
-  _getExercises() async {
-    List<MaterialButton> result = <MaterialButton>[];
-    List<Exercise> exercises = await _db.getAllExercise();
-
-    for (Exercise e in exercises) {
-      result.add(
-        MaterialButton(
-          onPressed: () async {
-            Exercise exercise = Exercise(
-              e.name,
-              // bodyPart as Set()
-              e.bodyParts,
-            );
-            //  save workLog to db
-            WorkLog workLog = await _addWorkLog(exercise);
-            setState(() {
-              _wList.add(_createWorkLogRowWidget(workLog));
-            });
-            Navigator.pop(context);
-          },
-          child: Text(
-            e.name,
-            style: TextStyle(color: AppThemeSettings.specialTextColor),
+  ActionPane _slideActions(WorkLog workLog) => ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.25,
+        children: [
+          Container(
+            margin: EdgeInsets.only(
+                bottom: _screenHeight * 0.01, top: _screenHeight * 0.01),
+            child: SlidableAction(
+              onPressed: (context) => _deleteWorkLog(workLog),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
           ),
-        ),
+        ],
       );
-    }
-    setState(() {
-      _exerciseList = result;
-    });
-  }
 
-  _showAddExerciseDialog() async {
-    await _getExercises();
-    _updateState();
+  Future<void> _showAddExerciseDialog() async {
+    final exercises = await _db.getAllExercise();
+    if (!mounted) return;
 
     Util.blockOrientation(_isPortraitOrientation);
 
-    return showDialog(
+    final colors = WorkoutColors.of(context);
+
+    await showDialog(
       context: context,
       builder: (_) => SimpleDialog(
         title: Text(
-          "Select exercise",
+          'Select exercise',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppThemeSettings.textColor),
+          style: TextStyle(color: colors.textColor),
         ),
         children: <Widget>[
-          Util.addHorizontalLine(screenWidth: null),
+          Divider(color: WorkoutColors.of(context).borderColor),
           Column(
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  Container(
+                  SizedBox(
                     height: _exerciseDialogHeight,
                     width: _exerciseDialogWidth,
                     child: ListView.builder(
                       shrinkWrap: true,
-                      itemCount: _exerciseList.length,
-                      itemBuilder: (context, index) => _exerciseList[index],
+                      itemCount: exercises.length,
+                      itemBuilder: (context, index) {
+                        final e = exercises[index];
+                        return MaterialButton(
+                          onPressed: () async {
+                            await _addWorkLogFor(e);
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            e.name,
+                            style: TextStyle(color: colors.specialTextColor),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   Column(
                     children: <Widget>[
-                      Icon(Icons.arrow_upward),
-                      Util.spacerSelectable(
-                          top: _screenHeight * 0.3,
-                          bottom: 0,
-                          left: 0,
-                          right: 0),
-                      Icon(Icons.arrow_downward),
+                      const Icon(Icons.arrow_upward),
+                      SizedBox(height: _screenHeight * 0.3),
+                      const Icon(Icons.arrow_downward),
                     ],
                   )
                 ],
               ),
-              Util.addHorizontalLine(screenWidth: null),
-              Container(
+              Divider(color: WorkoutColors.of(context).borderColor),
+              SizedBox(
                 height: _screenHeight * 0.1,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     MaterialButton(
-                        color: AppThemeSettings.greenButtonColor,
-                        child: Text(
-                          "New",
-                          style: TextStyle(
-                              color: AppThemeSettings.buttonTextColor),
-                        ),
-                        onPressed: () async => {
-                              Util.unlockOrientation(),
-                              await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          ExerciseManipulationView(exercise: null,))),
-                              Navigator.pop(context),
-                            }),
+                      color: colors.greenButtonColor,
+                      onPressed: () async {
+                        Util.unlockOrientation();
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ExerciseManipulationView(
+                                    exercise: null,
+                                  )),
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'New',
+                        style: TextStyle(color: colors.buttonTextColor),
+                      ),
+                    ),
                     MaterialButton(
-                        color: AppThemeSettings.cancelButtonColor,
-                        child: Text('CANCEL',
-                            style: TextStyle(
-                                color: AppThemeSettings.buttonTextColor)),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }),
+                      color: colors.cancelButtonColor,
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'CANCEL',
+                        style: TextStyle(color: colors.buttonTextColor),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -390,126 +320,62 @@ class _WorkLogPageViewState extends State<WorkLogPageView> {
         ],
       ),
     );
+
+    if (!mounted) return;
+    Util.unlockOrientation();
+    _invalidateWorkLogs();
   }
 
-  Future<WorkLog> _addWorkLog(Exercise exercise) async {
-    //  get all workLogs from that day
-    List<WorkLog> workLogList = await _db.getDateAllWorkLogs();
+  Future<void> _addWorkLogFor(Exercise template) async {
+    final selectedDate = ref.read(selectedDateProvider);
+    final fresh = Exercise.create(
+      name: template.name,
+      bodyParts: template.bodyParts,
+    );
+    final existing = await _db.getWorkLogsForDate(selectedDate);
 
-    ///  check if workLogs have same exercise name
-    for (var w in workLogList) {
-      if (w.exercise.name == exercise.name) {
-        ///  if there is workLog with that exercise name on this day, but with different bodyPart
-        ///  update db with this new body part
-        w.exercise.bodyParts.addAll(exercise.bodyParts);
-        await _db.updateExercise(w.exercise);
-
-        _log.fine("Updated exercise bodyParts: ${w.exercise.toString()}");
-
-        return w;
+    for (final w in existing) {
+      if (w.exercise.name == fresh.name) {
+        final merged = w.exercise.copyWith(
+          bodyParts: {...w.exercise.bodyParts, ...fresh.bodyParts},
+        );
+        await _db.updateExercise(merged);
+        _log.fine('Updated exercise bodyParts: $merged');
+        _invalidateWorkLogs();
+        return;
       }
     }
-    WorkLog workLog = WorkLog(exercise);
-    workLog.exercise.bodyParts = exercise.bodyParts; // bodyPart as Set()
-    workLog.created = HelloWorldView.date;
 
-    //    String json = jsonEncode(workLog);
-    //    /// save to json
-    //    Storage.writeToFile(json);
-
-    ///  save workLog to DB
+    final workLog = WorkLog.create(exercise: fresh).copyWith(
+      created: selectedDate,
+    );
     await _db.newWorkLog(workLog);
-
-    _log.fine("Added new workLog: ${workLog.toString()}");
-
-    return workLog;
+    _log.fine('Added new workLog: $workLog');
+    _invalidateWorkLogs();
   }
 
-  List<Widget> _getMainBodyParts(WorkLog workLog) {
-    List<Text> result = <Text>[];
-
-    /// add only first 3 when more than 3 body parts in exercise
-    if (workLog.exercise.bodyParts.length > 3) {
-      int counter = 0;
-      workLog.exercise.bodyParts.forEach((bp) {
-        if (counter < 3) {
-          counter++;
-          result.add(Text(Util.getBpName(bp),
-              style: TextStyle(color: Util.getBpColor(bp))));
-        }
-        ;
-      });
-
-      /// add all body parts when less than 3 in exercise
-    } else if (workLog.exercise.bodyParts.length == 3) {
-      workLog.exercise.bodyParts.forEach((bp) {
-        result.add(Text(Util.getBpName(bp),
-            style: TextStyle(color: Util.getBpColor(bp))));
-      });
-    } else {
-      int counter = 0;
-      workLog.exercise.bodyParts.forEach((bp) {
-        counter++;
-        result.add(Text(Util.getBpName(bp),
-            style: TextStyle(color: Util.getBpColor(bp))));
-      });
-
-      workLog.exercise.secondaryBodyParts.forEach((bp) {
-        if (counter < 3) {
-          counter++;
-          result.add(Text(Util.getBpName(bp),
-              style: TextStyle(color: Util.getBpColor(bp))));
-        }
-        ;
-      });
-    }
-
-    return result;
+  List<Widget> _getMainBodyParts(WorkLog workLog, WorkoutColors colors) {
+    final parts = [
+      ...workLog.exercise.bodyParts,
+      ...workLog.exercise.secondaryBodyParts,
+    ].take(3);
+    return parts
+        .map((bp) => Text(
+              Util.getBpName(bp),
+              style: TextStyle(color: Util.getBpColor(bp, colors)),
+            ))
+        .toList();
   }
 
-  _updateState() {
-    setState(() {
-      _updateWorkLogFromDB();
-    });
+  void _invalidateWorkLogs() {
+    final date = ref.read(selectedDateProvider);
+    ref.invalidate(workLogsByDateProvider(date));
   }
 
-  void _updateWorkLogFromDB() async {
-    List<WorkLog> workLogList;
-    workLogList = await _db.getDateAllWorkLogs();
-    setState(() {
-      if (workLogList != null && workLogList.isNotEmpty) {
-        List<Widget> dbList = <Widget>[];
-
-        for (WorkLog workLog in workLogList) {
-          _log.fine("Loaded from DB: ${workLog.exercise.toString()}");
-
-          dbList.add(_createWorkLogRowWidget(workLog));
-        }
-        _wList = dbList;
-      }
-      // this is needed to refresh state even if there is no entries
-      // if not artifacts from different bodyPart will appear
-      else {
-        _wList = [];
-      }
-      _wList.add(Card(
-        child: Container(),
-      ));
-    });
-  }
-
-  _deleteWorkLog(WorkLog workLog) {
-    _log.fine("Deleted workLog: : ${workLog.toString()}");
-
-    _db.deleteWorkLog(workLog);
-    _updateState();
-  }
-
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
+  Future<void> _deleteWorkLog(WorkLog workLog) async {
+    _log.fine('Deleted workLog: $workLog');
+    await _db.deleteWorkLog(workLog);
+    if (!mounted) return;
+    _invalidateWorkLogs();
   }
 }
