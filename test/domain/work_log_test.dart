@@ -34,6 +34,38 @@ void main() {
     });
   });
 
+  group('WorkLog.create date normalization', () {
+    test('default `created` is start-of-day local time', () {
+      final w = WorkLog.create(exercise: sampleExercise());
+      expect(w.created.hour, 0);
+      expect(w.created.minute, 0);
+      expect(w.created.second, 0);
+      expect(w.created.millisecond, 0);
+    });
+
+    test('`on:` parameter is truncated to start-of-day', () {
+      final w = WorkLog.create(
+        exercise: sampleExercise(),
+        on: DateTime(2026, 5, 16, 23, 59, 59, 999),
+      );
+      expect(w.created, DateTime(2026, 5, 16));
+    });
+
+    test('fromMap normalizes legacy full-ISO timestamps to start-of-day', () {
+      final row = {
+        'id': 'w-1',
+        'bodyWeight': 0.0,
+        'exercise_id': 'ex-1',
+        'series': '{}',
+        'load': '{}',
+        // Legacy install wrote a full ISO timestamp via toIso8601String.
+        'created': '2026-05-16T23:59:59.999',
+      };
+      final w = WorkLog.fromMap(row, sampleExercise());
+      expect(w.created, DateTime(2026, 5, 16));
+    });
+  });
+
   group('getRepsSum', () {
     test('sums string-typed series values', () {
       final w = WorkLog(

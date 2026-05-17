@@ -15,7 +15,8 @@ WorkLog _seedWorkLog(String name, DateTime date,
     {Set<BodyPart> bodyParts = const {BodyPart.chest}}) {
   return WorkLog.create(
     exercise: Exercise.create(name: name, bodyParts: bodyParts),
-  ).copyWith(created: date);
+    on: date,
+  );
 }
 
 void main() {
@@ -142,7 +143,8 @@ void main() {
         name: 'Many Parts',
         bodyParts: {BodyPart.chest, BodyPart.back, BodyPart.arm, BodyPart.leg},
       ),
-    ).copyWith(created: date);
+      on: date,
+    );
 
     await tester.pumpWidget(
       testApp(

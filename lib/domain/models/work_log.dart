@@ -8,6 +8,12 @@ import 'package:workout_log/presentation/util/responsive.dart';
 part 'work_log.freezed.dart';
 part 'work_log.g.dart';
 
+/// Truncate to start-of-day in device-local time so `WorkLog.created`
+/// has no sub-day precision (matches the sqflite `created` column format
+/// `YYYY-MM-DD` and prevents same-day workouts from sorting across days
+/// when constructed near midnight).
+DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
+
 @freezed
 sealed class WorkLog with _$WorkLog {
   const WorkLog._();
@@ -21,10 +27,11 @@ sealed class WorkLog with _$WorkLog {
     @Default(0.0) double bodyWeight,
   }) = _WorkLog;
 
-  factory WorkLog.create({required Exercise exercise}) => WorkLog(
+  factory WorkLog.create({required Exercise exercise, DateTime? on}) =>
+      WorkLog(
         id: const Uuid().v4(),
         exercise: exercise,
-        created: DateTime.now(),
+        created: _startOfDay(on ?? DateTime.now()),
       );
 
   factory WorkLog.fromJson(Map<String, dynamic> json) =>
@@ -38,7 +45,9 @@ sealed class WorkLog with _$WorkLog {
     return WorkLog(
       id: map['id'] as String,
       exercise: e,
-      created: DateTime.parse(map['created'] as String),
+      // DateTime.parse normalizes through the YYYY-MM-DD column; rows from
+      // legacy installs that wrote a full ISO timestamp get normalized too.
+      created: _startOfDay(DateTime.parse(map['created'] as String)),
       series: seriesRaw.map((k, v) => MapEntry(k, v.toString())),
       load: loadRaw.map((k, v) => MapEntry(k, v.toString())),
       bodyWeight: (map['bodyWeight'] as num?)?.toDouble() ?? 0.0,

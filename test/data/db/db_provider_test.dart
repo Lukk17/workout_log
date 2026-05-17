@@ -48,9 +48,8 @@ void main() {
 
       // Create a workLog for "Push Up" with a fresh local Exercise instance
       final fresh = Exercise.create(name: 'Push Up', bodyParts: {BodyPart.chest});
-      final w = WorkLog.create(exercise: fresh).copyWith(
-        created: DateTime(2026, 5, 16),
-      );
+      final w = WorkLog.create(exercise: fresh, on:
+        DateTime(2026, 5, 16));
       await DBProvider.instance.newWorkLog(w);
 
       final after = await DBProvider.instance.getAllExercise();
@@ -64,9 +63,8 @@ void main() {
           .firstWhere((e) => e.name == 'Push Up');
       // Push Up seeded with bodyParts = {chest}. Add a workLog with {cardio}.
       final fresh = Exercise.create(name: 'Push Up', bodyParts: {BodyPart.cardio});
-      final w = WorkLog.create(exercise: fresh).copyWith(
-        created: DateTime(2026, 5, 16),
-      );
+      final w = WorkLog.create(exercise: fresh, on:
+        DateTime(2026, 5, 16));
       await DBProvider.instance.newWorkLog(w);
 
       final updated = (await DBProvider.instance.getAllExercise())
@@ -111,12 +109,10 @@ void main() {
       final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
 
-      final w1 = WorkLog.create(exercise: pushUp).copyWith(
-        created: DateTime(2026, 5, 16),
-      );
-      final w2 = WorkLog.create(exercise: pushUp).copyWith(
-        created: DateTime(2026, 5, 17),
-      );
+      final w1 = WorkLog.create(exercise: pushUp, on:
+        DateTime(2026, 5, 16));
+      final w2 = WorkLog.create(exercise: pushUp, on:
+        DateTime(2026, 5, 17));
       await DBProvider.instance.newWorkLog(w1);
       await DBProvider.instance.newWorkLog(w2);
 
@@ -130,9 +126,8 @@ void main() {
     test('deleted workLog disappears from getAllWorkLogs', () async {
       final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
-      final w = WorkLog.create(exercise: pushUp).copyWith(
-        created: DateTime(2026, 5, 16),
-      );
+      final w = WorkLog.create(exercise: pushUp, on:
+        DateTime(2026, 5, 16));
       await DBProvider.instance.newWorkLog(w);
 
       final beforeCount = (await DBProvider.instance.getAllWorkLogs()).length;

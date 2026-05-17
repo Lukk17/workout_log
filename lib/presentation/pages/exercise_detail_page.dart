@@ -31,6 +31,18 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   DBProvider get _db => ref.read(dbProvider);
   final Logger _log = Logger("ExerciseDetailPage");
 
+  /// The page owns a local copy of the workLog so mutations can be applied
+  /// via copyWith without mutating the immutable freezed instance passed in
+  /// from the parent. The parent route is responsible for re-fetching from
+  /// the DB on pop (via workLogsByDateProvider invalidation).
+  late WorkLog _workLog;
+
+  @override
+  void initState() {
+    super.initState();
+    _workLog = widget.workLog;
+  }
+
   late double _screenHeight;
   late double _screenWidth;
   late bool _isPortraitOrientation;
@@ -78,7 +90,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                 Container(
                   width: _screenWidth * 0.3,
                   child: Text(
-                    widget.workLog.created.toIso8601String().substring(0, 10),
+                    _workLog.created.toIso8601String().substring(0, 10),
                     textAlign: TextAlign.end,
                     style:
                         TextStyle(color: WorkoutColors.of(context).titleColor),
@@ -104,7 +116,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                     MaterialPageRoute(
                         builder: (context) =>
                             ExerciseFormPage(
-                              exercise: widget.workLog.exercise,
+                              exercise: _workLog.exercise,
                             )));
               },
               child: Container(
@@ -114,7 +126,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                 width: _exerciseWidth,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
-                  widget.workLog.exercise.name,
+                  _workLog.exercise.name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: WorkoutColors.of(context).textColor,
@@ -127,7 +139,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _getAllBodyParts(widget.workLog),
+              children: _getAllBodyParts(_workLog),
             ),
 
             /// table header
@@ -216,7 +228,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   /// Slidable widget show action when user slide every row
   List<Widget> _createRowsForSeries() {
     List<Widget> wList = <Widget>[];
-    List keys = widget.workLog.series.keys.toList();
+    List keys = _workLog.series.keys.toList();
 
     for (int i = 0; i < keys.length; i++) {
       wList.add(
@@ -253,7 +265,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                       left: _screenWidth * 0.01,
                       right: _screenWidth * 0.01),
                   child: SlidableAction(
-                    onPressed: (context) => _editLoadDialog(widget.workLog, keys[i]).then((v) {
+                    onPressed: (context) => _editLoadDialog(keys[i]).then((v) {
                       SystemChrome.setPreferredOrientations([
                         DeviceOrientation.landscapeRight,
                         DeviceOrientation.landscapeLeft,
@@ -274,7 +286,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                       left: _screenWidth * 0.01,
                       right: _screenWidth * 0.01),
                   child: SlidableAction(
-                    onPressed: (context) => _editRepeatsDialog(widget.workLog, i.toString()).then((v) {
+                    onPressed: (context) => _editRepeatsDialog(i.toString()).then((v) {
                       SystemChrome.setPreferredOrientations([
                         DeviceOrientation.landscapeRight,
                         DeviceOrientation.landscapeLeft,
@@ -316,14 +328,14 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   alignment: FractionalOffset(0.5, 0.5),
                   child: MaterialButton(
                     child: Text(
-                      widget.workLog.getLoad(keys[i]),
+                      _workLog.getLoad(keys[i]),
                       style: TextStyle(
                         color: WorkoutColors.of(context).textColor,
                         fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     onPressed: () {
-                      _editLoadDialog(widget.workLog, keys[i]).then((v) {
+                      _editLoadDialog(keys[i]).then((v) {
                         SystemChrome.setPreferredOrientations([
                           DeviceOrientation.landscapeRight,
                           DeviceOrientation.landscapeLeft,
@@ -342,14 +354,14 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   alignment: FractionalOffset(0.5, 0.5),
                   child: MaterialButton(
                     child: Text(
-                      widget.workLog.getReps(keys[i]),
+                      _workLog.getReps(keys[i]),
                       style: TextStyle(
                         color: WorkoutColors.of(context).textColor,
                         fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
                     onPressed: () {
-                      _editRepeatsDialog(widget.workLog, keys[i]).then((v) {
+                      _editRepeatsDialog(keys[i]).then((v) {
                         SystemChrome.setPreferredOrientations([
                           DeviceOrientation.landscapeRight,
                           DeviceOrientation.landscapeLeft,
@@ -378,105 +390,69 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     return wList;
   }
 
-  _addSeriesToWorkLog() async {
-    ///  add new series (with incremented number) to workLog with 0 repeats
-    widget.workLog.series
-        .putIfAbsent((widget.workLog.series.length + 1).toString(), () => "0");
-    widget.workLog.load.putIfAbsent(
-        (widget.workLog.load.length + 1).toString(), () => "0");
-    await _db.updateWorkLog(widget.workLog);
+  Future<void> _addSeriesToWorkLog() async {
+    final newIndex = (_workLog.series.length + 1).toString();
+    final updated = _workLog.copyWith(
+      series: {..._workLog.series, newIndex: '0'},
+      load: {..._workLog.load, newIndex: '0'},
+    );
+    await _db.updateWorkLog(updated);
+    if (!mounted) return;
+    setState(() => _workLog = updated);
+    _invalidateParent();
+    _log.fine('Series added to: $updated');
+  }
 
-    setState(() {});
-
-    _log.fine("Series added to: ${widget.workLog.toString()}");
+  void _invalidateParent() {
+    ref.invalidate(workLogsByDateProvider(_workLog.created));
   }
 
   /// shows dialog for editing repeats number
-  Future _editRepeatsDialog(WorkLog workLog, String set) {
-    final textEditingController = TextEditingController();
-
-    Util.blockOrientation(_isPortraitOrientation);
-
-    /// create required widgets due to different dialogs depending on screen orientation
-    List<Widget> dialogWidgets = <Widget>[];
-
-    dialogWidgets.add(
-
-      /// use text controller to save given by user String
-      TextField(
-        controller: textEditingController,
-        autofocus: true,
-        autocorrect: true,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(hintText: workLog.getReps(set)),
-        maxLength: 4,
+  Future<void> _editRepeatsDialog(String set) {
+    return _editSetValueDialog(
+      title: 'Edit repeats number',
+      currentValue: _workLog.getReps(set),
+      apply: (parsed) => _workLog.copyWith(
+        series: {..._workLog.series, set: parsed},
       ),
+      logLabel: 'Repeats',
     );
-
-    dialogWidgets.add(
-      Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            MaterialButton(
-                color: WorkoutColors.of(context).greenButtonColor,
-                child: Text(
-                  'SAVE',
-                  style: TextStyle(
-                      color: WorkoutColors.of(context).buttonTextColor),
-                ),
-                onPressed: () async {
-                  ///  set repeat number of this set
-                  // exception here if input is not int,
-                  // preventing from saving that value
-                  workLog.series[set] =
-                      int.parse(textEditingController.text).toString();
-                  await _db.updateWorkLog(workLog);
-
-                  _log.fine(
-                      "Repeats change to ${workLog.series[set]} for ${workLog
-                          .toString()}");
-
-                  Navigator.pop(context);
-                }),
-            MaterialButton(
-                color: WorkoutColors.of(context).cancelButtonColor,
-                child: Text(
-                  'CANCEL',
-                  style: TextStyle(
-                      color: WorkoutColors.of(context).buttonTextColor),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                }),
-          ]),
-    );
-
-    return _showDialog("Edit repeats number", dialogWidgets);
   }
 
   /// shows dialog for editing load value
-  Future _editLoadDialog(WorkLog workLog, String set) {
+  Future<void> _editLoadDialog(String set) {
+    return _editSetValueDialog(
+      title: 'Edit load value',
+      currentValue: _workLog.getLoad(set),
+      apply: (parsed) => _workLog.copyWith(
+        load: {..._workLog.load, set: parsed},
+      ),
+      logLabel: 'Load',
+    );
+  }
+
+  /// Shared dialog for editing either reps or load for a single set. The
+  /// caller supplies a builder that maps the parsed value to an updated
+  /// WorkLog (via copyWith) — no in-place map mutation.
+  Future<void> _editSetValueDialog({
+    required String title,
+    required String currentValue,
+    required WorkLog Function(String parsed) apply,
+    required String logLabel,
+  }) {
     final textEditingController = TextEditingController();
 
     Util.blockOrientation(_isPortraitOrientation);
 
-    /// create required widgets due to different dialogs depending on screen orientation
-    List<Widget> dialogWidgets = <Widget>[];
-
-    dialogWidgets.add(
-
-      /// use text controller to save given by user String
+    final List<Widget> dialogWidgets = <Widget>[
       TextField(
         controller: textEditingController,
         autofocus: true,
         autocorrect: true,
         keyboardType: TextInputType.number,
-        decoration: InputDecoration(hintText: workLog.getLoad(set)),
+        decoration: InputDecoration(hintText: currentValue),
         maxLength: 4,
       ),
-    );
-
-    dialogWidgets.add(
       Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
@@ -488,15 +464,16 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                       color: WorkoutColors.of(context).buttonTextColor),
                 ),
                 onPressed: () async {
-                  ///  set load value of this set
-                  // exception here if input is not int,
-                  // preventing from saving that value
-                  workLog.load[set] =
+                  // int.parse throws on non-numeric input — that prevents
+                  // saving an invalid value (and surfaces a clear error).
+                  final parsed =
                       int.parse(textEditingController.text).toString();
-                  await _db.updateWorkLog(workLog);
-
-                  _log.fine("Load change to ${workLog.load} for ${workLog
-                      .toString()}");
+                  final updated = apply(parsed);
+                  await _db.updateWorkLog(updated);
+                  if (!mounted) return;
+                  setState(() => _workLog = updated);
+                  _invalidateParent();
+                  _log.fine('$logLabel changed to $parsed for $updated');
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -510,12 +487,12 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   Navigator.pop(context);
                 }),
           ]),
-    );
+    ];
 
-    return _showDialog("Edit load value", dialogWidgets);
+    return _showDialog(title, dialogWidgets);
   }
 
-  _showDialog(String title, List<Widget> dialogWidgets) {
+  Future<void> _showDialog(String title, List<Widget> dialogWidgets) {
     return showDialog(
         context: context,
         builder: (_) =>
@@ -538,66 +515,31 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   }
 
 
-  void _deleteSeries(int i) async {
-    Map<dynamic, dynamic> updatedSeries = Map();
-    Map<dynamic, dynamic> updatedLoad = Map();
-
-    widget.workLog.series.forEach((key, value) {
-      if(int.parse(key) == i){
-        //  do not save it to new map - this way it will be deleted
-      }
-
-      /// decrement series number higher than deleted one
-      else
-        if (int.parse(key) > i)
-          {
-            key = (int.parse(key) - 1).toString();
-            updatedSeries.putIfAbsent(key, () => value.toString());
-          }
-
-        /// series number
-        else
-          {
-            updatedSeries.putIfAbsent(key, () => value.toString());
-          };
-    });
-
-    widget.workLog.load.forEach((key, value) {
-      if(int.parse(key) == i){
-        //  do not save it to new map - this way it will be deleted
-      }
-
-      /// decrement series number higher than deleted one
-      else
-        if (int.parse(key) > i)
-          {
-            key = (int.parse(key) - 1).toString();
-            updatedLoad.putIfAbsent(key, () => value.toString());
-          }
-
-        /// series number
-        else
-          {
-            updatedLoad.putIfAbsent(key, () => value.toString());
-          };
-    });
-
-    final rebuilt = widget.workLog.copyWith(
-      series: updatedSeries.map((k, v) => MapEntry(k.toString(), v.toString())),
-      load: updatedLoad.map((k, v) => MapEntry(k.toString(), v.toString())),
+  Future<void> _deleteSeries(int i) async {
+    final rebuilt = _workLog.copyWith(
+      series: _removeIndexAndShift(_workLog.series, i),
+      load: _removeIndexAndShift(_workLog.load, i),
     );
     await _db.updateWorkLog(rebuilt);
-    // Mutate the field maps in place so the existing widget reference keeps
-    // showing the new values until the parent route refetches.
-    widget.workLog.series
-      ..clear()
-      ..addAll(rebuilt.series);
-    widget.workLog.load
-      ..clear()
-      ..addAll(rebuilt.load);
-    setState(() {});
+    if (!mounted) return;
+    setState(() => _workLog = rebuilt);
+    _invalidateParent();
+    _log.fine('Series number $i deleted from $rebuilt');
+  }
 
-    _log.fine("Series number $i deleted from ${widget.workLog.toString()}");
+  /// Removes the entry whose 1-based key equals [removedIndex] and shifts
+  /// every higher-indexed entry down by 1, preserving the contiguous
+  /// numbering invariant that the rest of the page relies on.
+  static Map<String, String> _removeIndexAndShift(
+      Map<String, String> source, int removedIndex) {
+    final result = <String, String>{};
+    source.forEach((key, value) {
+      final n = int.parse(key);
+      if (n == removedIndex) return; // dropped
+      final newKey = n > removedIndex ? (n - 1).toString() : key;
+      result[newKey] = value;
+    });
+    return result;
   }
 
   List<Widget> _getAllBodyParts(WorkLog workLog) {

@@ -317,9 +317,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
       }
     }
 
-    final workLog = WorkLog.create(exercise: fresh).copyWith(
-      created: selectedDate,
-    );
+    final workLog = WorkLog.create(exercise: fresh, on: selectedDate);
     await _db.newWorkLog(workLog);
     _log.fine('Added new workLog: $workLog');
     _invalidateWorkLogs();

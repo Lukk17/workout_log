@@ -322,7 +322,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
       }
     }
     final workLog =
-        WorkLog.create(exercise: exercise).copyWith(created: selectedDate);
+        WorkLog.create(exercise: exercise, on: selectedDate);
     await _db.newWorkLog(workLog);
     _log.fine("New workLog saved to DB: $workLog");
     return workLog;
