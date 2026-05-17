@@ -9,6 +9,7 @@ import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 class ExerciseFormPage extends ConsumerStatefulWidget {
   final Exercise? exercise;
@@ -23,9 +24,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   final Logger _log = Logger("ExerciseFormPage");
 
   final Set<BodyPart> _primaryBodyParts = <BodyPart>{};
-  List<Widget> _primaryBodyPartsList = <Widget>[];
   final Set<BodyPart> _secondaryBodyParts = <BodyPart>{};
-  List<Widget> _secondaryBodyPartsList = <Widget>[];
   Map<String, bool> _valuesMap = <String, bool>{};
   bool _edit = false;
 
@@ -33,31 +32,6 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   late GlobalKey<ScaffoldState> _key;
 
   DBProvider get _db => ref.read(dbProvider);
-
-  late double _screenHeight;
-  late double _screenWidth;
-  late bool _isPortraitOrientation;
-
-  late double _appBarHeightPortrait;
-  late double _appBarHeightLandscape;
-  late double _textFieldWidth;
-  late double _buttonHeightPortrait;
-  late double _buttonHeightLandscape;
-  late double _buttonWidthPortrait;
-  late double _buttonWidthLandscape;
-
-  void setupDimensions() {
-    _screenHeight = Util.getScreenHeight(context);
-    _screenWidth = Util.getScreenWidth(context);
-
-    _appBarHeightPortrait = _screenHeight * 0.08;
-    _appBarHeightLandscape = _screenHeight * 0.1;
-    _textFieldWidth = _screenWidth * 0.7;
-    _buttonHeightPortrait = _screenHeight * 0.06;
-    _buttonHeightLandscape = _screenHeight * 0.1;
-    _buttonWidthPortrait = _screenWidth * 0.5;
-    _buttonWidthLandscape = _screenWidth * 0.27;
-  }
 
   Map<String, bool> setupValues() => {
         Util.getBpName(BodyPart.chest): false,
@@ -91,73 +65,67 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
     _key = GlobalObjectKey<ScaffoldState>(17);
     _valuesMap = setupValues();
     checkIfEdit();
-    _rebuildBodyPartLists();
-  }
-
-  void _rebuildBodyPartLists() {
-    _primaryBodyPartsList = _buildBodyPartCheckboxes(secondary: false);
-    _secondaryBodyPartsList = _buildBodyPartCheckboxes(secondary: true);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = WorkoutColors.of(context);
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortraitOrientation = orientation == Orientation.portrait;
-      setupDimensions();
-
-      return Scaffold(
-        resizeToAvoidBottomInset: false,
-        key: _key,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(_isPortraitOrientation ? _appBarHeightPortrait : _appBarHeightLandscape),
-          child: AppBar(
-              centerTitle: true,
-              title: Text(
-                'Add Exercises',
-                style: TextStyle(
-                  color: colors.titleColor,
-                  fontSize: WorkoutTypography.fontSize,
-                ),
-              ),
-              backgroundColor: colors.appBarColor),
+    return ResponsiveScaffold(
+      scaffoldKey: _key,
+      resizeToAvoidBottomInset: false,
+      appBarBuilder: (context, dims) => PreferredSize(
+        preferredSize: Size.fromHeight(dims.appBarHeight),
+        child: AppBar(
+          centerTitle: true,
+          title: Text(
+            'Add Exercises',
+            style: TextStyle(
+              color: colors.titleColor,
+              fontSize: WorkoutTypography.fontSize,
+            ),
+          ),
+          backgroundColor: colors.appBarColor,
         ),
-        body: Column(
-          mainAxisAlignment: _isPortraitOrientation ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.start,
+      ),
+      body: Builder(builder: (context) {
+        final dims = ResponsiveDimensions.of(context);
+        return Column(
+          mainAxisAlignment: dims.isPortrait
+              ? MainAxisAlignment.spaceEvenly
+              : MainAxisAlignment.start,
           children: <Widget>[
             Column(children: <Widget>[
               SizedBox(
-                width: _textFieldWidth,
+                width: dims.width * 0.7,
                 child: TextFormField(
                   textAlign: TextAlign.center,
                   controller: _myController,
-                  style: const TextStyle(fontSize: WorkoutTypography.headerSize),
+                  style:
+                      const TextStyle(fontSize: WorkoutTypography.headerSize),
                 ),
               ),
             ]),
-            if (!_isPortraitOrientation)
-              SizedBox(height: _screenHeight * 0.1),
-            _isPortraitOrientation
+            if (!dims.isPortrait) SizedBox(height: dims.height * 0.1),
+            dims.isPortrait
                 ? Column(children: _bodyPartSections())
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: _bodyPartSections(),
                   ),
-            if (!_isPortraitOrientation)
-              SizedBox(height: _screenHeight * 0.08),
-            _isPortraitOrientation
+            if (!dims.isPortrait) SizedBox(height: dims.height * 0.08),
+            dims.isPortrait
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: _getControlButtons(colors),
+                    children: _getControlButtons(colors, dims),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: _getControlButtons(colors),
+                    children: _getControlButtons(colors, dims),
                   )
           ],
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   List<Widget> _bodyPartSections() => [
@@ -166,7 +134,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
             const Text('Main Body Parts:'),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _primaryBodyPartsList,
+              children: _buildBodyPartCheckboxes(secondary: false),
             ),
           ],
         ),
@@ -175,20 +143,24 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
             const Text('Secodary Body Parts:'),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _secondaryBodyPartsList,
+              children: _buildBodyPartCheckboxes(secondary: true),
             ),
           ],
         ),
       ];
 
-  List<Widget> _getControlButtons(WorkoutColors colors) {
+  List<Widget> _getControlButtons(
+      WorkoutColors colors, ResponsiveDimensions dims) {
     final List<Widget> result = <Widget>[];
+
+    final buttonHeight = dims.height * (dims.isPortrait ? 0.06 : 0.1);
+    final buttonWidth = dims.width * (dims.isPortrait ? 0.5 : 0.27);
 
     result.add(
       MaterialButton(
         onPressed: _saveExercise,
-        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
-        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
+        height: buttonHeight,
+        minWidth: buttonWidth,
         color: colors.greenButtonColor,
         splashColor: colors.buttonSplashColor,
         textColor: colors.buttonTextColor,
@@ -196,10 +168,10 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
       ),
     );
 
-    if (_isPortraitOrientation) {
-      result.add(SizedBox(height: _screenHeight * 0.05));
+    if (dims.isPortrait) {
+      result.add(SizedBox(height: dims.height * 0.05));
     } else {
-      result.add(SizedBox(width: _screenWidth * 0.1));
+      result.add(SizedBox(width: dims.width * 0.1));
     }
     result.add(
       MaterialButton(
@@ -207,8 +179,8 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
           Util.hideKeyboard(context);
           Navigator.pop(context);
         },
-        height: _isPortraitOrientation ? _buttonHeightPortrait : _buttonHeightLandscape,
-        minWidth: _isPortraitOrientation ? _buttonWidthPortrait : _buttonWidthLandscape,
+        height: buttonHeight,
+        minWidth: buttonWidth,
         color: colors.cancelButtonColor,
         splashColor: colors.buttonSplashColor,
         textColor: colors.buttonTextColor,
@@ -255,7 +227,6 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
               } else {
                 _updateBP(bp, value);
               }
-              _rebuildBodyPartLists();
             });
           },
         ),
@@ -276,18 +247,16 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
       }
     }
 
-    if (tempList.length > 3) {
-      return [
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: tempList.take(3).toList()),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: tempList.skip(3).toList()),
-      ];
-    }
+    // Wrap handles arbitrary counts and wraps to a second row automatically,
+    // replacing the previous hand-rolled split-at-3 logic. Avoids horizontal
+    // overflow on narrow screens.
     return [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: tempList),
+      Wrap(
+        alignment: WrapAlignment.spaceAround,
+        spacing: 8,
+        runSpacing: 4,
+        children: tempList,
+      ),
     ];
   }
 

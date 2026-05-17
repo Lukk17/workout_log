@@ -5,7 +5,7 @@ import 'package:workout_log/data/db/db_provider.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 class BackupPage extends ConsumerStatefulWidget {
   const BackupPage({super.key});
@@ -17,39 +17,23 @@ class BackupPage extends ConsumerStatefulWidget {
 class _BackupPageState extends ConsumerState<BackupPage> {
   final Logger _log = Logger('backupView');
 
-  double _screenHeight = 100;
-  bool _isPortraitOrientation = false;
-
-  double _appBarHeightPortrait = 30;
-  double _appBarHeightLandscape = 30;
-
-  void setupDimensions() {
-    _screenHeight = Util.getScreenHeight(context);
-    _appBarHeightPortrait = _screenHeight * 0.08;
-    _appBarHeightLandscape = _screenHeight * 0.1;
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = WorkoutColors.of(context);
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortraitOrientation = orientation == Orientation.portrait;
-      setupDimensions();
-
-      return Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(_isPortraitOrientation
-              ? _appBarHeightPortrait
-              : _appBarHeightLandscape),
-          child: AppBar(
-            title: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[Text('Backup')],
-            ),
-            backgroundColor: colors.appBarColor,
+    return ResponsiveScaffold(
+      appBarBuilder: (context, dims) => PreferredSize(
+        preferredSize: Size.fromHeight(dims.appBarHeight),
+        child: AppBar(
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[Text('Backup')],
           ),
+          backgroundColor: colors.appBarColor,
         ),
-        body: Column(
+      ),
+      body: Builder(builder: (context) {
+        final dims = ResponsiveDimensions.of(context);
+        return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
@@ -69,7 +53,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
               ),
               onPressed: _restore,
             ),
-            SizedBox(height: _screenHeight * 0.25),
+            SizedBox(height: dims.height * 0.25),
             const Center(
               child: Text(
                   'Backup will be created inside:\n Android/data/com.lukk.workoutlog/files/backup.json \n'),
@@ -86,9 +70,9 @@ class _BackupPageState extends ConsumerState<BackupPage> {
               onPressed: _backup,
             ),
           ],
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   Future<void> _backup() async {

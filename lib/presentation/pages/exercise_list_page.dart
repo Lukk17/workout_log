@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workout_log/domain/models/exercise.dart';
+import 'package:workout_log/presentation/pages/exercise_form_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/pages/exercise_form_page.dart';
+import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 class ExerciseListPage extends ConsumerWidget {
   const ExerciseListPage({super.key});
@@ -13,17 +14,20 @@ class ExerciseListPage extends ConsumerWidget {
     final colors = WorkoutColors.of(context);
     final exercisesAsync = ref.watch(exercisesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Exercises Edit',
-          style: TextStyle(
-            color: colors.titleColor,
-            fontSize: WorkoutTypography.fontSize,
+    return ResponsiveScaffold(
+      appBarBuilder: (context, dims) => PreferredSize(
+        preferredSize: Size.fromHeight(dims.appBarHeight),
+        child: AppBar(
+          centerTitle: true,
+          title: Text(
+            'Exercises Edit',
+            style: TextStyle(
+              color: colors.titleColor,
+              fontSize: WorkoutTypography.fontSize,
+            ),
           ),
+          backgroundColor: colors.appBarColor,
         ),
-        backgroundColor: colors.appBarColor,
       ),
       body: exercisesAsync.when(
         data: (exercises) => ListView.builder(
@@ -36,8 +40,8 @@ class ExerciseListPage extends ConsumerWidget {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          ExerciseFormPage(exercise: e)),
+                    builder: (context) => ExerciseFormPage(exercise: e),
+                  ),
                 );
                 ref.invalidate(exercisesProvider);
               },

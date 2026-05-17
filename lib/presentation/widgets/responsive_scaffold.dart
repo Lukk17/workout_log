@@ -17,12 +17,21 @@ class ResponsiveDimensions {
   });
 
   /// Inherited lookup. Returns the dimensions from the nearest enclosing
-  /// `ResponsiveScaffold`.
+  /// `ResponsiveScaffold`. Falls back to `MediaQuery` if no scaffold ancestor
+  /// is present — useful when a page is mounted in a test or other harness
+  /// without its usual scaffold wrapper.
   static ResponsiveDimensions of(BuildContext context) {
     final inh = context
         .dependOnInheritedWidgetOfExactType<_ResponsiveDimensionsProvider>();
-    assert(inh != null, 'ResponsiveDimensions.of called outside ResponsiveScaffold');
-    return inh!.dimensions;
+    if (inh != null) return inh.dimensions;
+    final size = MediaQuery.sizeOf(context);
+    final isPortrait = MediaQuery.orientationOf(context) == Orientation.portrait;
+    return ResponsiveDimensions(
+      width: size.width,
+      height: size.height,
+      isPortrait: isPortrait,
+      appBarHeight: size.height * (isPortrait ? 0.08 : 0.1),
+    );
   }
 }
 

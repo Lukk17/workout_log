@@ -9,6 +9,7 @@ import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 import 'exercise_form_page.dart';
 
@@ -34,8 +35,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   late double _screenWidth;
   late bool _isPortraitOrientation;
 
-  late double _appBarHeightPortrait;
-  late double _appBarHeightLandscape;
   late double _exerciseHeightPortrait;
   late double _exerciseHeightLandscape;
   late double _exerciseWidth;
@@ -47,12 +46,11 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   late double _titleFontSizePortrait;
   late double _titleFontSizeLandscape;
 
-  void setupDimensions() {
-    _getScreenHeight();
-    _getScreenWidth();
+  void _readDimensions(ResponsiveDimensions dims) {
+    _screenHeight = dims.height;
+    _screenWidth = dims.width;
+    _isPortraitOrientation = dims.isPortrait;
 
-    _appBarHeightPortrait = _screenHeight * 0.08;
-    _appBarHeightLandscape = _screenHeight * 0.1;
     _exerciseHeightPortrait = _screenHeight * 0.1;
     _exerciseHeightLandscape = _screenHeight * 0.15;
     _exerciseWidth = _screenWidth;
@@ -67,41 +65,35 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-
-      /// check if new orientation is portrait
-      /// rebuild from here where orientation will change
-      _isPortraitOrientation = orientation == Orientation.portrait;
-
-      setupDimensions();
-      List<Widget> wList = _createRowsForSeries();
-
-      return Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(
-              _isPortraitOrientation
-                  ? _appBarHeightPortrait
-                  : _appBarHeightLandscape
-
-          ),
+    return ResponsiveScaffold(
+      appBarBuilder: (context, dims) {
+        _readDimensions(dims);
+        return PreferredSize(
+          preferredSize: Size.fromHeight(dims.appBarHeight),
           child: AppBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-
-                  /// created date of this log
-                  Container(
-                    width: _screenWidth * 0.3,
-                    child: Text(
-                      widget.workLog.created.toIso8601String().substring(0, 10),
-                      textAlign: TextAlign.end,
-                      style: TextStyle(color: WorkoutColors.of(context).titleColor),
-                    ),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                /// created date of this log
+                Container(
+                  width: _screenWidth * 0.3,
+                  child: Text(
+                    widget.workLog.created.toIso8601String().substring(0, 10),
+                    textAlign: TextAlign.end,
+                    style:
+                        TextStyle(color: WorkoutColors.of(context).titleColor),
                   ),
-                ],
-              ),
-              backgroundColor: WorkoutColors.of(context).appBarColor),),
-        body: Column(
+                ),
+              ],
+            ),
+            backgroundColor: WorkoutColors.of(context).appBarColor,
+          ),
+        );
+      },
+      body: Builder(builder: (context) {
+        _readDimensions(ResponsiveDimensions.of(context));
+        final wList = _createRowsForSeries();
+        return Column(
           children: <Widget>[
 
             /// exercise name
@@ -207,19 +199,17 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               ),
             ),
           ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          // text which will be shown after long press on button
-          tooltip: 'Add series',
-
-          // open pop-up on button press to add new exercise
-          onPressed: () => _addSeriesToWorkLog(),
-          child: Icon(Icons.add, color: WorkoutColors.of(context).buttonTextColor),
-          backgroundColor: WorkoutColors.of(context).buttonColor,
-          foregroundColor: WorkoutColors.of(context).secondaryColor,
-        ),
-      );
-    });
+        );
+      }),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Add series',
+        onPressed: _addSeriesToWorkLog,
+        backgroundColor: WorkoutColors.of(context).buttonColor,
+        foregroundColor: WorkoutColors.of(context).secondaryColor,
+        child:
+            Icon(Icons.add, color: WorkoutColors.of(context).buttonTextColor),
+      ),
+    );
   }
 
   /// Creates row for every recorder set, with divider at the bottom
@@ -609,15 +599,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
     _log.fine("Series number $i deleted from ${widget.workLog.toString()}");
   }
-
-  _getScreenHeight() {
-    _screenHeight = Util.getScreenHeight(context);
-  }
-
-  _getScreenWidth() {
-    _screenWidth = Util.getScreenWidth(context);
-  }
-
 
   List<Widget> _getAllBodyParts(WorkLog workLog) {
     List<Widget> result = <Widget>[];

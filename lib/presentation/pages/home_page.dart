@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:workout_log/presentation/app.dart';
-import 'package:workout_log/presentation/providers/theme_providers.dart';
-import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
 import 'package:workout_log/presentation/pages/backup_page.dart';
 import 'package:workout_log/presentation/pages/calendar_page.dart';
 import 'package:workout_log/presentation/pages/exercise_list_page.dart';
 import 'package:workout_log/presentation/pages/work_log_page.dart';
+import 'package:workout_log/presentation/providers/theme_providers.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
+import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 /// Main page of application.
 class HomePage extends ConsumerStatefulWidget {
@@ -30,26 +30,6 @@ class _HomePageState extends ConsumerState<HomePage>
 
   late TabController _tabController;
 
-  Orientation? _screenOrientation;
-  late bool _isPortraitOrientation;
-  late double _screenHeight;
-  late double _screenWidth;
-
-  late double _appBarHeightPortrait;
-  late double _appBarHeightLandscape;
-  late double titleFontSizePortrait;
-  late double titleFontSizeLandscape;
-
-  void setupDimensions() {
-    _screenHeight = Util.getScreenHeight(context);
-    _screenWidth = Util.getScreenWidth(context);
-
-    _appBarHeightPortrait = _screenHeight * 0.08;
-    _appBarHeightLandscape = _screenHeight * 0.1;
-    titleFontSizePortrait = _screenWidth * 0.055;
-    titleFontSizeLandscape = _screenWidth * 0.03;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -65,27 +45,21 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortraitOrientation = orientation == Orientation.portrait;
-      _screenOrientation = orientation;
-      setupDimensions();
-
-      return Scaffold(
-        key: _scaffoldKey,
-        appBar: _createAppBar(),
-        body: _createBody(),
-        bottomNavigationBar: _createTabBar(),
-        drawer: _openSettings(),
-      );
-    });
+    return ResponsiveScaffold(
+      scaffoldKey: _scaffoldKey,
+      appBarBuilder: _createAppBar,
+      body: _createBody(),
+      bottomNavigationBar: _createTabBar(context),
+      drawer: _openSettings(context),
+    );
   }
 
-  PreferredSize _createAppBar() {
+  PreferredSize _createAppBar(BuildContext context, ResponsiveDimensions dims) {
     final colors = WorkoutColors.of(context);
+    final titleFontSize =
+        dims.width * (dims.isPortrait ? 0.055 : 0.03);
     return PreferredSize(
-      preferredSize: Size.fromHeight(_isPortraitOrientation
-          ? _appBarHeightPortrait
-          : _appBarHeightLandscape),
+      preferredSize: Size.fromHeight(dims.appBarHeight),
       child: AppBar(
         leading: IconButton(
           icon: Icon(Icons.settings, color: colors.titleColor),
@@ -95,18 +69,16 @@ class _HomePageState extends ConsumerState<HomePage>
           MyApp.title,
           style: TextStyle(
             color: colors.titleColor,
-            fontSize: _isPortraitOrientation
-                ? titleFontSizePortrait
-                : titleFontSizeLandscape,
+            fontSize: titleFontSize,
           ),
         ),
         backgroundColor: colors.appBarColor,
-        centerTitle: !_isPortraitOrientation,
+        centerTitle: !dims.isPortrait,
         actions: <Widget>[
           MaterialButton(
             padding: const EdgeInsets.all(5),
             onPressed: () async => _openCalendar(),
-            child: _isPortraitOrientation
+            child: dims.isPortrait
                 ? Column(
                     children: <Widget>[
                       Icon(Icons.calendar_today, color: colors.titleColor),
@@ -121,157 +93,172 @@ class _HomePageState extends ConsumerState<HomePage>
     );
   }
 
-  Widget _createTabBar() {
-    final colors = WorkoutColors.of(context);
-    return Container(
-      color: colors.backgroundColor,
-      child: TabBar(
-        indicatorColor: colors.indicatorColor,
-        labelColor: colors.tabBarColor,
-        controller: _tabController,
-        tabs: <Widget>[
-          Tab(
-            text: _isPortraitOrientation ? 'log' : null,
-            icon: Icon(Icons.assignment, color: colors.tabBarIconColor),
-          ),
-        ],
-      ),
-    );
+  Widget _createTabBar(BuildContext context) {
+    return Builder(builder: (context) {
+      final colors = WorkoutColors.of(context);
+      final dims = ResponsiveDimensions.of(context);
+      return Container(
+        color: colors.backgroundColor,
+        child: TabBar(
+          indicatorColor: colors.indicatorColor,
+          labelColor: colors.tabBarColor,
+          controller: _tabController,
+          tabs: <Widget>[
+            Tab(
+              text: dims.isPortrait ? 'log' : null,
+              icon: Icon(Icons.assignment, color: colors.tabBarIconColor),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _createBody() {
-    final colors = WorkoutColors.of(context);
-    final showBackground = ref.watch(backgroundImageProvider);
-    return Container(
-      decoration: showBackground
-          ? BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(colors.backgroundImage),
-                fit: BoxFit.fitHeight,
-              ),
-            )
-          : const BoxDecoration(),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
-        child: TabBarView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: _tabController,
-          children: const [WorkLogPage()],
+    return Builder(builder: (context) {
+      final colors = WorkoutColors.of(context);
+      final showBackground = ref.watch(backgroundImageProvider);
+      return Container(
+        decoration: showBackground
+            ? BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(colors.backgroundImage),
+                  fit: BoxFit.fitHeight,
+                ),
+              )
+            : const BoxDecoration(),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+          child: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _tabController,
+            children: const [WorkLogPage()],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Future<void> _openCalendar() async {
+    // Use the current orientation at the time of opening, derived from
+    // MediaQuery rather than from a stored state field.
+    final orientation = MediaQuery.orientationOf(context);
     await showDialog(
       context: context,
       builder: (context) => SimpleDialog(
         children: <Widget>[
-          CalendarPage((widget) => {}, _screenOrientation!),
+          CalendarPage((widget) => {}, orientation),
         ],
       ),
     );
   }
 
-  Widget _openSettings() {
-    final colors = WorkoutColors.of(context);
-    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
-    final showBackground = ref.watch(backgroundImageProvider);
-    return Drawer(
-      child: Container(
-        color: colors.drawerColor,
-        child: ListView(
-          children: <Widget>[
-            Center(
-              child: Text(
-                'Settings',
-                style: TextStyle(
-                  color: colors.textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: WorkoutTypography.headerSize,
+  Widget _openSettings(BuildContext context) {
+    return Builder(builder: (context) {
+      final colors = WorkoutColors.of(context);
+      final dims = ResponsiveDimensions.of(context);
+      final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
+      final showBackground = ref.watch(backgroundImageProvider);
+      return Drawer(
+        child: Container(
+          color: colors.drawerColor,
+          child: ListView(
+            children: <Widget>[
+              Center(
+                child: Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: colors.textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: WorkoutTypography.headerSize,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: _screenHeight * (_isPortraitOrientation ? 0.2 : 0.1),
-            ),
-            Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Dark mode:',
+              SizedBox(
+                height: dims.height * (dims.isPortrait ? 0.2 : 0.1),
+              ),
+              Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Dark mode:',
+                        style: TextStyle(
+                          color: colors.textColor,
+                          fontSize: WorkoutTypography.fontSize,
+                        ),
+                      ),
+                      Switch(
+                        value: isDark,
+                        onChanged: (value) => ref
+                            .read(themeModeProvider.notifier)
+                            .toggle(value),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: dims.height * 0.1),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Background image:',
+                        style: TextStyle(
+                          color: colors.textColor,
+                          fontSize: WorkoutTypography.fontSize,
+                        ),
+                      ),
+                      Switch(
+                        value: showBackground,
+                        onChanged: (value) => ref
+                            .read(backgroundImageProvider.notifier)
+                            .set(value),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height:
+                        dims.height * (dims.isPortrait ? 0.1 : 0.05),
+                  ),
+                  MaterialButton(
+                    color: colors.buttonColor,
+                    child: Text(
+                      'Backup',
                       style: TextStyle(
-                        color: colors.textColor,
+                        color: colors.buttonTextColor,
                         fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
-                    Switch(
-                      value: isDark,
-                      onChanged: (value) =>
-                          ref.read(themeModeProvider.notifier).toggle(value),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BackupPage()),
                     ),
-                  ],
-                ),
-                SizedBox(height: _screenHeight * 0.1),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Background image:',
+                  ),
+                  SizedBox(
+                    height: dims.height * (dims.isPortrait ? 0.2 : 0.1),
+                  ),
+                  MaterialButton(
+                    color: colors.buttonColor,
+                    child: Text(
+                      'Edit Exercises',
                       style: TextStyle(
-                        color: colors.textColor,
+                        color: colors.buttonTextColor,
                         fontSize: WorkoutTypography.fontSize,
                       ),
                     ),
-                    Switch(
-                      value: showBackground,
-                      onChanged: (value) => ref
-                          .read(backgroundImageProvider.notifier)
-                          .set(value),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: _screenHeight * (_isPortraitOrientation ? 0.1 : 0.05),
-                ),
-                MaterialButton(
-                  color: colors.buttonColor,
-                  child: Text(
-                    'Backup',
-                    style: TextStyle(
-                      color: colors.buttonTextColor,
-                      fontSize: WorkoutTypography.fontSize,
-                    ),
-                  ),
-                  onPressed: () => Navigator.push(
+                    onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const BackupPage())),
-                ),
-                SizedBox(
-                  height: _screenHeight * (_isPortraitOrientation ? 0.2 : 0.1),
-                ),
-                MaterialButton(
-                  color: colors.buttonColor,
-                  child: Text(
-                    'Edit Exercises',
-                    style: TextStyle(
-                      color: colors.buttonTextColor,
-                      fontSize: WorkoutTypography.fontSize,
+                          builder: (context) => const ExerciseListPage()),
                     ),
                   ),
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ExerciseListPage())),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
