@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/data/db/exercise_dao.dart';
+import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/pages/exercise_detail_page.dart';
@@ -24,7 +25,8 @@ class WorkLogPage extends ConsumerStatefulWidget {
 class _WorkLogPageState extends ConsumerState<WorkLogPage> {
   final Logger _log = Logger('WorkLogPage');
 
-  DBProvider get _db => ref.read(dbProvider);
+  WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
+  ExerciseDao get _exerciseDao => ref.read(exerciseDaoProvider);
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +199,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
       );
 
   Future<void> _showAddExerciseDialog(ResponsiveDimensions outerDims) async {
-    final exercises = await _db.getAllExercise();
+    final exercises = await _exerciseDao.getAll();
     if (!mounted) return;
 
     Util.blockOrientation(outerDims.isPortrait);
@@ -303,14 +305,14 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
       name: template.name,
       bodyParts: template.bodyParts,
     );
-    final existing = await _db.getWorkLogsForDate(selectedDate);
+    final existing = await _workLogDao.getForDate(selectedDate);
 
     for (final w in existing) {
       if (w.exercise.name == fresh.name) {
         final merged = w.exercise.copyWith(
           bodyParts: {...w.exercise.bodyParts, ...fresh.bodyParts},
         );
-        await _db.updateExercise(merged);
+        await _exerciseDao.mergeBodyParts(merged);
         _log.fine('Updated exercise bodyParts: $merged');
         _invalidateWorkLogs();
         return;
@@ -318,7 +320,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
     }
 
     final workLog = WorkLog.create(exercise: fresh, on: selectedDate);
-    await _db.newWorkLog(workLog);
+    await _workLogDao.insert(workLog);
     _log.fine('Added new workLog: $workLog');
     _invalidateWorkLogs();
   }
@@ -343,7 +345,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
 
   Future<void> _deleteWorkLog(WorkLog workLog) async {
     _log.fine('Deleted workLog: $workLog');
-    await _db.deleteWorkLog(workLog);
+    await _workLogDao.delete(workLog);
     if (!mounted) return;
     _invalidateWorkLogs();
   }

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
@@ -28,7 +28,7 @@ class ExerciseDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
-  DBProvider get _db => ref.read(dbProvider);
+  WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
   final Logger _log = Logger("ExerciseDetailPage");
 
   /// The page owns a local copy of the workLog so mutations can be applied
@@ -396,7 +396,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       series: {..._workLog.series, newIndex: '0'},
       load: {..._workLog.load, newIndex: '0'},
     );
-    await _db.updateWorkLog(updated);
+    await _workLogDao.update(updated);
     if (!mounted) return;
     setState(() => _workLog = updated);
     _invalidateParent();
@@ -469,7 +469,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   final parsed =
                       int.parse(textEditingController.text).toString();
                   final updated = apply(parsed);
-                  await _db.updateWorkLog(updated);
+                  await _workLogDao.update(updated);
                   if (!mounted) return;
                   setState(() => _workLog = updated);
                   _invalidateParent();
@@ -520,7 +520,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       series: _removeIndexAndShift(_workLog.series, i),
       load: _removeIndexAndShift(_workLog.load, i),
     );
-    await _db.updateWorkLog(rebuilt);
+    await _workLogDao.update(rebuilt);
     if (!mounted) return;
     setState(() => _workLog = rebuilt);
     _invalidateParent();

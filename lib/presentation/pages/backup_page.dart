@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/data/backup/backup_service.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
@@ -79,7 +79,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     _log.fine('Creating backup...');
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(dbProvider).backup();
+      await ref.read(backupServiceProvider).backup();
       if (!mounted) return;
       messenger.showSnackBar(const SnackBar(content: Text('Backup created.')));
     } on ExternalStorageUnavailableException catch (e) {
@@ -93,7 +93,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final messenger = ScaffoldMessenger.of(context);
     final selectedDate = ref.read(selectedDateProvider);
     try {
-      await ref.read(dbProvider).restore();
+      await ref.read(backupServiceProvider).restore();
       if (!mounted) return;
       ref.invalidate(exercisesProvider);
       ref.invalidate(workLogsByDateProvider(selectedDate));

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import 'package:workout_log/data/db/db_provider.dart';
+import 'package:workout_log/data/db/exercise_dao.dart';
+import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
@@ -31,7 +32,8 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   late TextEditingController _myController;
   late GlobalKey<ScaffoldState> _key;
 
-  DBProvider get _db => ref.read(dbProvider);
+  WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
+  ExerciseDao get _exerciseDao => ref.read(exerciseDaoProvider);
 
   Map<String, bool> setupValues() => {
         Util.getBpName(BodyPart.chest): false,
@@ -284,7 +286,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
         bodyParts: _primaryBodyParts,
         secondaryBodyParts: _secondaryBodyParts,
       );
-      await _db.editExercise(updated);
+      await _exerciseDao.replace(updated);
       _log.fine("Updating exercise: $updated");
 
       if (!mounted) return;
@@ -310,20 +312,20 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   }
 
   Future<WorkLog> _addWorkLog(Exercise exercise, DateTime selectedDate) async {
-    final workLogList = await _db.getWorkLogsForDate(selectedDate);
+    final workLogList = await _workLogDao.getForDate(selectedDate);
     for (final w in workLogList) {
       if (w.exercise.name == exercise.name) {
         final merged = w.exercise.copyWith(
           bodyParts: {...w.exercise.bodyParts, ...exercise.bodyParts},
         );
-        await _db.updateExercise(merged);
+        await _exerciseDao.mergeBodyParts(merged);
         _log.fine("Worklog updated $merged");
         return w.copyWith(exercise: merged);
       }
     }
     final workLog =
         WorkLog.create(exercise: exercise, on: selectedDate);
-    await _db.newWorkLog(workLog);
+    await _workLogDao.insert(workLog);
     _log.fine("New workLog saved to DB: $workLog");
     return workLog;
   }
