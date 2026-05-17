@@ -17,7 +17,7 @@ void main() {
   });
 
   tearDown(() async {
-    await DBProvider.db.resetForTesting();
+    await DBProvider.instance.resetForTesting();
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
@@ -25,7 +25,7 @@ void main() {
 
   group('onCreate seed', () {
     test('every seeded exercise is present after first DB getter call', () async {
-      final exercises = await DBProvider.db.getAllExercise();
+      final exercises = await DBProvider.instance.getAllExercise();
       // The seed block defines 27 entries.
       expect(exercises.length, greaterThanOrEqualTo(27));
       final names = exercises.map((e) => e.name).toSet();
@@ -33,16 +33,16 @@ void main() {
     });
 
     test('seed only runs once across multiple getter calls', () async {
-      final firstCount = (await DBProvider.db.getAllExercise()).length;
+      final firstCount = (await DBProvider.instance.getAllExercise()).length;
       // Touch again
-      final secondCount = (await DBProvider.db.getAllExercise()).length;
+      final secondCount = (await DBProvider.instance.getAllExercise()).length;
       expect(secondCount, firstCount);
     });
   });
 
   group('newWorkLog dedup', () {
     test('inserting a workLog for an existing exercise reuses the row', () async {
-      final exercises = await DBProvider.db.getAllExercise();
+      final exercises = await DBProvider.instance.getAllExercise();
       final pushUp = exercises.firstWhere((e) => e.name == 'Push Up');
       final pushUpCountBefore = exercises.where((e) => e.name == 'Push Up').length;
 
@@ -51,25 +51,25 @@ void main() {
       final w = WorkLog.create(exercise: fresh).copyWith(
         created: DateTime(2026, 5, 16),
       );
-      await DBProvider.db.newWorkLog(w);
+      await DBProvider.instance.newWorkLog(w);
 
-      final after = await DBProvider.db.getAllExercise();
+      final after = await DBProvider.instance.getAllExercise();
       final pushUpCountAfter = after.where((e) => e.name == 'Push Up').length;
       expect(pushUpCountAfter, pushUpCountBefore, reason: 'no duplicate exercise row inserted');
       expect(pushUp.id, after.firstWhere((e) => e.name == 'Push Up').id);
     });
 
     test('inserting for an exercise with a new body part merges body parts', () async {
-      final pushUp = (await DBProvider.db.getAllExercise())
+      final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
       // Push Up seeded with bodyParts = {chest}. Add a workLog with {cardio}.
       final fresh = Exercise.create(name: 'Push Up', bodyParts: {BodyPart.cardio});
       final w = WorkLog.create(exercise: fresh).copyWith(
         created: DateTime(2026, 5, 16),
       );
-      await DBProvider.db.newWorkLog(w);
+      await DBProvider.instance.newWorkLog(w);
 
-      final updated = (await DBProvider.db.getAllExercise())
+      final updated = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
       expect(updated.id, pushUp.id);
       expect(updated.bodyParts, containsAll([BodyPart.chest, BodyPart.cardio]));
@@ -78,27 +78,27 @@ void main() {
 
   group('editExercise vs updateExercise', () {
     test('updateExercise (additive) merges body parts', () async {
-      final pushUp = (await DBProvider.db.getAllExercise())
+      final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
       final delta = pushUp.copyWith(bodyParts: {BodyPart.back});
-      await DBProvider.db.updateExercise(delta);
+      await DBProvider.instance.updateExercise(delta);
 
-      final after = (await DBProvider.db.getAllExercise())
+      final after = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.id == pushUp.id);
       expect(after.bodyParts, containsAll([BodyPart.chest, BodyPart.back]));
     });
 
     test('editExercise replaces body parts and name', () async {
-      final pushUp = (await DBProvider.db.getAllExercise())
+      final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
       final replaced = pushUp.copyWith(
         name: 'Renamed Push Up',
         bodyParts: {BodyPart.back},
         secondaryBodyParts: <BodyPart>{},
       );
-      await DBProvider.db.editExercise(replaced);
+      await DBProvider.instance.editExercise(replaced);
 
-      final after = (await DBProvider.db.getAllExercise())
+      final after = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.id == pushUp.id);
       expect(after.name, 'Renamed Push Up');
       expect(after.bodyParts, {BodyPart.back});
@@ -108,7 +108,7 @@ void main() {
 
   group('date-filtered queries', () {
     test('getDateAllWorkLogs returns only entries created on HomePage.date', () async {
-      final pushUp = (await DBProvider.db.getAllExercise())
+      final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
 
       final w1 = WorkLog.create(exercise: pushUp).copyWith(
@@ -117,10 +117,10 @@ void main() {
       final w2 = WorkLog.create(exercise: pushUp).copyWith(
         created: DateTime(2026, 5, 17),
       );
-      await DBProvider.db.newWorkLog(w1);
-      await DBProvider.db.newWorkLog(w2);
+      await DBProvider.instance.newWorkLog(w1);
+      await DBProvider.instance.newWorkLog(w2);
 
-      final onDate = await DBProvider.db.getWorkLogsForDate(DateTime(2026, 5, 16));
+      final onDate = await DBProvider.instance.getWorkLogsForDate(DateTime(2026, 5, 16));
       expect(onDate.length, 1);
       expect(onDate.first.created.day, 16);
     });
@@ -128,16 +128,16 @@ void main() {
 
   group('deleteWorkLog', () {
     test('deleted workLog disappears from getAllWorkLogs', () async {
-      final pushUp = (await DBProvider.db.getAllExercise())
+      final pushUp = (await DBProvider.instance.getAllExercise())
           .firstWhere((e) => e.name == 'Push Up');
       final w = WorkLog.create(exercise: pushUp).copyWith(
         created: DateTime(2026, 5, 16),
       );
-      await DBProvider.db.newWorkLog(w);
+      await DBProvider.instance.newWorkLog(w);
 
-      final beforeCount = (await DBProvider.db.getAllWorkLogs()).length;
-      await DBProvider.db.deleteWorkLog(w);
-      final afterCount = (await DBProvider.db.getAllWorkLogs()).length;
+      final beforeCount = (await DBProvider.instance.getAllWorkLogs()).length;
+      await DBProvider.instance.deleteWorkLog(w);
+      final afterCount = (await DBProvider.instance.getAllWorkLogs()).length;
       expect(afterCount, beforeCount - 1);
     });
   });
@@ -146,7 +146,7 @@ void main() {
     test('opening a fresh DB at schema 2 succeeds (hook is installed)', () async {
       // The setUp opened the DB; if no exception, the schema is at version 2.
       // Implicit assertion: no throw. Sanity-check via a basic query.
-      final exercises = await DBProvider.db.getAllExercise();
+      final exercises = await DBProvider.instance.getAllExercise();
       expect(exercises, isNotEmpty);
     });
   });

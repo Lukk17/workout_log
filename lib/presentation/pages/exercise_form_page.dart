@@ -140,7 +140,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
         ),
         Column(
           children: <Widget>[
-            const Text('Secodary Body Parts:'),
+            const Text('Secondary Body Parts:'),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: _buildBodyPartCheckboxes(secondary: true),

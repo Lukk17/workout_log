@@ -6,7 +6,7 @@ import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 
 /// Singleton DAO. Wrapped in a provider so widget tests can override with a
 /// fake/in-memory DB factory.
-final dbProvider = Provider<DBProvider>((ref) => DBProvider.db);
+final dbProvider = Provider<DBProvider>((ref) => DBProvider.instance);
 
 /// All workouts logged on the currently selected date.
 final workLogsByDateProvider =

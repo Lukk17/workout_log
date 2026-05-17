@@ -35,7 +35,7 @@ class DBProvider {
 
   DBProvider._();
 
-  static final DBProvider db = DBProvider._();
+  static final DBProvider instance = DBProvider._();
 
   /// Override the sqflite database path (used by tests). When null, the path
   /// derives from `getApplicationDocumentsDirectory()`.

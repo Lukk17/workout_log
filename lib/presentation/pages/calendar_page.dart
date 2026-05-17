@@ -41,8 +41,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   double _calendarRowHeightLandscape = 0;
 
   void setupDimensions() {
-    _screenHeight = Util.getScreenHeight(context);
-    _screenWidth = Util.getScreenWidth(context);
+    final size = MediaQuery.sizeOf(context);
+    _screenHeight = size.height;
+    _screenWidth = size.width;
 
     _dialogHeightPortrait = _screenHeight * 0.71;
     _dialogHeightLandscape = _screenHeight * 0.8;

@@ -16,6 +16,6 @@ Future<Directory> useTemporaryDatabase() async {
   final tempDir = await Directory.systemTemp.createTemp('workout_log_test_');
   DBProvider.databasePathOverride =
       '${tempDir.path}${Platform.pathSeparator}worklog.db';
-  await DBProvider.db.resetForTesting();
+  await DBProvider.instance.resetForTesting();
   return tempDir;
 }

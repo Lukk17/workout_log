@@ -55,7 +55,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Main Body Parts:'), findsOneWidget);
-    expect(find.text('Secodary Body Parts:'), findsOneWidget);
+    expect(find.text('Secondary Body Parts:'), findsOneWidget);
     expect(find.text('SAVE'), findsOneWidget);
     expect(find.text('Cancel'), findsOneWidget);
   });
