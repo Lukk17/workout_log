@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/work_log.dart';
@@ -29,7 +29,7 @@ class ExerciseDetailPage extends ConsumerStatefulWidget {
 
 class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
-  final Logger _log = Logger("ExerciseDetailPage");
+  static const _tag = 'ExerciseDetailPage';
 
   /// The page owns a local copy of the workLog so mutations can be applied
   /// via copyWith without mutating the immutable freezed instance passed in
@@ -43,43 +43,17 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     _workLog = widget.workLog;
   }
 
-  late double _screenHeight;
-  late double _screenWidth;
-  late bool _isPortraitOrientation;
-
-  late double _exerciseHeightPortrait;
-  late double _exerciseHeightLandscape;
-  late double _exerciseWidth;
-  late double _columnWidth;
-  late double _seriesColumnWidth;
-  late double _headerLandscapeColumnHeight;
-  late double _portraitColumnHeight;
-  late double _landscapeColumnHeight;
-  late double _titleFontSizePortrait;
-  late double _titleFontSizeLandscape;
-
-  void _readDimensions(ResponsiveDimensions dims) {
-    _screenHeight = dims.height;
-    _screenWidth = dims.width;
-    _isPortraitOrientation = dims.isPortrait;
-
-    _exerciseHeightPortrait = _screenHeight * 0.1;
-    _exerciseHeightLandscape = _screenHeight * 0.15;
-    _exerciseWidth = _screenWidth;
-    _columnWidth = _screenWidth * 0.375;
-    _seriesColumnWidth = _screenWidth * 0.25;
-    _portraitColumnHeight = _screenHeight * 0.1;
-    _headerLandscapeColumnHeight = _screenHeight * 0.15;
-    _landscapeColumnHeight = _screenHeight * 0.17;
-    _titleFontSizePortrait = _screenWidth * 0.055;
-    _titleFontSizeLandscape = _screenWidth * 0.03;
-  }
+  /// Derived layout for this page. Computed once per build from the
+  /// inherited [ResponsiveDimensions], then passed (or read off
+  /// `_layout`) by helpers. Replaces a previous set of 13 mutable late
+  /// fields that were re-set on every build.
+  late _Layout _layout;
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveScaffold(
       appBarBuilder: (context, dims) {
-        _readDimensions(dims);
+        _layout = _Layout.from(dims);
         return PreferredSize(
           preferredSize: Size.fromHeight(dims.appBarHeight),
           child: AppBar(
@@ -88,7 +62,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               children: <Widget>[
                 /// created date of this log
                 Container(
-                  width: _screenWidth * 0.3,
+                  width: _layout.screenWidth * 0.3,
                   child: Text(
                     _workLog.created.toIso8601String().substring(0, 10),
                     textAlign: TextAlign.end,
@@ -103,7 +77,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         );
       },
       body: Builder(builder: (context) {
-        _readDimensions(ResponsiveDimensions.of(context));
+        _layout = _Layout.from(ResponsiveDimensions.of(context));
         final wList = _createRowsForSeries();
         return Column(
           children: <Widget>[
@@ -120,10 +94,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                             )));
               },
               child: Container(
-                height: _isPortraitOrientation
-                    ? _exerciseHeightPortrait
-                    : _exerciseHeightLandscape,
-                width: _exerciseWidth,
+                height: _layout.isPortrait
+                    ? _layout.exerciseHeightPortrait
+                    : _layout.exerciseHeightLandscape,
+                width: _layout.exerciseWidth,
                 alignment: FractionalOffset(0.5, 0.5),
                 child: Text(
                   _workLog.exercise.name,
@@ -146,11 +120,11 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
             Row(
               children: <Widget>[
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _headerLandscapeColumnHeight,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.headerLandscapeColumnHeight,
 
-                  width: _seriesColumnWidth,
+                  width: _layout.seriesColumnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: Text(
                     "series",
@@ -162,11 +136,11 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   ),
                 ),
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _headerLandscapeColumnHeight,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.headerLandscapeColumnHeight,
 
-                  width: _columnWidth,
+                  width: _layout.columnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: Text(
                     "load",
@@ -178,11 +152,11 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   ),
                 ),
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _headerLandscapeColumnHeight,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.headerLandscapeColumnHeight,
 
-                  width: _columnWidth,
+                  width: _layout.columnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: Text(
                     "repeats",
@@ -196,7 +170,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               ],
             ),
 
-            Divider(indent: _screenWidth * 0.05, endIndent: _screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
+            Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
 
             /// list view builder create series
             Expanded(
@@ -240,10 +214,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               children: [
                 Container(
                   margin: EdgeInsets.only(
-                      bottom: _screenHeight * 0.01,
-                      top: _screenHeight * 0.01,
-                      left: _screenWidth * 0.01,
-                      right: _screenWidth * 0.01),
+                      bottom: _layout.screenHeight * 0.01,
+                      top: _layout.screenHeight * 0.01,
+                      left: _layout.screenWidth * 0.01,
+                      right: _layout.screenWidth * 0.01),
                   child: SlidableAction(
                     onPressed: (context) => _deleteSeries(i),
                     backgroundColor: Colors.red,
@@ -260,10 +234,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               children: [
                 Container(
                   margin: EdgeInsets.only(
-                      bottom: _screenHeight * 0.01,
-                      top: _screenHeight * 0.01,
-                      left: _screenWidth * 0.01,
-                      right: _screenWidth * 0.01),
+                      bottom: _layout.screenHeight * 0.01,
+                      top: _layout.screenHeight * 0.01,
+                      left: _layout.screenWidth * 0.01,
+                      right: _layout.screenWidth * 0.01),
                   child: SlidableAction(
                     onPressed: (context) => _editLoadDialog(keys[i]).then((v) {
                       SystemChrome.setPreferredOrientations([
@@ -281,10 +255,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                 ),
                 Container(
                   margin: EdgeInsets.only(
-                      bottom: _screenHeight * 0.01,
-                      top: _screenHeight * 0.01,
-                      left: _screenWidth * 0.01,
-                      right: _screenWidth * 0.01),
+                      bottom: _layout.screenHeight * 0.01,
+                      top: _layout.screenHeight * 0.01,
+                      left: _layout.screenWidth * 0.01,
+                      right: _layout.screenWidth * 0.01),
                   child: SlidableAction(
                     onPressed: (context) => _editRepeatsDialog(i.toString()).then((v) {
                       SystemChrome.setPreferredOrientations([
@@ -305,10 +279,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
             child: Row(
               children: <Widget>[
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _landscapeColumnHeight,
-                  width: _seriesColumnWidth,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.landscapeColumnHeight,
+                  width: _layout.seriesColumnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: Center(
                     child: Text(
@@ -321,10 +295,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   ),
                 ),
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _landscapeColumnHeight,
-                  width: _columnWidth,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.landscapeColumnHeight,
+                  width: _layout.columnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: MaterialButton(
                     child: Text(
@@ -347,10 +321,10 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   ),
                 ),
                 Container(
-                  height: _isPortraitOrientation
-                      ? _portraitColumnHeight
-                      : _landscapeColumnHeight,
-                  width: _columnWidth,
+                  height: _layout.isPortrait
+                      ? _layout.portraitColumnHeight
+                      : _layout.landscapeColumnHeight,
+                  width: _layout.columnWidth,
                   alignment: FractionalOffset(0.5, 0.5),
                   child: MaterialButton(
                     child: Text(
@@ -376,15 +350,15 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
             ),
           ),);
       wList.add(
-        Divider(indent: _screenWidth * 0.05, endIndent: _screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
+        Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
       );
     }
 
     /// add additional container at bottom for better visibility
     wList.add(
       Container(
-        height: _screenHeight * 0.10,
-        width: _screenWidth * 0.5,
+        height: _layout.screenHeight * 0.10,
+        width: _layout.screenWidth * 0.5,
       ),
     );
     return wList;
@@ -400,7 +374,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     if (!mounted) return;
     setState(() => _workLog = updated);
     _invalidateParent();
-    _log.fine('Series added to: $updated');
+    logFine('Series added to: $updated', name: _tag);
   }
 
   void _invalidateParent() {
@@ -442,7 +416,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   }) {
     final textEditingController = TextEditingController();
 
-    Util.blockOrientation(_isPortraitOrientation);
+    Util.blockOrientation(_layout.isPortrait);
 
     final List<Widget> dialogWidgets = <Widget>[
       TextField(
@@ -473,7 +447,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
                   if (!mounted) return;
                   setState(() => _workLog = updated);
                   _invalidateParent();
-                  _log.fine('$logLabel changed to $parsed for $updated');
+                  logFine('$logLabel changed to $parsed for $updated', name: _tag);
                   Navigator.pop(context);
                 }),
             MaterialButton(
@@ -496,14 +470,14 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     return showDialog(
         context: context,
         builder: (_) =>
-        _isPortraitOrientation
+        _layout.isPortrait
             ? SimpleDialog(
             title: Center(heightFactor: 0.3, child: Text(title)),
-            contentPadding: EdgeInsets.all(_screenHeight * 0.02),
+            contentPadding: EdgeInsets.all(_layout.screenHeight * 0.02),
             children: dialogWidgets
         )
             : SimpleDialog(
-            contentPadding: EdgeInsets.all(_screenHeight * 0.01),
+            contentPadding: EdgeInsets.all(_layout.screenHeight * 0.01),
 
             children: <Widget>[
               Center(heightFactor: 0.3, child: Text(title)),
@@ -524,7 +498,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     if (!mounted) return;
     setState(() => _workLog = rebuilt);
     _invalidateParent();
-    _log.fine('Series number $i deleted from $rebuilt');
+    logFine('Series number $i deleted from $rebuilt', name: _tag);
   }
 
   /// Removes the entry whose 1-based key equals [removedIndex] and shifts
@@ -546,15 +520,15 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     List<Widget> result = <Widget>[];
     result.add(Text("Primary", style: TextStyle(
         color: WorkoutColors.of(context).titleColor,
-        fontSize: _isPortraitOrientation
-            ? _titleFontSizePortrait
-            : _titleFontSizeLandscape),));
-    result.add(SizedBox(height: _screenHeight * 0.01));
+        fontSize: _layout.isPortrait
+            ? _layout.titleFontSizePortrait
+            : _layout.titleFontSizeLandscape),));
+    result.add(SizedBox(height: _layout.screenHeight * 0.01));
     result.add(
         Column(children: _getBodyPartsBlocks(workLog.exercise.bodyParts)));
-    result.add(SizedBox(height: _screenHeight * 0.02));
+    result.add(SizedBox(height: _layout.screenHeight * 0.02));
     result.add(Text("Secondary"));
-    result.add(SizedBox(height: _screenHeight * 0.01));
+    result.add(SizedBox(height: _layout.screenHeight * 0.01));
     result.add(Column(
         children: _getBodyPartsBlocks(workLog.exercise.secondaryBodyParts)));
     return result;
@@ -566,8 +540,8 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
 
     bodyParts.forEach((bp) {
       boxes.add(SizedBox(
-        height: _screenHeight * 0.05,
-        width: _screenWidth * 0.3,
+        height: _layout.screenHeight * 0.05,
+        width: _layout.screenWidth * 0.3,
         child: Container(
           color: Util.getBpColor(bp, WorkoutColors.of(context)),
           child: Center(child: Text(
@@ -607,7 +581,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         children: firstRowBoxes,
       ));
       result.add(Row(children: <Widget>[
-        SizedBox(height: _screenHeight * 0.01)
+        SizedBox(height: _layout.screenHeight * 0.01)
       ],));
       result.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -616,4 +590,52 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     }
     return result;
   }
+}
+
+class _Layout {
+  const _Layout._({
+    required this.screenHeight,
+    required this.screenWidth,
+    required this.isPortrait,
+    required this.exerciseHeightPortrait,
+    required this.exerciseHeightLandscape,
+    required this.exerciseWidth,
+    required this.columnWidth,
+    required this.seriesColumnWidth,
+    required this.headerLandscapeColumnHeight,
+    required this.portraitColumnHeight,
+    required this.landscapeColumnHeight,
+    required this.titleFontSizePortrait,
+    required this.titleFontSizeLandscape,
+  });
+
+  factory _Layout.from(ResponsiveDimensions dims) => _Layout._(
+        screenHeight: dims.height,
+        screenWidth: dims.width,
+        isPortrait: dims.isPortrait,
+        exerciseHeightPortrait: dims.height * 0.1,
+        exerciseHeightLandscape: dims.height * 0.15,
+        exerciseWidth: dims.width,
+        columnWidth: dims.width * 0.375,
+        seriesColumnWidth: dims.width * 0.25,
+        headerLandscapeColumnHeight: dims.height * 0.15,
+        portraitColumnHeight: dims.height * 0.1,
+        landscapeColumnHeight: dims.height * 0.17,
+        titleFontSizePortrait: dims.width * 0.055,
+        titleFontSizeLandscape: dims.width * 0.03,
+      );
+
+  final double screenHeight;
+  final double screenWidth;
+  final bool isPortrait;
+  final double exerciseHeightPortrait;
+  final double exerciseHeightLandscape;
+  final double exerciseWidth;
+  final double columnWidth;
+  final double seriesColumnWidth;
+  final double headerLandscapeColumnHeight;
+  final double portraitColumnHeight;
+  final double landscapeColumnHeight;
+  final double titleFontSizePortrait;
+  final double titleFontSizeLandscape;
 }

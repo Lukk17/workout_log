@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:workout_log/data/db/exercise_dao.dart';
 import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/exercise.dart';
@@ -23,7 +23,7 @@ class WorkLogPage extends ConsumerStatefulWidget {
 }
 
 class _WorkLogPageState extends ConsumerState<WorkLogPage> {
-  final Logger _log = Logger('WorkLogPage');
+  static const _tag = 'WorkLogPage';
 
   WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
   ExerciseDao get _exerciseDao => ref.read(exerciseDaoProvider);
@@ -313,7 +313,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
           bodyParts: {...w.exercise.bodyParts, ...fresh.bodyParts},
         );
         await _exerciseDao.mergeBodyParts(merged);
-        _log.fine('Updated exercise bodyParts: $merged');
+        logFine('Updated exercise bodyParts: $merged', name: _tag);
         _invalidateWorkLogs();
         return;
       }
@@ -321,7 +321,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
 
     final workLog = WorkLog.create(exercise: fresh, on: selectedDate);
     await _workLogDao.insert(workLog);
-    _log.fine('Added new workLog: $workLog');
+    logFine('Added new workLog: $workLog', name: _tag);
     _invalidateWorkLogs();
   }
 
@@ -344,7 +344,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
   }
 
   Future<void> _deleteWorkLog(WorkLog workLog) async {
-    _log.fine('Deleted workLog: $workLog');
+    logFine('Deleted workLog: $workLog', name: _tag);
     await _workLogDao.delete(workLog);
     if (!mounted) return;
     _invalidateWorkLogs();

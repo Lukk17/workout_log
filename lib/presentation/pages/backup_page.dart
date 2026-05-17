@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:workout_log/data/backup/backup_service.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
@@ -15,7 +15,7 @@ class BackupPage extends ConsumerStatefulWidget {
 }
 
 class _BackupPageState extends ConsumerState<BackupPage> {
-  final Logger _log = Logger('backupView');
+  static const _tag = 'BackupPage';
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
   }
 
   Future<void> _backup() async {
-    _log.fine('Creating backup...');
+    logFine('Creating backup...', name: _tag);
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(backupServiceProvider).backup();
@@ -89,7 +89,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
   }
 
   Future<void> _restore() async {
-    _log.fine('Restoring from backup...');
+    logFine('Restoring from backup...', name: _tag);
     final messenger = ScaffoldMessenger.of(context);
     final selectedDate = ref.read(selectedDateProvider);
     try {

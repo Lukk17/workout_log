@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:workout_log/presentation/app.dart';
 import 'package:workout_log/presentation/pages/backup_page.dart';
 import 'package:workout_log/presentation/pages/calendar_page.dart';
@@ -24,7 +24,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
-  final Logger _log = Logger('HomePage');
+  static const _tag = 'HomePage';
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -34,7 +34,7 @@ class _HomePageState extends ConsumerState<HomePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 1, vsync: this);
-    _log.fine('started');
+    logFine('started', name: _tag);
   }
 
   @override

@@ -1,4 +1,3 @@
-import 'package:logging/logging.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:workout_log/data/db/app_database.dart';
 import 'package:workout_log/data/db/exercise_dao.dart';
@@ -6,6 +5,7 @@ import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/util/log.dart';
 
 /// CRUD operations on the `workLog` table. Joins to `exercise` via
 /// [ExerciseDao] when hydrating rows.
@@ -14,7 +14,7 @@ class WorkLogDao {
 
   final AppDatabase _factory;
   final ExerciseDao _exerciseDao;
-  final Logger _log = Logger('WorkLogDao');
+  static const _tag = 'WorkLogDao';
 
   Future<Database> get _db => _factory.database;
 
@@ -41,27 +41,27 @@ class WorkLogDao {
           where: 'id = ?',
           whereArgs: [resolvedExercise.id],
         );
-        _log.fine('[insert] UPDATED EXERCISE: $resolvedExercise');
+        logFine('[insert] UPDATED EXERCISE: $resolvedExercise', name: _tag);
       }
       toInsert = workLog.copyWith(exercise: resolvedExercise);
       try {
         final id = await db.insert(workLogTable, toInsert.toMap());
-        _log.fine('[insert] INSERTED WORKLOG: $toInsert');
+        logFine('[insert] INSERTED WORKLOG: $toInsert', name: _tag);
         return id;
       } on DatabaseException {
-        _log.warning('[insert] duplicate workLog id; skipping insert');
+        logWarn('[insert] duplicate workLog id; skipping insert', name: _tag);
         return 0;
       }
     }
 
-    _log.fine('[insert] NEW EXERCISE + WORKLOG: $workLog');
+    logFine('[insert] NEW EXERCISE + WORKLOG: $workLog', name: _tag);
     await _exerciseDao.insert(workLog.exercise);
     return db.insert(workLogTable, workLog.toMap());
   }
 
   Future<int> update(WorkLog workLog) async {
     final db = await _db;
-    _log.fine('[update] $workLog');
+    logFine('[update] $workLog', name: _tag);
     await db.update(
       exerciseTable,
       workLog.exercise.toMap(),
@@ -111,14 +111,14 @@ class WorkLogDao {
     final filtered = all
         .where((wl) => wl.exercise.bodyParts.contains(part))
         .toList(growable: false);
-    _log.fine('[getForDateAndBodyPart] $part -> ${filtered.length}');
+    logFine('[getForDateAndBodyPart] $part -> ${filtered.length}', name: _tag);
     return filtered;
   }
 
   Future<void> delete(WorkLog workLog) async {
     final db = await _db;
     await db.delete(workLogTable, where: 'id = ?', whereArgs: [workLog.id]);
-    _log.fine('[delete] $workLog');
+    logFine('[delete] $workLog', name: _tag);
   }
 
   Future<List<WorkLog>> _hydrate(List<Map<String, Object?>> rows) async {

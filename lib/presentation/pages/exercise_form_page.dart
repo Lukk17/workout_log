@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:workout_log/data/db/exercise_dao.dart';
 import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
@@ -22,7 +22,7 @@ class ExerciseFormPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
-  final Logger _log = Logger("ExerciseFormPage");
+  static const _tag = 'ExerciseFormPage';
 
   final Set<BodyPart> _primaryBodyParts = <BodyPart>{};
   final Set<BodyPart> _secondaryBodyParts = <BodyPart>{};
@@ -287,7 +287,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
         secondaryBodyParts: _secondaryBodyParts,
       );
       await _exerciseDao.replace(updated);
-      _log.fine("Updating exercise: $updated");
+      logFine("Updating exercise: $updated", name: _tag);
 
       if (!mounted) return;
       Util.hideKeyboard(context);
@@ -319,14 +319,14 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
           bodyParts: {...w.exercise.bodyParts, ...exercise.bodyParts},
         );
         await _exerciseDao.mergeBodyParts(merged);
-        _log.fine("Worklog updated $merged");
+        logFine("Worklog updated $merged", name: _tag);
         return w.copyWith(exercise: merged);
       }
     }
     final workLog =
         WorkLog.create(exercise: exercise, on: selectedDate);
     await _workLogDao.insert(workLog);
-    _log.fine("New workLog saved to DB: $workLog");
+    logFine("New workLog saved to DB: $workLog", name: _tag);
     return workLog;
   }
 }

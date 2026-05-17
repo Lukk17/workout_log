@@ -1,14 +1,14 @@
-import 'package:logging/logging.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:workout_log/data/db/app_database.dart';
 import 'package:workout_log/domain/models/exercise.dart';
+import 'package:workout_log/util/log.dart';
 
 /// CRUD operations on the `exercise` table.
 class ExerciseDao {
   ExerciseDao(this._factory);
 
   final AppDatabase _factory;
-  final Logger _log = Logger('ExerciseDao');
+  static const _tag = 'ExerciseDao';
 
   Future<Database> get _db => _factory.database;
 
@@ -81,7 +81,7 @@ class ExerciseDao {
             bodyParts: {...existing.bodyParts, ...exercise.bodyParts},
           );
 
-    _log.fine('[save] $updated');
+    logFine('[save] $updated', name: _tag);
     return db.update(
       exerciseTable,
       updated.toMap(),

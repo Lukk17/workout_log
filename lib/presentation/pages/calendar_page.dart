@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:logging/logging.dart';
+import 'package:workout_log/util/log.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
@@ -21,7 +21,7 @@ class CalendarPage extends ConsumerStatefulWidget {
 class _CalendarPageState extends ConsumerState<CalendarPage> {
   late DateTime _selected;
 
-  final Logger _log = Logger('CalendarPage');
+  static const _tag = 'CalendarPage';
 
   double _screenHeight = 0;
   double _screenWidth = 0;
@@ -203,7 +203,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   void _save() {
     final normalized = _startOfDay(_selected);
     ref.read(selectedDateProvider.notifier).state = normalized;
-    _log.fine('Chosen date: $normalized');
+    logFine('Chosen date: $normalized', name: _tag);
     Navigator.pop(context);
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/util/log.dart';
 
 /// Raised when external (shared) storage is not available on the device,
 /// so backup/restore cannot read or write the backup file.
@@ -23,7 +23,7 @@ class BackupService {
   BackupService(this._workLogDao);
 
   final WorkLogDao _workLogDao;
-  final Logger _log = Logger('BackupService');
+  static const _tag = 'BackupService';
 
   /// Override the external-storage directory lookup. Tests inject a temp
   /// directory; production code leaves this null and gets the OS dir.
@@ -36,7 +36,7 @@ class BackupService {
     final list = await _workLogDao.getAll();
     final encoded = jsonEncode(list);
     await File(backupPath).writeAsString(encoded);
-    _log.fine('[backup] wrote ${list.length} workLogs to $backupPath');
+    logFine('[backup] wrote ${list.length} workLogs to $backupPath', name: _tag);
   }
 
   Future<void> restore() async {
@@ -52,7 +52,7 @@ class BackupService {
     for (final entry in decoded) {
       await _workLogDao.insert(WorkLog.fromJson(entry as Map<String, dynamic>));
     }
-    _log.fine('[restore] imported ${decoded.length} workLogs from $backupPath');
+    logFine('[restore] imported ${decoded.length} workLogs from $backupPath', name: _tag);
   }
 
   Future<Directory> _externalStorageDir() async {
