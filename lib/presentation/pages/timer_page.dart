@@ -3,16 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:workout_log/presentation/providers/alarm_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 /// Rest-timer countdown. Pick a preset (or set a custom duration), tap
-/// Start, the page counts down to zero, then vibrates + plays an alert
-/// system sound. Pure-Flutter — no notification permissions, no extra
-/// packages.
+/// Start, the page counts down to zero, then fires three alarms:
+///   1. OS notification (sound + heads-up, plays even when the app is
+///      backgrounded or the screen is locked).
+///   2. In-app AlertDialog with a Stop button.
+///   3. Heavy haptic feedback.
 ///
-/// State is kept alive when swiping back to the workout log via
-/// [AutomaticKeepAliveClientMixin]; the countdown keeps ticking and the
-/// chosen duration sticks.
+/// State survives tab swaps via [AutomaticKeepAliveClientMixin].
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
 
@@ -24,6 +25,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+
   /// Common rest-between-sets durations, in seconds.
   static const List<int> _presets = [30, 60, 90, 120, 180];
 
@@ -31,11 +33,26 @@ class _TimerPageState extends ConsumerState<TimerPage>
   Duration _remaining = const Duration(seconds: 60);
   Timer? _ticker;
   bool _running = false;
+  bool _permissionRequested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defer to after the first frame so we don't block startup; request
+    // notification permission the first time the user lands on this page.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePermission());
+  }
 
   @override
   void dispose() {
     _ticker?.cancel();
     super.dispose();
+  }
+
+  Future<void> _ensurePermission() async {
+    if (_permissionRequested || !mounted) return;
+    _permissionRequested = true;
+    await ref.read(alarmServiceProvider).requestPermissions();
   }
 
   void _pickPreset(int seconds) {
@@ -58,7 +75,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
           _remaining = Duration.zero;
           _running = false;
         });
-        _ring();
+        _fireAlarm();
       } else {
         setState(() => _remaining = next);
       }
@@ -78,9 +95,31 @@ class _TimerPageState extends ConsumerState<TimerPage>
     });
   }
 
-  void _ring() {
+  Future<void> _fireAlarm() async {
+    final alarm = ref.read(alarmServiceProvider);
     HapticFeedback.heavyImpact();
-    SystemSound.play(SystemSoundType.alert);
+    // Notification fires regardless of focus state; the sound channel
+    // doubles as the loud alarm tone.
+    await alarm.ring();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.alarm, size: 48),
+        title: const Text('Rest over'),
+        content: const Text('Time to lift.'),
+        actions: <Widget>[
+          FilledButton.icon(
+            icon: const Icon(Icons.stop),
+            label: const Text('Stop'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+    // Dismiss the notification once the user acknowledges in-app.
+    await alarm.cancel();
   }
 
   Future<void> _pickCustom() async {
