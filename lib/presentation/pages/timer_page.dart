@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workout_log/presentation/providers/alarm_providers.dart';
+import 'package:workout_log/presentation/providers/timer_preset_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 /// Rest-timer countdown. Pick a preset (or set a custom duration), tap
@@ -29,11 +30,15 @@ class _TimerPageState extends ConsumerState<TimerPage>
   /// Common rest-between-sets durations, in seconds.
   static const List<int> _presets = [30, 60, 90, 120, 180];
 
+  /// Local UI state — initialized from [timerPresetProvider] on first
+  /// build (see `_syncFromPreset`), then kept in sync so the displayed
+  /// MM:SS reflects the persisted preset on cold start.
   Duration _selected = const Duration(seconds: 60);
   Duration _remaining = const Duration(seconds: 60);
   Timer? _ticker;
   bool _running = false;
   bool _permissionRequested = false;
+  bool _hydrated = false;
 
   @override
   void initState() {
@@ -41,6 +46,19 @@ class _TimerPageState extends ConsumerState<TimerPage>
     // Defer to after the first frame so we don't block startup; request
     // notification permission the first time the user lands on this page.
     WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePermission());
+  }
+
+  /// Pull the persisted preset into our local state once. Called from
+  /// `build` because Riverpod's first read after load may not be ready
+  /// during `initState`. Subsequent preset changes update both local
+  /// state and the provider.
+  void _syncFromPreset(Duration persisted) {
+    if (_hydrated || _running) return;
+    _hydrated = true;
+    if (persisted != _selected) {
+      _selected = persisted;
+      _remaining = persisted;
+    }
   }
 
   @override
@@ -57,10 +75,12 @@ class _TimerPageState extends ConsumerState<TimerPage>
 
   void _pickPreset(int seconds) {
     if (_running) return;
+    final picked = Duration(seconds: seconds);
     setState(() {
-      _selected = Duration(seconds: seconds);
-      _remaining = _selected;
+      _selected = picked;
+      _remaining = picked;
     });
+    ref.read(timerPresetProvider.notifier).set(picked);
   }
 
   void _start() {
@@ -132,6 +152,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
       _selected = picked;
       _remaining = picked;
     });
+    ref.read(timerPresetProvider.notifier).set(picked);
   }
 
   String _format(Duration d) {
@@ -143,6 +164,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // AutomaticKeepAliveClientMixin
+    _syncFromPreset(ref.watch(timerPresetProvider));
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final workoutColors = WorkoutColors.of(context);
