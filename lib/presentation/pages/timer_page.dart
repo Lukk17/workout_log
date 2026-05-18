@@ -19,14 +19,6 @@ class _TimerPageState extends ConsumerState<TimerPage>
   @override
   bool get wantKeepAlive => true;
 
-  static const List<int> _shortPresets = [30, 60, 90];
-  static const List<int> _longPresets = [120, 180, 300];
-
-  static String _presetLabel(int seconds) {
-    if (seconds < 60) return '${seconds}s';
-    return '${seconds ~/ 60} min';
-  }
-
   Duration _selected = const Duration(seconds: 60);
   Duration _remaining = const Duration(seconds: 60);
   Timer? _ticker;
@@ -42,6 +34,12 @@ class _TimerPageState extends ConsumerState<TimerPage>
     WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePermission());
   }
 
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
   // Hydration runs from build, not initState, because the persisted
   // value may not have loaded by the time initState runs.
   void _syncFromPreset(Duration persisted) {
@@ -53,26 +51,19 @@ class _TimerPageState extends ConsumerState<TimerPage>
     }
   }
 
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
   Future<void> _ensurePermission() async {
     if (_permissionRequested || !mounted) return;
     _permissionRequested = true;
     await ref.read(alarmServiceProvider).requestPermissions();
   }
 
-  void _pickPreset(int seconds) {
+  void _pickPreset(Duration duration) {
     if (_running) return;
-    final picked = Duration(seconds: seconds);
     setState(() {
-      _selected = picked;
-      _remaining = picked;
+      _selected = duration;
+      _remaining = duration;
     });
-    ref.read(timerPresetProvider.notifier).set(picked);
+    ref.read(timerPresetProvider.notifier).set(duration);
   }
 
   void _start() {
@@ -117,18 +108,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.alarm, size: 48),
-        title: const Text('Rest over', textAlign: TextAlign.center),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: <Widget>[
-          FilledButton.icon(
-            icon: const Icon(Icons.fitness_center),
-            label: const Text('Time to lift'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
+      builder: (context) => const _AlarmDoneDialog(),
     );
     // Dismiss the notification once the user acknowledges in-app, then
     // reset the countdown to the selected duration so the chip + MM:SS
@@ -144,113 +124,187 @@ class _TimerPageState extends ConsumerState<TimerPage>
       builder: (context) => const _CustomDurationDialog(),
     );
     if (picked == null || !mounted) return;
-    setState(() {
-      _selected = picked;
-      _remaining = picked;
-    });
-    ref.read(timerPresetProvider.notifier).set(picked);
-  }
-
-  String _format(Duration d) {
-    final m = d.inMinutes.toString().padLeft(2, '0');
-    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
+    _pickPreset(picked);
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // AutomaticKeepAliveClientMixin
     _syncFromPreset(ref.watch(timerPresetProvider));
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final workoutColors = WorkoutColors.of(context);
-    final progress = _selected.inMilliseconds == 0
-        ? 0.0
-        : _remaining.inMilliseconds / _selected.inMilliseconds;
 
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-AspectRatio(
-            aspectRatio: 1,
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                SizedBox.expand(
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 12,
-                    color: workoutColors.arcColor, // app red
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-                Text(
-                  _format(_remaining),
-                  style: textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
+          _CountdownDial(remaining: _remaining, total: _selected),
+          _PresetChips(
+            selected: _selected,
+            enabled: !_running,
+            onPickPreset: _pickPreset,
+            onPickCustom: _pickCustom,
           ),
-
-Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Wrap(
-                spacing: 8,
-                alignment: WrapAlignment.center,
-                children: <Widget>[
-                  for (final secs in _shortPresets)
-                    ChoiceChip(
-                      label: Text(_presetLabel(secs)),
-                      selected: _selected.inSeconds == secs,
-                      onSelected: _running ? null : (_) => _pickPreset(secs),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                alignment: WrapAlignment.center,
-                children: <Widget>[
-                  for (final secs in _longPresets)
-                    ChoiceChip(
-                      label: Text(_presetLabel(secs)),
-                      selected: _selected.inSeconds == secs,
-                      onSelected: _running ? null : (_) => _pickPreset(secs),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ActionChip(
-                label: const Text('Custom'),
-                avatar: const Icon(Icons.edit, size: 18),
-                onPressed: _running ? null : _pickCustom,
-              ),
-            ],
-          ),
-
-Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              FilledButton.icon(
-                onPressed: _running ? _pause : _start,
-                icon: Icon(_running ? Icons.pause : Icons.play_arrow),
-                label: Text(_running ? 'Pause' : 'Start'),
-              ),
-              OutlinedButton.icon(
-                onPressed: _reset,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reset'),
-              ),
-            ],
+          _TimerControls(
+            running: _running,
+            onStart: _start,
+            onPause: _pause,
+            onReset: _reset,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CountdownDial extends StatelessWidget {
+  const _CountdownDial({required this.remaining, required this.total});
+
+  final Duration remaining;
+  final Duration total;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final workoutColors = WorkoutColors.of(context);
+    final progress =
+        total.inMilliseconds == 0 ? 0.0 : remaining.inMilliseconds / total.inMilliseconds;
+
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          SizedBox.expand(
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 12,
+              color: workoutColors.arcColor,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+            ),
+          ),
+          Text(
+            _format(remaining),
+            style: textTheme.displayMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _format(Duration d) {
+    final m = d.inMinutes.toString().padLeft(2, '0');
+    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+}
+
+class _PresetChips extends StatelessWidget {
+  const _PresetChips({
+    required this.selected,
+    required this.enabled,
+    required this.onPickPreset,
+    required this.onPickCustom,
+  });
+
+  static const _shortPresets = [30, 60, 90];
+  static const _longPresets = [120, 180, 300];
+
+  final Duration selected;
+  final bool enabled;
+  final ValueChanged<Duration> onPickPreset;
+  final VoidCallback onPickCustom;
+
+  static String _presetLabel(int seconds) {
+    if (seconds < 60) return '${seconds}s';
+    return '${seconds ~/ 60} min';
+  }
+
+  Widget _row(List<int> presets) => Wrap(
+        spacing: 8,
+        alignment: WrapAlignment.center,
+        children: <Widget>[
+          for (final secs in presets)
+            ChoiceChip(
+              label: Text(_presetLabel(secs)),
+              selected: selected.inSeconds == secs,
+              onSelected:
+                  enabled ? (_) => onPickPreset(Duration(seconds: secs)) : null,
+            ),
+        ],
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _row(_shortPresets),
+        const SizedBox(height: 8),
+        _row(_longPresets),
+        const SizedBox(height: 8),
+        ActionChip(
+          label: const Text('Custom'),
+          avatar: const Icon(Icons.edit, size: 18),
+          onPressed: enabled ? onPickCustom : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _TimerControls extends StatelessWidget {
+  const _TimerControls({
+    required this.running,
+    required this.onStart,
+    required this.onPause,
+    required this.onReset,
+  });
+
+  final bool running;
+  final VoidCallback onStart;
+  final VoidCallback onPause;
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        FilledButton.icon(
+          onPressed: running ? onPause : onStart,
+          icon: Icon(running ? Icons.pause : Icons.play_arrow),
+          label: Text(running ? 'Pause' : 'Start'),
+        ),
+        OutlinedButton.icon(
+          onPressed: onReset,
+          icon: const Icon(Icons.refresh),
+          label: const Text('Reset'),
+        ),
+      ],
+    );
+  }
+}
+
+class _AlarmDoneDialog extends StatelessWidget {
+  const _AlarmDoneDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      icon: const Icon(Icons.alarm, size: 48),
+      title: const Text('Rest over', textAlign: TextAlign.center),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: <Widget>[
+        FilledButton.icon(
+          icon: const Icon(Icons.fitness_center),
+          label: const Text('Time to lift'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
     );
   }
 }
@@ -271,6 +325,13 @@ class _CustomDurationDialogState extends State<_CustomDurationDialog> {
     _minutesController.dispose();
     _secondsController.dispose();
     super.dispose();
+  }
+
+  void _confirm() {
+    final m = int.tryParse(_minutesController.text) ?? 0;
+    final s = int.tryParse(_secondsController.text) ?? 0;
+    final total = Duration(minutes: m, seconds: s);
+    Navigator.pop(context, total.inSeconds > 0 ? total : null);
   }
 
   @override
@@ -308,16 +369,7 @@ class _CustomDurationDialogState extends State<_CustomDurationDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () {
-            final m = int.tryParse(_minutesController.text) ?? 0;
-            final s = int.tryParse(_secondsController.text) ?? 0;
-            final total = Duration(minutes: m, seconds: s);
-            if (total.inSeconds <= 0) {
-              Navigator.pop(context);
-              return;
-            }
-            Navigator.pop(context, total);
-          },
+          onPressed: _confirm,
           child: const Text('Set'),
         ),
       ],

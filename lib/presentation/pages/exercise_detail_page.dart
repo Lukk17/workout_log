@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:workout_log/util/log.dart';
 import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/pages/exercise_form_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/util/responsive.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
-
-import 'exercise_form_page.dart';
+import 'package:workout_log/util/log.dart';
 
 class ExerciseDetailPage extends ConsumerStatefulWidget {
   final WorkLog workLog;
@@ -23,11 +21,13 @@ class ExerciseDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
-  WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
   static const _tag = 'ExerciseDetailPage';
 
   // Local copy edited via copyWith; parent route refetches on pop.
   late WorkLog _workLog;
+  late _Layout _layout;
+
+  WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
 
   @override
   void initState() {
@@ -35,132 +35,66 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     _workLog = widget.workLog;
   }
 
-  late _Layout _layout;
-
   @override
   Widget build(BuildContext context) {
     return ResponsiveScaffold(
       appBarBuilder: (context, dims) {
         _layout = _Layout.from(dims);
-        return PreferredSize(
-          preferredSize: Size.fromHeight(dims.appBarHeight),
-          child: AppBar(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                Container(
-                  width: _layout.screenWidth * 0.3,
-                  child: Text(
-                    _workLog.created.toIso8601String().substring(0, 10),
-                    textAlign: TextAlign.end,
-                    style:
-                        TextStyle(color: WorkoutColors.of(context).titleColor),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: WorkoutColors.of(context).appBarColor,
-          ),
-        );
+        return _DetailAppBar(workLog: _workLog, layout: _layout);
       },
       body: Builder(builder: (context) {
         _layout = _Layout.from(ResponsiveDimensions.of(context));
-        final wList = _createRowsForSeries();
+        final keys = _workLog.series.keys.toList();
         return Column(
           children: <Widget>[
-            GestureDetector(
-              onLongPress: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ExerciseFormPage(
-                              exercise: _workLog.exercise,
-                            )));
-              },
-              child: Container(
-                height: _layout.isPortrait
-                    ? _layout.exerciseHeightPortrait
-                    : _layout.exerciseHeightLandscape,
-                width: _layout.exerciseWidth,
-                alignment: FractionalOffset(0.5, 0.5),
-                child: Text(
-                  _workLog.exercise.name,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: WorkoutColors.of(context).textColor,
-                    fontSize: WorkoutTypography.headerSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            _ExerciseNameHeader(
+              workLog: _workLog,
+              layout: _layout,
+              onEdit: _openEditExercise,
             ),
-
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _getAllBodyParts(_workLog),
-            ),
-            Row(
               children: <Widget>[
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.headerLandscapeColumnHeight,
-
-                  width: _layout.seriesColumnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Text(
-                    "series",
-                    style: TextStyle(
-                      color: WorkoutColors.of(context).textColor,
-                      fontSize: WorkoutTypography.fontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.headerLandscapeColumnHeight,
-
-                  width: _layout.columnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Text(
-                    "load",
-                    style: TextStyle(
-                      color: WorkoutColors.of(context).textColor,
-                      fontSize: WorkoutTypography.fontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.headerLandscapeColumnHeight,
-
-                  width: _layout.columnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Text(
-                    "repeats",
-                    style: TextStyle(
-                      color: WorkoutColors.of(context).textColor,
-                      fontSize: WorkoutTypography.fontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                _BodyPartsSection(workLog: _workLog, layout: _layout),
               ],
             ),
-
-            Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
+            _TableHeaderRow(layout: _layout),
+            Divider(
+              indent: _layout.screenWidth * 0.05,
+              endIndent: _layout.screenWidth * 0.05,
+              color: WorkoutColors.of(context).borderColor,
+            ),
             Expanded(
               child: ListView.builder(
-                itemCount: wList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return wList[index];
-                },
                 shrinkWrap: true,
+                itemCount: keys.length * 2 + 1,
+                itemBuilder: (context, index) {
+                  if (index == keys.length * 2) {
+                    return SizedBox(
+                      height: _layout.screenHeight * 0.10,
+                      width: _layout.screenWidth * 0.5,
+                    );
+                  }
+                  final isDivider = index.isOdd;
+                  final keyIndex = index ~/ 2;
+                  if (isDivider) {
+                    return Divider(
+                      indent: _layout.screenWidth * 0.05,
+                      endIndent: _layout.screenWidth * 0.05,
+                      color: WorkoutColors.of(context).borderColor,
+                    );
+                  }
+                  return _SeriesRow(
+                    index: keyIndex,
+                    setKey: keys[keyIndex],
+                    workLog: _workLog,
+                    layout: _layout,
+                    onDelete: () => _deleteSeries(keyIndex),
+                    onEditLoad: () => _openEditDialog(_EditField.load, keys[keyIndex]),
+                    onEditRepeats: () =>
+                        _openEditDialog(_EditField.repeats, keys[keyIndex]),
+                  );
+                },
               ),
             ),
           ],
@@ -176,166 +110,40 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       ),
     );
   }
-  List<Widget> _createRowsForSeries() {
-    List<Widget> wList = <Widget>[];
-    List keys = _workLog.series.keys.toList();
 
-    for (int i = 0; i < keys.length; i++) {
-      wList.add(
-          Slidable(
-            key: ValueKey(keys[i]),
-            startActionPane: ActionPane(
-              motion: const ScrollMotion(),
-              extentRatio: 0.25,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                      bottom: _layout.screenHeight * 0.01,
-                      top: _layout.screenHeight * 0.01,
-                      left: _layout.screenWidth * 0.01,
-                      right: _layout.screenWidth * 0.01),
-                  child: SlidableAction(
-                    onPressed: (context) => _deleteSeries(i),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete,
-                    label: 'Delete',
-                  ),
-                ),
-              ],
-            ),
-            endActionPane: ActionPane(
-              motion: const ScrollMotion(),
-              extentRatio: 0.25,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                      bottom: _layout.screenHeight * 0.01,
-                      top: _layout.screenHeight * 0.01,
-                      left: _layout.screenWidth * 0.01,
-                      right: _layout.screenWidth * 0.01),
-                  child: SlidableAction(
-                    onPressed: (context) => _editLoadDialog(keys[i]).then((v) {
-                      SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.landscapeRight,
-                        DeviceOrientation.landscapeLeft,
-                        DeviceOrientation.portraitUp,
-                        DeviceOrientation.portraitDown,
-                      ]);
-                    }),
-                    backgroundColor: Colors.yellow,
-                    foregroundColor: Colors.black,
-                    icon: Icons.edit,
-                    label: 'Edit load',
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(
-                      bottom: _layout.screenHeight * 0.01,
-                      top: _layout.screenHeight * 0.01,
-                      left: _layout.screenWidth * 0.01,
-                      right: _layout.screenWidth * 0.01),
-                  child: SlidableAction(
-                    onPressed: (context) => _editRepeatsDialog(i.toString()).then((v) {
-                      SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.landscapeRight,
-                        DeviceOrientation.landscapeLeft,
-                        DeviceOrientation.portraitUp,
-                        DeviceOrientation.portraitDown,
-                      ]);
-                    }),
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    icon: Icons.edit,
-                    label: 'Edit repeats',
-                  ),
-                ),
-              ],
-            ),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.landscapeColumnHeight,
-                  width: _layout.seriesColumnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: Center(
-                    child: Text(
-                      i.toString(),
-                      style: TextStyle(
-                        color: WorkoutColors.of(context).textColor,
-                        fontSize: WorkoutTypography.fontSize,
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.landscapeColumnHeight,
-                  width: _layout.columnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: MaterialButton(
-                    child: Text(
-                      _workLog.getLoad(keys[i]),
-                      style: TextStyle(
-                        color: WorkoutColors.of(context).textColor,
-                        fontSize: WorkoutTypography.fontSize,
-                      ),
-                    ),
-                    onPressed: () {
-                      _editLoadDialog(keys[i]).then((v) {
-                        SystemChrome.setPreferredOrientations([
-                          DeviceOrientation.landscapeRight,
-                          DeviceOrientation.landscapeLeft,
-                          DeviceOrientation.portraitUp,
-                          DeviceOrientation.portraitDown,
-                        ]);
-                      });
-                    },
-                  ),
-                ),
-                Container(
-                  height: _layout.isPortrait
-                      ? _layout.portraitColumnHeight
-                      : _layout.landscapeColumnHeight,
-                  width: _layout.columnWidth,
-                  alignment: FractionalOffset(0.5, 0.5),
-                  child: MaterialButton(
-                    child: Text(
-                      _workLog.getReps(keys[i]),
-                      style: TextStyle(
-                        color: WorkoutColors.of(context).textColor,
-                        fontSize: WorkoutTypography.fontSize,
-                      ),
-                    ),
-                    onPressed: () {
-                      _editRepeatsDialog(keys[i]).then((v) {
-                        SystemChrome.setPreferredOrientations([
-                          DeviceOrientation.landscapeRight,
-                          DeviceOrientation.landscapeLeft,
-                          DeviceOrientation.portraitUp,
-                          DeviceOrientation.portraitDown,
-                        ]);
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),);
-      wList.add(
-        Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
-      );
-    }
-    wList.add(
-      Container(
-        height: _layout.screenHeight * 0.10,
-        width: _layout.screenWidth * 0.5,
+  void _openEditExercise() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExerciseFormPage(exercise: _workLog.exercise),
       ),
     );
-    return wList;
+  }
+
+  Future<void> _openEditDialog(_EditField field, String setKey) async {
+    Util.blockOrientation(_layout.isPortrait);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (_) => _SetValueDialog(
+        title: field == _EditField.load ? 'Edit load value' : 'Edit repeats number',
+        hint: field == _EditField.load
+            ? _workLog.getLoad(setKey)
+            : _workLog.getReps(setKey),
+        isPortrait: _layout.isPortrait,
+        screenHeight: _layout.screenHeight,
+      ),
+    );
+    Util.unlockOrientation();
+    if (!mounted || result == null) return;
+
+    final updated = field == _EditField.load
+        ? _workLog.copyWith(load: {..._workLog.load, setKey: result})
+        : _workLog.copyWith(series: {..._workLog.series, setKey: result});
+    await _workLogDao.update(updated);
+    if (!mounted) return;
+    setState(() => _workLog = updated);
+    _invalidateParent();
+    logFine('${field.name} changed to $result for $updated', name: _tag);
   }
 
   Future<void> _addSeriesToWorkLog() async {
@@ -351,110 +159,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     logFine('Series added to: $updated', name: _tag);
   }
 
-  void _invalidateParent() {
-    ref.invalidate(workLogsByDateProvider(_workLog.created));
-  }
-  Future<void> _editRepeatsDialog(String set) {
-    return _editSetValueDialog(
-      title: 'Edit repeats number',
-      currentValue: _workLog.getReps(set),
-      apply: (parsed) => _workLog.copyWith(
-        series: {..._workLog.series, set: parsed},
-      ),
-      logLabel: 'Repeats',
-    );
-  }
-  Future<void> _editLoadDialog(String set) {
-    return _editSetValueDialog(
-      title: 'Edit load value',
-      currentValue: _workLog.getLoad(set),
-      apply: (parsed) => _workLog.copyWith(
-        load: {..._workLog.load, set: parsed},
-      ),
-      logLabel: 'Load',
-    );
-  }
-  Future<void> _editSetValueDialog({
-    required String title,
-    required String currentValue,
-    required WorkLog Function(String parsed) apply,
-    required String logLabel,
-  }) {
-    final textEditingController = TextEditingController();
-
-    Util.blockOrientation(_layout.isPortrait);
-
-    final List<Widget> dialogWidgets = <Widget>[
-      TextField(
-        controller: textEditingController,
-        autofocus: true,
-        autocorrect: true,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(hintText: currentValue),
-        maxLength: 4,
-      ),
-      Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            MaterialButton(
-                color: WorkoutColors.of(context).greenButtonColor,
-                child: Text(
-                  'SAVE',
-                  style: TextStyle(
-                      color: WorkoutColors.of(context).buttonTextColor),
-                ),
-                onPressed: () async {
-                  // int.parse throws on non-numeric input — that prevents
-                  // saving an invalid value (and surfaces a clear error).
-                  final parsed =
-                      int.parse(textEditingController.text).toString();
-                  final updated = apply(parsed);
-                  await _workLogDao.update(updated);
-                  if (!mounted) return;
-                  setState(() => _workLog = updated);
-                  _invalidateParent();
-                  logFine('$logLabel changed to $parsed for $updated', name: _tag);
-                  Navigator.pop(context);
-                }),
-            MaterialButton(
-                color: WorkoutColors.of(context).cancelButtonColor,
-                child: Text(
-                  'CANCEL',
-                  style: TextStyle(
-                      color: WorkoutColors.of(context).buttonTextColor),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                }),
-          ]),
-    ];
-
-    return _showDialog(title, dialogWidgets);
-  }
-
-  Future<void> _showDialog(String title, List<Widget> dialogWidgets) {
-    return showDialog(
-        context: context,
-        builder: (_) =>
-        _layout.isPortrait
-            ? SimpleDialog(
-            title: Center(heightFactor: 0.3, child: Text(title)),
-            contentPadding: EdgeInsets.all(_layout.screenHeight * 0.02),
-            children: dialogWidgets
-        )
-            : SimpleDialog(
-            contentPadding: EdgeInsets.all(_layout.screenHeight * 0.01),
-
-            children: <Widget>[
-              Center(heightFactor: 0.3, child: Text(title)),
-              dialogWidgets.first,
-              dialogWidgets.last,
-            ]
-        )
-    );
-  }
-
-
   Future<void> _deleteSeries(int i) async {
     final rebuilt = _workLog.copyWith(
       series: _removeIndexAndShift(_workLog.series, i),
@@ -466,87 +170,426 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     _invalidateParent();
     logFine('Series number $i deleted from $rebuilt', name: _tag);
   }
+
   static Map<String, String> _removeIndexAndShift(
       Map<String, String> source, int removedIndex) {
     final result = <String, String>{};
     source.forEach((key, value) {
       final n = int.parse(key);
-      if (n == removedIndex) return; // dropped
+      if (n == removedIndex) return;
       final newKey = n > removedIndex ? (n - 1).toString() : key;
       result[newKey] = value;
     });
     return result;
   }
 
-  List<Widget> _getAllBodyParts(WorkLog workLog) {
-    List<Widget> result = <Widget>[];
-    result.add(Text("Primary", style: TextStyle(
-        color: WorkoutColors.of(context).titleColor,
-        fontSize: _layout.isPortrait
-            ? _layout.titleFontSizePortrait
-            : _layout.titleFontSizeLandscape),));
-    result.add(SizedBox(height: _layout.screenHeight * 0.01));
-    result.add(
-        Column(children: _getBodyPartsBlocks(workLog.exercise.bodyParts)));
-    result.add(SizedBox(height: _layout.screenHeight * 0.02));
-    result.add(Text("Secondary"));
-    result.add(SizedBox(height: _layout.screenHeight * 0.01));
-    result.add(Column(
-        children: _getBodyPartsBlocks(workLog.exercise.secondaryBodyParts)));
-    return result;
+  void _invalidateParent() {
+    ref.invalidate(workLogsByDateProvider(_workLog.created));
+  }
+}
+
+enum _EditField { load, repeats }
+
+class _DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _DetailAppBar({required this.workLog, required this.layout});
+
+  final WorkLog workLog;
+  final _Layout layout;
+
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(layout.isPortrait ? layout.screenHeight * 0.08 : layout.screenHeight * 0.1);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    return AppBar(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          SizedBox(
+            width: layout.screenWidth * 0.3,
+            child: Text(
+              workLog.created.toIso8601String().substring(0, 10),
+              textAlign: TextAlign.end,
+              style: TextStyle(color: colors.titleColor),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: colors.appBarColor,
+    );
+  }
+}
+
+class _ExerciseNameHeader extends StatelessWidget {
+  const _ExerciseNameHeader({
+    required this.workLog,
+    required this.layout,
+    required this.onEdit,
+  });
+
+  final WorkLog workLog;
+  final _Layout layout;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    return GestureDetector(
+      onLongPress: onEdit,
+      child: Container(
+        height: layout.isPortrait
+            ? layout.exerciseHeightPortrait
+            : layout.exerciseHeightLandscape,
+        width: layout.exerciseWidth,
+        alignment: const FractionalOffset(0.5, 0.5),
+        child: Text(
+          workLog.exercise.name,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: colors.textColor,
+            fontSize: WorkoutTypography.headerSize,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TableHeaderRow extends StatelessWidget {
+  const _TableHeaderRow({required this.layout});
+
+  final _Layout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    final height = layout.isPortrait
+        ? layout.portraitColumnHeight
+        : layout.headerLandscapeColumnHeight;
+    Widget cell(String text, double width) => Container(
+          height: height,
+          width: width,
+          alignment: const FractionalOffset(0.5, 0.5),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: colors.textColor,
+              fontSize: WorkoutTypography.fontSize,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+    return Row(
+      children: <Widget>[
+        cell('series', layout.seriesColumnWidth),
+        cell('load', layout.columnWidth),
+        cell('repeats', layout.columnWidth),
+      ],
+    );
+  }
+}
+
+class _SeriesRow extends StatelessWidget {
+  const _SeriesRow({
+    required this.index,
+    required this.setKey,
+    required this.workLog,
+    required this.layout,
+    required this.onDelete,
+    required this.onEditLoad,
+    required this.onEditRepeats,
+  });
+
+  final int index;
+  final String setKey;
+  final WorkLog workLog;
+  final _Layout layout;
+  final VoidCallback onDelete;
+  final VoidCallback onEditLoad;
+  final VoidCallback onEditRepeats;
+
+  @override
+  Widget build(BuildContext context) {
+    final cellHeight = layout.isPortrait
+        ? layout.portraitColumnHeight
+        : layout.landscapeColumnHeight;
+    final actionMargin = EdgeInsets.symmetric(
+      vertical: layout.screenHeight * 0.01,
+      horizontal: layout.screenWidth * 0.01,
+    );
+
+    return Slidable(
+      key: ValueKey(setKey),
+      startActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.25,
+        children: [
+          Container(
+            margin: actionMargin,
+            child: SlidableAction(
+              onPressed: (_) => onDelete(),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ),
+        ],
+      ),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        extentRatio: 0.25,
+        children: [
+          Container(
+            margin: actionMargin,
+            child: SlidableAction(
+              onPressed: (_) => onEditLoad(),
+              backgroundColor: Colors.yellow,
+              foregroundColor: Colors.black,
+              icon: Icons.edit,
+              label: 'Edit load',
+            ),
+          ),
+          Container(
+            margin: actionMargin,
+            child: SlidableAction(
+              onPressed: (_) => onEditRepeats(),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              icon: Icons.edit,
+              label: 'Edit repeats',
+            ),
+          ),
+        ],
+      ),
+      child: _SeriesRowBody(
+        index: index,
+        load: workLog.getLoad(setKey),
+        reps: workLog.getReps(setKey),
+        cellHeight: cellHeight,
+        layout: layout,
+        onEditLoad: onEditLoad,
+        onEditRepeats: onEditRepeats,
+      ),
+    );
+  }
+}
+
+class _SeriesRowBody extends StatelessWidget {
+  const _SeriesRowBody({
+    required this.index,
+    required this.load,
+    required this.reps,
+    required this.cellHeight,
+    required this.layout,
+    required this.onEditLoad,
+    required this.onEditRepeats,
+  });
+
+  final int index;
+  final String load;
+  final String reps;
+  final double cellHeight;
+  final _Layout layout;
+  final VoidCallback onEditLoad;
+  final VoidCallback onEditRepeats;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    final cellStyle = TextStyle(
+      color: colors.textColor,
+      fontSize: WorkoutTypography.fontSize,
+    );
+
+    Widget cell({required double width, required Widget child}) => Container(
+          height: cellHeight,
+          width: width,
+          alignment: const FractionalOffset(0.5, 0.5),
+          child: child,
+        );
+
+    return Row(
+      children: <Widget>[
+        cell(
+          width: layout.seriesColumnWidth,
+          child: Center(child: Text(index.toString(), style: cellStyle)),
+        ),
+        cell(
+          width: layout.columnWidth,
+          child: MaterialButton(
+            onPressed: onEditLoad,
+            child: Text(load, style: cellStyle),
+          ),
+        ),
+        cell(
+          width: layout.columnWidth,
+          child: MaterialButton(
+            onPressed: onEditRepeats,
+            child: Text(reps, style: cellStyle),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BodyPartsSection extends StatelessWidget {
+  const _BodyPartsSection({required this.workLog, required this.layout});
+
+  final WorkLog workLog;
+  final _Layout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    return Column(
+      children: <Widget>[
+        Text(
+          'Primary',
+          style: TextStyle(
+            color: colors.titleColor,
+            fontSize: layout.isPortrait
+                ? layout.titleFontSizePortrait
+                : layout.titleFontSizeLandscape,
+          ),
+        ),
+        SizedBox(height: layout.screenHeight * 0.01),
+        _BodyPartBlocks(parts: workLog.exercise.bodyParts, layout: layout),
+        SizedBox(height: layout.screenHeight * 0.02),
+        const Text('Secondary'),
+        SizedBox(height: layout.screenHeight * 0.01),
+        _BodyPartBlocks(
+            parts: workLog.exercise.secondaryBodyParts, layout: layout),
+      ],
+    );
+  }
+}
+
+class _BodyPartBlocks extends StatelessWidget {
+  const _BodyPartBlocks({required this.parts, required this.layout});
+
+  final Set<BodyPart> parts;
+  final _Layout layout;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    final blocks = parts
+        .map((bp) => SizedBox(
+              height: layout.screenHeight * 0.05,
+              width: layout.screenWidth * 0.3,
+              child: Container(
+                color: Util.getBpColor(bp, colors),
+                child: Center(
+                  child: Text(
+                    Util.getBpName(bp),
+                    style: const TextStyle(color: Colors.amber),
+                  ),
+                ),
+              ),
+            ))
+        .toList();
+
+    if (blocks.length <= 3) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: blocks,
+      );
+    }
+    return Column(
+      children: <Widget>[
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: blocks.take(3).toList()),
+        SizedBox(height: layout.screenHeight * 0.01),
+        Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: blocks.skip(3).toList()),
+      ],
+    );
+  }
+}
+
+class _SetValueDialog extends StatefulWidget {
+  const _SetValueDialog({
+    required this.title,
+    required this.hint,
+    required this.isPortrait,
+    required this.screenHeight,
+  });
+
+  final String title;
+  final String hint;
+  final bool isPortrait;
+  final double screenHeight;
+
+  @override
+  State<_SetValueDialog> createState() => _SetValueDialogState();
+}
+
+class _SetValueDialogState extends State<_SetValueDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
-  List<Widget> _getBodyPartsBlocks(Set<BodyPart> bodyParts) {
-    List<Row> result = <Row>[];
-    List<SizedBox> boxes = <SizedBox>[];
+  void _save() {
+    // int.parse throws on non-numeric input — that prevents saving an
+    // invalid value and surfaces a clear error.
+    final parsed = int.parse(_controller.text).toString();
+    Navigator.pop(context, parsed);
+  }
 
-    bodyParts.forEach((bp) {
-      boxes.add(SizedBox(
-        height: _layout.screenHeight * 0.05,
-        width: _layout.screenWidth * 0.3,
-        child: Container(
-          color: Util.getBpColor(bp, WorkoutColors.of(context)),
-          child: Center(child: Text(
-            Util.getBpName(bp), style: TextStyle(color: Colors.amber),)),
+  @override
+  Widget build(BuildContext context) {
+    final colors = WorkoutColors.of(context);
+    final input = TextField(
+      controller: _controller,
+      autofocus: true,
+      autocorrect: true,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(hintText: widget.hint),
+      maxLength: 4,
+    );
+    final actions = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        MaterialButton(
+          color: colors.greenButtonColor,
+          onPressed: _save,
+          child: Text('SAVE', style: TextStyle(color: colors.buttonTextColor)),
         ),
-      ));
-    });
-    if (boxes.length <= 3) {
-      result.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: boxes,
-      ));
+        MaterialButton(
+          color: colors.cancelButtonColor,
+          onPressed: () => Navigator.pop(context),
+          child:
+              Text('CANCEL', style: TextStyle(color: colors.buttonTextColor)),
+        ),
+      ],
+    );
+
+    if (widget.isPortrait) {
+      return SimpleDialog(
+        title: Center(heightFactor: 0.3, child: Text(widget.title)),
+        contentPadding: EdgeInsets.all(widget.screenHeight * 0.02),
+        children: [input, actions],
+      );
     }
-    else {
-      List<SizedBox> firstRowBoxes = <SizedBox>[];
-      List<SizedBox> secondRowBoxes = <SizedBox>[];
-
-      int counter = 0;
-      boxes.forEach((box) {
-        counter++;
-
-        if(counter < 4){
-          firstRowBoxes.add(box);
-        }
-        else
-          {
-            secondRowBoxes.add(box);
-          };
-      });
-
-      result.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: firstRowBoxes,
-      ));
-      result.add(Row(children: <Widget>[
-        SizedBox(height: _layout.screenHeight * 0.01)
-      ],));
-      result.add(Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: secondRowBoxes,
-      ));
-    }
-    return result;
+    return SimpleDialog(
+      contentPadding: EdgeInsets.all(widget.screenHeight * 0.01),
+      children: <Widget>[
+        Center(heightFactor: 0.3, child: Text(widget.title)),
+        input,
+        actions,
+      ],
+    );
   }
 }
 
