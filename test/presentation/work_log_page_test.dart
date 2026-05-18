@@ -1,15 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/pages/exercise_detail_page.dart';
 import 'package:workout_log/presentation/pages/work_log_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 
 import '../helpers/test_app.dart';
+import '../test_helper.dart';
 
 WorkLog _seedWorkLog(String name, DateTime date,
     {Set<BodyPart> bodyParts = const {BodyPart.chest}}) {
@@ -165,4 +169,36 @@ void main() {
         .length;
     expect(visible, 3);
   });
+
+  testWidgets('Tapping a workout card navigates to ExerciseDetailPage',
+      (tester) async {
+    final date = DateTime(2026, 5, 16);
+    final w = _seedWorkLog('Push Up', date);
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          selectedDateProvider.overrideWith((ref) => date),
+          workLogsForSelectedDateProvider.overrideWith((ref) async => [w]),
+        ],
+        child: const Scaffold(body: WorkLogPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(Card));
+    await tester.pumpAndSettle();
+
+    // Navigation to ExerciseDetailPage requires workLogDao at the
+    // destination, but the route push itself happens before that —
+    // the page-detail tests cover end-state behaviour separately.
+    expect(find.byType(ExerciseDetailPage), findsOneWidget);
+  });
 }
+
+// Note: tests that exercise the real DAO save/delete flow live in
+// test/data/db/work_log_dao_test.dart. Stitching them through
+// pumpWidget here would require running real sqflite_ffi inside
+// flutter_test's FakeAsync zone, which deadlocks the I/O completion
+// callback. The page-level UI is covered by the provider-override
+// tests above; the persistence path is covered by the DAO tests.

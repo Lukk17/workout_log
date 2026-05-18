@@ -115,4 +115,88 @@ void main() {
       expect(exercises, isNotEmpty);
     });
   });
+
+  group('insert (brand-new exercise path)', () {
+    test('a workLog with a never-seen exercise inserts both rows', () async {
+      final fresh = Exercise.create(
+        name: 'Front Lever',
+        bodyParts: {BodyPart.back, BodyPart.arm},
+      );
+      final w = WorkLog.create(exercise: fresh, on: DateTime(2026, 5, 16));
+
+      await env.workLogDao.insert(w);
+
+      final exercises = await env.exerciseDao.getAll();
+      expect(
+        exercises.where((e) => e.name == 'Front Lever'),
+        hasLength(1),
+        reason: 'new exercise row was inserted alongside the workLog',
+      );
+      final stored = (await env.workLogDao.getAll())
+          .firstWhere((wl) => wl.exercise.name == 'Front Lever');
+      expect(stored.exercise.bodyParts, {BodyPart.back, BodyPart.arm});
+    });
+  });
+
+  group('insert (duplicate id path)', () {
+    test('inserting the same WorkLog twice returns 0 the second time',
+        () async {
+      final pushUp = (await env.exerciseDao.getAll())
+          .firstWhere((e) => e.name == 'Push Up');
+      final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
+
+      final first = await env.workLogDao.insert(w);
+      final second = await env.workLogDao.insert(w);
+
+      expect(first, greaterThan(0));
+      expect(second, 0, reason: 'DatabaseException swallowed -> 0');
+      expect((await env.workLogDao.getAll()).length, 1);
+    });
+  });
+
+  group('update', () {
+    test('rewrites series/load/bodyWeight for an existing workLog', () async {
+      final pushUp = (await env.exerciseDao.getAll())
+          .firstWhere((e) => e.name == 'Push Up');
+      final original = WorkLog.create(
+        exercise: pushUp,
+        on: DateTime(2026, 5, 16),
+      );
+      await env.workLogDao.insert(original);
+      final edited = original.copyWith(
+        series: {'1': '10', '2': '8'},
+        load: {'1': '20', '2': '20'},
+        bodyWeight: 80,
+      );
+
+      final affected = await env.workLogDao.update(edited);
+
+      expect(affected, 1);
+      final reloaded = await env.workLogDao.getById(original.id);
+      expect(reloaded, isNotNull);
+      expect(reloaded!.series, {'1': '10', '2': '8'});
+      expect(reloaded.load, {'1': '20', '2': '20'});
+      expect(reloaded.bodyWeight, 80);
+    });
+  });
+
+  group('getById', () {
+    test('returns null when no workLog with that id exists', () async {
+      final missing = await env.workLogDao.getById('does-not-exist');
+      expect(missing, isNull);
+    });
+
+    test('round-trips a stored workLog including its exercise', () async {
+      final pushUp = (await env.exerciseDao.getAll())
+          .firstWhere((e) => e.name == 'Push Up');
+      final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
+      await env.workLogDao.insert(w);
+
+      final fetched = await env.workLogDao.getById(w.id);
+
+      expect(fetched, isNotNull);
+      expect(fetched!.id, w.id);
+      expect(fetched.exercise.name, 'Push Up');
+    });
+  });
 }
