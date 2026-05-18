@@ -219,7 +219,7 @@ class _PresetChips extends StatelessWidget {
   final VoidCallback onPickCustom;
 
   static String _presetLabel(int seconds) {
-    if (seconds < 60) return '${seconds}s';
+    if (seconds < 120) return '${seconds}s';
     return '${seconds ~/ 60} min';
   }
 
