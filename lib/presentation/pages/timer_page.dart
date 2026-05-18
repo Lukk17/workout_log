@@ -216,8 +216,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
             ),
           ),
 
-          // Preset chips — two rows: sub-minute on top, multi-minute
-          // (with the Custom button) below.
+          // Preset chips — three rows: sub-minute, multi-minute, Custom alone.
           Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -244,12 +243,13 @@ class _TimerPageState extends ConsumerState<TimerPage>
                       selected: _selected.inSeconds == secs,
                       onSelected: _running ? null : (_) => _pickPreset(secs),
                     ),
-                  ActionChip(
-                    label: const Text('Custom'),
-                    avatar: const Icon(Icons.edit, size: 18),
-                    onPressed: _running ? null : _pickCustom,
-                  ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              ActionChip(
+                label: const Text('Custom'),
+                avatar: const Icon(Icons.edit, size: 18),
+                onPressed: _running ? null : _pickCustom,
               ),
             ],
           ),
