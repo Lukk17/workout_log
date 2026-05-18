@@ -3,11 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 /// Rest-timer countdown. Pick a preset (or set a custom duration), tap
 /// Start, the page counts down to zero, then vibrates + plays an alert
 /// system sound. Pure-Flutter — no notification permissions, no extra
 /// packages.
+///
+/// State is kept alive when swiping back to the workout log via
+/// [AutomaticKeepAliveClientMixin]; the countdown keeps ticking and the
+/// chosen duration sticks.
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
 
@@ -15,7 +20,10 @@ class TimerPage extends ConsumerStatefulWidget {
   ConsumerState<TimerPage> createState() => _TimerPageState();
 }
 
-class _TimerPageState extends ConsumerState<TimerPage> {
+class _TimerPageState extends ConsumerState<TimerPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   /// Common rest-between-sets durations, in seconds.
   static const List<int> _presets = [30, 60, 90, 120, 180];
 
@@ -95,8 +103,10 @@ class _TimerPageState extends ConsumerState<TimerPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final workoutColors = WorkoutColors.of(context);
     final progress = _selected.inMilliseconds == 0
         ? 0.0
         : _remaining.inMilliseconds / _selected.inMilliseconds;
@@ -116,7 +126,7 @@ class _TimerPageState extends ConsumerState<TimerPage> {
                   child: CircularProgressIndicator(
                     value: progress,
                     strokeWidth: 12,
-                    color: colorScheme.primary,
+                    color: workoutColors.arcColor, // app red
                     backgroundColor: colorScheme.surfaceContainerHighest,
                   ),
                 ),
