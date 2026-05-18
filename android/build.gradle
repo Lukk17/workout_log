@@ -11,6 +11,27 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(':app')
+
+    // Several Flutter plugins (flutter_local_notifications, the
+    // shared_preferences_android / path_provider_android / sqflite_android
+    // family) still ship build.gradle with source/target = 1.8. javac 21
+    // warns that 8 is obsolete and will be removed in a future release.
+    // Force every plugin's Java compilation up to 17 (the AGP 8.x LTS
+    // baseline) and Kotlin's jvmTarget alongside. Our own :app already
+    // uses Java 21; this only affects the plugin subprojects.
+    afterEvaluate {
+        if (project.hasProperty('android')) {
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions.jvmTarget = "17"
+        }
+    }
 }
 
 tasks.register("clean", Delete) {
