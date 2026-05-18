@@ -1,0 +1,192 @@
+# Deployment
+
+This project ships to the Google Play Store via a manual GitHub Actions
+workflow. There are two workflows under `.github/workflows/`:
+
+- **`ci.yml`** — runs automatically on every push to `master` and on every
+  PR. Resolves deps, fails on any `dart format` drift, runs `flutter
+  analyze`, runs the test suite. No artifacts, no uploads.
+- **`release.yml`** — **manual-only**. Builds a signed AAB and uploads it
+  to a chosen Play Store track (internal / alpha / beta / production).
+  Never fires on a tag push or a commit — only from the Actions tab.
+
+## Triggering a release
+
+1. Bump the `version:` line in `pubspec.yaml` (e.g. `2.0.0+9` → `2.0.0+10`).
+   The build number after `+` must be **strictly greater** than the last
+   one uploaded to Play; Play rejects equal or lower codes.
+2. Commit and push to `master`. The CI workflow will run; wait for it to
+   go green.
+3. Open the repo on GitHub → **Actions** tab → **Release to Play Store**
+   on the left → **Run workflow** on the right.
+4. Pick a track from the dropdown:
+   - `internal` — fastest review, only the testers you've listed in Play
+     Console. Default; use it for every dry run.
+   - `alpha` / `beta` — closed and open testing tracks.
+   - `production` — public release; goes through Play's normal review.
+5. Click the green **Run workflow** button.
+
+The job takes ~5–8 minutes. When it finishes:
+- The AAB lands in Play Console under the selected track.
+- A copy of the AAB is uploaded as a GitHub workflow artifact (kept 30
+  days) — handy for sideloading on a test device without going through
+  Play.
+
+## Required GitHub secrets
+
+All five secrets live under **Settings → Secrets and variables → Actions
+→ New repository secret**. Add them once; they persist across runs.
+
+| Secret | What it is | How to produce it |
+|---|---|---|
+| `ANDROID_KEYSTORE_BASE64` | The signing keystore, base64-encoded. | See "Encoding the keystore" below. |
+| `ANDROID_KEYSTORE_PASSWORD` | The `storePassword` from your local `android/key.properties`. | You set this when you originally generated the keystore. |
+| `ANDROID_KEY_PASSWORD` | The `keyPassword` from `android/key.properties`. | Same. Often identical to the store password. |
+| `ANDROID_KEY_ALIAS` | The alias the signing key is stored under. | Currently `key`. Check `android/key.properties`. |
+| `PLAY_SERVICE_ACCOUNT_JSON` | Full JSON of a Google Cloud service account that has been granted upload permission in Play Console. | See "Service account for Play Store API" below. |
+
+### Encoding the keystore
+
+The keystore is a binary `.jks` file. GitHub secrets are text, so it has
+to be base64-encoded first.
+
+**Linux / macOS / Git Bash:**
+
+```bash
+base64 -w 0 android/workout_log-keystore.jks
+```
+
+**PowerShell:**
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes('android/workout_log-keystore.jks'))
+```
+
+Copy the entire one-line output and paste it into the
+`ANDROID_KEYSTORE_BASE64` secret value field. No quoting, no line breaks.
+
+> The keystore file itself is gitignored (`*.jks` in `.gitignore`) and
+> must never be committed.
+
+### Service account for Play Store API
+
+This is the only new piece if you've only ever published manually before.
+Play Console will not accept anonymous uploads — every API call has to
+be authenticated as a Google account that you've explicitly given
+upload permission. A "service account" is a robot Google account meant
+exactly for this.
+
+One-time setup, ~10 minutes:
+
+1. **Google Cloud Console** — <https://console.cloud.google.com/>
+   1. Create a project (any name; "workout-log-ci" is fine) if you
+      don't already have one to bind to.
+   2. Navigate to **IAM & Admin → Service Accounts**.
+   3. Click **Create service account**. Name it something like
+      `play-publisher`. Skip the optional role grant (Play Console
+      assigns the permissions, not Cloud IAM).
+   4. Click the newly-created service account → **Keys** tab → **Add
+      key → Create new key → JSON**. A `.json` file downloads.
+
+2. **Google Play Console** — <https://play.google.com/console>
+   1. Open your developer account → **Users and permissions** (left
+      sidebar).
+   2. Click **Invite new users**.
+   3. **Email**: paste the service-account email from step 1 (it looks
+      like `play-publisher@your-project.iam.gserviceaccount.com`).
+   4. **Permissions → App permissions**: add this app (`Private
+      WorkoutLog`).
+   5. **Account permissions**: grant **Release manager** (or any role
+      that includes "Release apps"). The minimum is "Release apps",
+      "View app information", and "Manage testing tracks".
+   6. **Send invite**. The service account auto-accepts; no email
+      back-and-forth needed.
+
+3. **GitHub secret**
+   - Open the JSON file from step 1.4 in a text editor.
+   - Copy the entire contents.
+   - Paste into the `PLAY_SERVICE_ACCOUNT_JSON` secret value field.
+
+Once that's done, every run of `release.yml` will authenticate as the
+service account and push the AAB to the chosen track.
+
+## What `release.yml` actually does
+
+Step-by-step, in case you need to debug a failed run:
+
+1. **Checkout** the repo at the commit you ran from.
+2. **Set up Java 21** (Temurin distribution) — required by AGP 8.7.
+3. **Set up Flutter** on the stable channel, with caching so re-runs
+   start in ~30 s instead of 3 min.
+4. **`flutter pub get`** — resolves dependencies.
+5. **`flutter analyze`** — fails fast on any analyzer warning.
+6. **`flutter test`** — fails fast on any failing unit/widget test.
+7. **Decode keystore**: base64-decodes `ANDROID_KEYSTORE_BASE64` and
+   writes it to `android/workout_log-keystore.jks` (recreating exactly
+   what you have locally).
+8. **Write `key.properties`** from the four `ANDROID_*` secrets so the
+   Gradle build can read the signing config.
+9. **`flutter build appbundle --release`** — produces a signed AAB at
+   `build/app/outputs/bundle/release/app-release.aab`.
+10. **Upload to Play Store** via the `r0adkll/upload-google-play@v1`
+    action, using `PLAY_SERVICE_ACCOUNT_JSON` to authenticate. The
+    `track` input from the manual trigger picks the destination.
+11. **Archive the AAB** as a workflow artifact for 30 days.
+
+## Common failures
+
+**"versionCode … has already been used"** — you didn't bump the build
+number. Increment the `+N` part of `version:` in `pubspec.yaml`.
+
+**"The caller does not have permission" from the upload step** — the
+service account isn't invited to the Play Console app, or doesn't have
+the "Release apps" permission. Re-check step 2 of "Service account for
+Play Store API".
+
+**"Package not found: com.lukk.workoutlog"** — the service account is
+invited to the Play Console developer account but not granted access to
+this specific app. In Play Console → Users and permissions → click the
+service account → App permissions → add this app.
+
+**Keystore-related errors during signing** — usually a wrong password
+or alias. Easy way to verify the secrets locally: decode
+`ANDROID_KEYSTORE_BASE64` to a file, then run
+`keytool -list -v -keystore that-file.jks -alias <ANDROID_KEY_ALIAS>`
+and enter the password. If `keytool` accepts it, the secrets are
+correct; the failure is somewhere else.
+
+## Release notes
+
+The `r0adkll/upload-google-play` action picks up release notes from
+`fastlane/metadata/android/<language>/changelogs/<versionCode>.txt` if
+that file exists. For example, after bumping to `2.0.0+10`:
+
+```
+fastlane/metadata/android/en-US/changelogs/10.txt
+```
+
+That tree is optional — if absent, Play Console leaves the "What's new"
+field blank and you can fill it in manually before promoting from
+internal → production.
+
+## Rolling back
+
+There's no automated rollback in this setup. If a release on production
+turns out to be broken:
+
+1. In Play Console → Production track → halt the rollout.
+2. Promote the previous build (still in the release history) back to
+   100 %.
+3. Investigate, fix, and ship a new build with an incremented
+   `versionCode` — Play never lets you re-use a code.
+
+## Bypassing the workflow
+
+If GitHub Actions is down or you need a one-off build off a private
+branch, the manual path still works:
+
+```
+flutter build appbundle --release
+```
+
+Produces the same AAB locally. Upload via Play Console's web UI.
