@@ -416,7 +416,10 @@ class _SeriesRowBody extends StatelessWidget {
       children: <Widget>[
         cell(
           width: layout.seriesColumnWidth,
-          child: Center(child: Text(index.toString(), style: cellStyle)),
+          // The column heading is "series", so the first row should
+          // read "1" — display the 1-based position rather than the
+          // zero-indexed array slot.
+          child: Center(child: Text((index + 1).toString(), style: cellStyle)),
         ),
         cell(
           width: layout.columnWidth,
