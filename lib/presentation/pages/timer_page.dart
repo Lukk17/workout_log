@@ -137,12 +137,12 @@ class _TimerPageState extends ConsumerState<TimerPage>
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         icon: const Icon(Icons.alarm, size: 48),
-        title: const Text('Rest over'),
-        content: const Text('Time to lift.'),
+        title: const Text('Rest over', textAlign: TextAlign.center),
+        actionsAlignment: MainAxisAlignment.center,
         actions: <Widget>[
           FilledButton.icon(
-            icon: const Icon(Icons.check),
-            label: const Text('Done'),
+            icon: const Icon(Icons.fitness_center),
+            label: const Text('Time to lift'),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
