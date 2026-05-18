@@ -24,15 +24,16 @@ Get dependencies:
 flutter pub get
 ```
 
-Generate classes:
+Generate classes (freezed + json_serializable):
 ```
 dart run build_runner build
 ```
 
-Generate with deleting of conflicted ones:
+If a regen fails because stale generated files conflict, wipe them first:
 ```
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner clean
 ```
+(The old `--delete-conflicting-outputs` flag was removed in `build_runner` 2.15+.)
 
 Find emulator id:
 ```
