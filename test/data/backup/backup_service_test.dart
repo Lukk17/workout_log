@@ -28,6 +28,11 @@ void main() {
     await env.dispose();
   });
 
+  test('backupFilePath resolves to <storageDir>/backup.json', () async {
+    final path = await service.backupFilePath;
+    expect(path, '${backupDir.path}${Platform.pathSeparator}backup.json');
+  });
+
   test('backup writes a JSON file with every workLog', () async {
     final pushUp = (await env.exerciseDao.getAll())
         .firstWhere((e) => e.name == 'Push Up');
