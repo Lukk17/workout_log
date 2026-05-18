@@ -3,7 +3,7 @@ description: Save workouts logs !
 
 # A version number is three numbers separated by dots, like 1.2.43
 # followed by an optional build number separated by a +.
-version: 1.2.3+8
+version: 2.0.0+9
 
 environment:
   sdk: '>=3.8.0 <4.0.0'

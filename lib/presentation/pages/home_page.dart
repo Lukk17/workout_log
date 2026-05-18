@@ -7,6 +7,7 @@ import 'package:workout_log/presentation/app.dart';
 import 'package:workout_log/presentation/pages/backup_page.dart';
 import 'package:workout_log/presentation/pages/calendar_page.dart';
 import 'package:workout_log/presentation/pages/exercise_list_page.dart';
+import 'package:workout_log/presentation/pages/timer_page.dart';
 import 'package:workout_log/presentation/pages/work_log_page.dart';
 import 'package:workout_log/presentation/providers/theme_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
@@ -33,7 +34,7 @@ class _HomePageState extends ConsumerState<HomePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 1, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     logFine('started', name: _tag);
   }
 
@@ -105,8 +106,12 @@ class _HomePageState extends ConsumerState<HomePage>
           controller: _tabController,
           tabs: <Widget>[
             Tab(
-              text: dims.isPortrait ? 'log' : null,
+              text: dims.isPortrait ? 'Log' : null,
               icon: Icon(Icons.assignment, color: colors.tabBarIconColor),
+            ),
+            Tab(
+              text: dims.isPortrait ? 'Timer' : null,
+              icon: Icon(Icons.timer, color: colors.tabBarIconColor),
             ),
           ],
         ),
@@ -118,38 +123,43 @@ class _HomePageState extends ConsumerState<HomePage>
     return Builder(builder: (context) {
       final colors = WorkoutColors.of(context);
       final showBackground = ref.watch(backgroundImageProvider);
-      return Container(
-        decoration: showBackground
-            ? BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(colors.backgroundImage),
-                  fit: BoxFit.fitHeight,
+      // The blurred background is a static layer behind a scrollable list.
+      // Wrapping it in a RepaintBoundary caches it as a texture so the
+      // expensive saveLayer + Gaussian-blur in BackdropFilter only runs
+      // when the background itself changes (toggling visibility / theme),
+      // not on every workout-list scroll frame.
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          if (showBackground)
+            RepaintBoundary(
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(colors.backgroundImage),
+                    fit: BoxFit.fitHeight,
+                  ),
                 ),
-              )
-            : const BoxDecoration(),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
-          child: TabBarView(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 3.0, sigmaY: 3.0),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          TabBarView(
             physics: const NeverScrollableScrollPhysics(),
             controller: _tabController,
-            children: const [WorkLogPage()],
+            children: const [WorkLogPage(), TimerPage()],
           ),
-        ),
+        ],
       );
     });
   }
 
   Future<void> _openCalendar() async {
-    // Use the current orientation at the time of opening, derived from
-    // MediaQuery rather than from a stored state field.
-    final orientation = MediaQuery.orientationOf(context);
     await showDialog(
       context: context,
-      builder: (context) => SimpleDialog(
-        children: <Widget>[
-          CalendarPage((widget) => {}, orientation),
-        ],
-      ),
+      builder: (context) => const CalendarPage(),
     );
   }
 
