@@ -20,7 +20,6 @@ class Util {
     FocusScope.of(context).requestFocus(FocusNode());
   }
 
-  ///  block orientation change
   static void blockOrientation(bool isPortraitOrientation) {
     if (isPortraitOrientation) {
       SystemChrome.setPreferredOrientations([
@@ -35,7 +34,6 @@ class Util {
     }
   }
 
-  /// restore orientation ability to change
   static void unlockOrientation() {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,

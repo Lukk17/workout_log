@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Screen-derived dimensions exposed to descendants. Used by pages to size
-/// padding, heights, and font scales without each one re-doing the math.
 @immutable
 class ResponsiveDimensions {
   final double width;
@@ -16,10 +14,8 @@ class ResponsiveDimensions {
     required this.appBarHeight,
   });
 
-  /// Inherited lookup. Returns the dimensions from the nearest enclosing
-  /// `ResponsiveScaffold`. Falls back to `MediaQuery` if no scaffold ancestor
-  /// is present — useful when a page is mounted in a test or other harness
-  /// without its usual scaffold wrapper.
+  // Falls back to MediaQuery when no ResponsiveScaffold ancestor exists,
+  // so pages can be mounted standalone in widget tests.
   static ResponsiveDimensions of(BuildContext context) {
     final inh = context
         .dependOnInheritedWidgetOfExactType<_ResponsiveDimensionsProvider>();
@@ -51,9 +47,6 @@ class _ResponsiveDimensionsProvider extends InheritedWidget {
       old.dimensions.appBarHeight != dimensions.appBarHeight;
 }
 
-/// `OrientationBuilder` + `Scaffold` rolled into one. Pages call
-/// `ResponsiveDimensions.of(context)` to read screen size / orientation
-/// without each having to re-implement the `setupDimensions()` boilerplate.
 class ResponsiveScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget body;
@@ -63,9 +56,7 @@ class ResponsiveScaffold extends StatelessWidget {
   final Key? scaffoldKey;
   final bool resizeToAvoidBottomInset;
 
-  /// Optional builder for cases where the page wants to assemble its own
-  /// AppBar with access to dimensions (eg. variable height). When set, takes
-  /// precedence over [appBar].
+  // When set, takes precedence over [appBar].
   final PreferredSizeWidget Function(BuildContext, ResponsiveDimensions)? appBarBuilder;
 
   const ResponsiveScaffold({

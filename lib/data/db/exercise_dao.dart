@@ -3,35 +3,30 @@ import 'package:workout_log/data/db/app_database.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/util/log.dart';
 
-/// CRUD operations on the `exercise` table.
 class ExerciseDao {
-  ExerciseDao(this._factory);
+  ExerciseDao(this._appDatabase);
 
-  final AppDatabase _factory;
+  final AppDatabase _appDatabase;
   static const _tag = 'ExerciseDao';
 
-  Future<Database> get _db => _factory.database;
+  Future<Database> get _db => _appDatabase.database;
 
-  /// All exercises, in insertion order.
   Future<List<Exercise>> getAll() async {
     final db = await _db;
     final rows = await db.query(exerciseTable);
     return rows.map(Exercise.fromMap).toList();
   }
 
-  /// Returns the exercise with [id], or throws if not found.
   Future<Exercise> getById(String id) async {
     final db = await _db;
-    final rows = await db.query(exerciseTable,
-        where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await db
+        .query(exerciseTable, where: 'id = ?', whereArgs: [id], limit: 1);
     if (rows.isEmpty) {
       throw Exception('exercise with id: $id was NOT found');
     }
     return Exercise.fromMap(rows.first);
   }
 
-  /// Look up an existing exercise by exact name via an indexed query.
-  /// Returns null if no match exists.
   Future<Exercise?> findByName(String name) async {
     final db = await _db;
     final rows = await db.query(
@@ -44,17 +39,12 @@ class ExerciseDao {
     return Exercise.fromMap(rows.first);
   }
 
-  /// Merge additional body parts into an exercise (additive). Used when a
-  /// workout is added that names this exercise with a previously-unseen
-  /// body part.
   Future<int> mergeBodyParts(Exercise exercise) =>
       _save(exercise, replaceBodyParts: false);
 
-  /// Fully replace an exercise's name and body parts.
   Future<int> replace(Exercise exercise) =>
       _save(exercise, replaceBodyParts: true);
 
-  /// Insert a brand-new exercise row.
   Future<int> insert(Exercise exercise) async {
     final db = await _db;
     return db.insert(exerciseTable, exercise.toMap());

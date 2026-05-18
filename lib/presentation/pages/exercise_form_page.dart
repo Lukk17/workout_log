@@ -236,9 +236,6 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
     );
   }
 
-  /// Build the list of checkbox rows for one side of the form
-  /// (primary or secondary). The opposite side's selections are excluded
-  /// so each body part appears in exactly one list at a time.
   List<Widget> _buildBodyPartCheckboxes({required bool secondary}) {
     final excludeSet = secondary ? _primaryBodyParts : _secondaryBodyParts;
     final tempList = <Widget>[];
@@ -248,10 +245,6 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
         tempList.add(_getWidgetForBP(bp, secondary: secondary));
       }
     }
-
-    // Wrap handles arbitrary counts and wraps to a second row automatically,
-    // replacing the previous hand-rolled split-at-3 logic. Avoids horizontal
-    // overflow on narrow screens.
     return [
       Wrap(
         alignment: WrapAlignment.spaceAround,

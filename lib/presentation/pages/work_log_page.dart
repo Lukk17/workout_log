@@ -14,7 +14,6 @@ import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/util/responsive.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
-/// Main WorkLog view — shows the selected date and its workouts.
 class WorkLogPage extends ConsumerStatefulWidget {
   const WorkLogPage({super.key});
 
@@ -30,9 +29,8 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
 
   @override
   Widget build(BuildContext context) {
-    // WorkLogPage is rendered inside HomePage's TabBarView body, so it has
-    // a ResponsiveScaffold ancestor already and we can read dimensions
-    // directly. No Scaffold wrap needed here.
+    // No Scaffold wrap: this page is rendered inside HomePage's
+    // ResponsiveScaffold-backed body, so dims are already in context.
     final selectedDate = ref.watch(selectedDateProvider);
     final workLogsAsync = ref.watch(workLogsForSelectedDateProvider);
     final colors = WorkoutColors.of(context);

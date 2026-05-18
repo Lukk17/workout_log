@@ -31,8 +31,6 @@ sealed class Exercise with _$Exercise {
   factory Exercise.fromJson(Map<String, dynamic> json) =>
       _$ExerciseFromJson(json);
 
-  /// sqflite row -> Exercise. Accepts both lowerCamelCase (new) and
-  /// SCREAMING_CASE (legacy) body-part tokens.
   factory Exercise.fromMap(Map<String, dynamic> map) => Exercise(
         id: map['id'] as String,
         name: map['name'] as String? ?? '',

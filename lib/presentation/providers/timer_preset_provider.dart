@@ -25,9 +25,6 @@ class _TimerPresetNotifier extends StateNotifier<Duration> {
   }
 }
 
-/// The rest-timer's currently selected duration, persisted across
-/// app launches via SharedPreferences (`timer_preset_seconds`).
-/// First-run default is 60 seconds.
 final timerPresetProvider =
     StateNotifierProvider<_TimerPresetNotifier, Duration>(
         (ref) => _TimerPresetNotifier());

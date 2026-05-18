@@ -13,11 +13,6 @@ import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 import 'exercise_form_page.dart';
 
-/// This is most detailed view for each WorkLog.
-///
-/// In Tab bar there is body part name and date.
-/// Main view have name of exercise,
-/// below it series and repeats in each series shown as table.
 class ExerciseDetailPage extends ConsumerStatefulWidget {
   final WorkLog workLog;
 
@@ -31,10 +26,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
   static const _tag = 'ExerciseDetailPage';
 
-  /// The page owns a local copy of the workLog so mutations can be applied
-  /// via copyWith without mutating the immutable freezed instance passed in
-  /// from the parent. The parent route is responsible for re-fetching from
-  /// the DB on pop (via workLogsByDateProvider invalidation).
+  // Local copy edited via copyWith; parent route refetches on pop.
   late WorkLog _workLog;
 
   @override
@@ -43,10 +35,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     _workLog = widget.workLog;
   }
 
-  /// Derived layout for this page. Computed once per build from the
-  /// inherited [ResponsiveDimensions], then passed (or read off
-  /// `_layout`) by helpers. Replaces a previous set of 13 mutable late
-  /// fields that were re-set on every build.
   late _Layout _layout;
 
   @override
@@ -60,7 +48,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
-                /// created date of this log
                 Container(
                   width: _layout.screenWidth * 0.3,
                   child: Text(
@@ -81,8 +68,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         final wList = _createRowsForSeries();
         return Column(
           children: <Widget>[
-
-            /// exercise name
             GestureDetector(
               onLongPress: () {
                 Navigator.push(
@@ -115,8 +100,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: _getAllBodyParts(_workLog),
             ),
-
-            /// table header
             Row(
               children: <Widget>[
                 Container(
@@ -171,16 +154,12 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
             ),
 
             Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
-
-            /// list view builder create series
             Expanded(
               child: ListView.builder(
                 itemCount: wList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return wList[index];
                 },
-                //  nested listView need to shrink to size of its children
-                //  if not shrieked it will be infinite in size and can't be render
                 shrinkWrap: true,
               ),
             ),
@@ -197,9 +176,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       ),
     );
   }
-
-  /// Creates row for every recorder set, with divider at the bottom
-  /// Slidable widget show action when user slide every row
   List<Widget> _createRowsForSeries() {
     List<Widget> wList = <Widget>[];
     List keys = _workLog.series.keys.toList();
@@ -207,7 +183,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     for (int i = 0; i < keys.length; i++) {
       wList.add(
           Slidable(
-            key: ValueKey(keys[i]), // Ensure unique key
+            key: ValueKey(keys[i]),
             startActionPane: ActionPane(
               motion: const ScrollMotion(),
               extentRatio: 0.25,
@@ -353,8 +329,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         Divider(indent: _layout.screenWidth * 0.05, endIndent: _layout.screenWidth * 0.05, color: WorkoutColors.of(context).borderColor),
       );
     }
-
-    /// add additional container at bottom for better visibility
     wList.add(
       Container(
         height: _layout.screenHeight * 0.10,
@@ -380,8 +354,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   void _invalidateParent() {
     ref.invalidate(workLogsByDateProvider(_workLog.created));
   }
-
-  /// shows dialog for editing repeats number
   Future<void> _editRepeatsDialog(String set) {
     return _editSetValueDialog(
       title: 'Edit repeats number',
@@ -392,8 +364,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       logLabel: 'Repeats',
     );
   }
-
-  /// shows dialog for editing load value
   Future<void> _editLoadDialog(String set) {
     return _editSetValueDialog(
       title: 'Edit load value',
@@ -404,10 +374,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
       logLabel: 'Load',
     );
   }
-
-  /// Shared dialog for editing either reps or load for a single set. The
-  /// caller supplies a builder that maps the parsed value to an updated
-  /// WorkLog (via copyWith) — no in-place map mutation.
   Future<void> _editSetValueDialog({
     required String title,
     required String currentValue,
@@ -500,10 +466,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
     _invalidateParent();
     logFine('Series number $i deleted from $rebuilt', name: _tag);
   }
-
-  /// Removes the entry whose 1-based key equals [removedIndex] and shifts
-  /// every higher-indexed entry down by 1, preserving the contiguous
-  /// numbering invariant that the rest of the page relies on.
   static Map<String, String> _removeIndexAndShift(
       Map<String, String> source, int removedIndex) {
     final result = <String, String>{};
@@ -549,10 +511,6 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         ),
       ));
     });
-
-
-    /// when more that 3 body parts is in one exercise
-    /// make 2 rows
     if (boxes.length <= 3) {
       result.add(Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

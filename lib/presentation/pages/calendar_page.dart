@@ -7,15 +7,6 @@ import 'package:workout_log/util/log.dart';
 
 DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
-/// Modal calendar shown from the home page app bar.
-///
-/// Interactions:
-///   - Tap a day in the grid -> selects + dismisses.
-///   - Tap the "May 2026" header -> opens the year-grid picker for
-///     fast cross-year jumps. Picking a date there both selects and
-///     dismisses; picking nothing returns to the grid unchanged.
-///   - Tap "Today" -> jumps to and selects today, then dismisses.
-///   - Tap "Close" -> dismiss without changing the date.
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
 

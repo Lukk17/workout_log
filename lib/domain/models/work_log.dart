@@ -8,10 +8,9 @@ import 'package:workout_log/presentation/util/responsive.dart';
 part 'work_log.freezed.dart';
 part 'work_log.g.dart';
 
-/// Truncate to start-of-day in device-local time so `WorkLog.created`
-/// has no sub-day precision (matches the sqflite `created` column format
-/// `YYYY-MM-DD` and prevents same-day workouts from sorting across days
-/// when constructed near midnight).
+// Truncating to start-of-day prevents same-day workouts from sorting
+// across day boundaries when constructed near midnight, and matches the
+// sqflite `created` column format (YYYY-MM-DD).
 DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
 @freezed
@@ -37,16 +36,15 @@ sealed class WorkLog with _$WorkLog {
   factory WorkLog.fromJson(Map<String, dynamic> json) =>
       _$WorkLogFromJson(json);
 
-  /// sqflite row -> WorkLog. Coerces hostile series/load JSON (mixed
-  /// int/string values from legacy code) into typed `Map<String, String>`.
   factory WorkLog.fromMap(Map<String, dynamic> map, Exercise e) {
-    final seriesRaw = jsonDecode(map['series'] as String) as Map<String, dynamic>;
+    // The map<String,dynamic> cast on series/load handles legacy rows
+    // that wrote int values where we now store strings.
+    final seriesRaw =
+        jsonDecode(map['series'] as String) as Map<String, dynamic>;
     final loadRaw = jsonDecode(map['load'] as String) as Map<String, dynamic>;
     return WorkLog(
       id: map['id'] as String,
       exercise: e,
-      // DateTime.parse normalizes through the YYYY-MM-DD column; rows from
-      // legacy installs that wrote a full ISO timestamp get normalized too.
       created: _startOfDay(DateTime.parse(map['created'] as String)),
       series: seriesRaw.map((k, v) => MapEntry(k, v.toString())),
       load: loadRaw.map((k, v) => MapEntry(k, v.toString())),

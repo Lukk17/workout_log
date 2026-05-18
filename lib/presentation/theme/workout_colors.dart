@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Project-specific color palette. Exposed as a [ThemeExtension] so widgets
-/// read colors through `WorkoutColors.of(context)` rather than referencing
-/// static mutable globals.
 @immutable
 class WorkoutColors extends ThemeExtension<WorkoutColors> {
   const WorkoutColors({
@@ -270,7 +267,6 @@ class WorkoutColors extends ThemeExtension<WorkoutColors> {
   }
 }
 
-/// Project text constants that don't fit cleanly into colors.
 class WorkoutTypography {
   static const double fontSize = 20;
   static const double headerSize = 30;

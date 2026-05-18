@@ -7,14 +7,6 @@ import 'package:workout_log/presentation/providers/alarm_providers.dart';
 import 'package:workout_log/presentation/providers/timer_preset_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 
-/// Rest-timer countdown. Pick a preset (or set a custom duration), tap
-/// Start, the page counts down to zero, then fires three alarms:
-///   1. OS notification (sound + heads-up, plays even when the app is
-///      backgrounded or the screen is locked).
-///   2. In-app AlertDialog with a Stop button.
-///   3. Heavy haptic feedback.
-///
-/// State survives tab swaps via [AutomaticKeepAliveClientMixin].
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
 
@@ -27,22 +19,14 @@ class _TimerPageState extends ConsumerState<TimerPage>
   @override
   bool get wantKeepAlive => true;
 
-  /// Sub-minute presets — top row.
   static const List<int> _shortPresets = [30, 60, 90];
-
-  /// Multi-minute presets — bottom row.
   static const List<int> _longPresets = [120, 180, 300];
 
-  /// Format a preset count for a chip label: under a minute -> "Ns",
-  /// otherwise "N min".
   static String _presetLabel(int seconds) {
     if (seconds < 60) return '${seconds}s';
     return '${seconds ~/ 60} min';
   }
 
-  /// Local UI state — initialized from [timerPresetProvider] on first
-  /// build (see `_syncFromPreset`), then kept in sync so the displayed
-  /// MM:SS reflects the persisted preset on cold start.
   Duration _selected = const Duration(seconds: 60);
   Duration _remaining = const Duration(seconds: 60);
   Timer? _ticker;
@@ -58,10 +42,8 @@ class _TimerPageState extends ConsumerState<TimerPage>
     WidgetsBinding.instance.addPostFrameCallback((_) => _ensurePermission());
   }
 
-  /// Pull the persisted preset into our local state once. Called from
-  /// `build` because Riverpod's first read after load may not be ready
-  /// during `initState`. Subsequent preset changes update both local
-  /// state and the provider.
+  // Hydration runs from build, not initState, because the persisted
+  // value may not have loaded by the time initState runs.
   void _syncFromPreset(Duration persisted) {
     if (_hydrated || _running) return;
     _hydrated = true;
@@ -191,8 +173,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          // Big circular countdown
-          AspectRatio(
+AspectRatio(
             aspectRatio: 1,
             child: Stack(
               alignment: Alignment.center,
@@ -216,8 +197,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
             ),
           ),
 
-          // Preset chips — three rows: sub-minute, multi-minute, Custom alone.
-          Column(
+Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Wrap(
@@ -254,8 +234,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
             ],
           ),
 
-          // Controls
-          Row(
+Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               FilledButton.icon(
@@ -276,7 +255,6 @@ class _TimerPageState extends ConsumerState<TimerPage>
   }
 }
 
-/// Simple dialog that asks for minutes + seconds and returns a [Duration].
 class _CustomDurationDialog extends StatefulWidget {
   const _CustomDurationDialog();
 

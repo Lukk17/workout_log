@@ -3,10 +3,6 @@ import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workout_log/util/log.dart';
 
-/// Thin wrapper around `flutter_local_notifications` for the rest-timer
-/// alarm. The notification's own sound channel doubles as the "loud
-/// alarm" sound — fires whether the app is foregrounded, backgrounded,
-/// or the screen is locked.
 class AlarmService {
   AlarmService(this._plugin);
 
@@ -16,7 +12,6 @@ class AlarmService {
   static const _channelName = 'Rest timer alarm';
   static const _notificationId = 1001;
 
-  /// Call once at app startup, before runApp. Idempotent.
   Future<void> initialize() async {
     const android = AndroidInitializationSettings('@mipmap/launcher_icon');
     const ios = DarwinInitializationSettings(
@@ -28,9 +23,9 @@ class AlarmService {
       const InitializationSettings(android: android, iOS: ios),
     );
 
-    // Android 8+ needs the channel created up front for sound + heads-up
-    // behavior to be applied.
     if (Platform.isAndroid) {
+      // Android 8+ needs the channel created up front for sound + heads-up
+      // behavior to apply.
       const channel = AndroidNotificationChannel(
         _channelId,
         _channelName,
@@ -46,9 +41,6 @@ class AlarmService {
     }
   }
 
-  /// Ask the user for permission to post notifications. Android 13+ and
-  /// every iOS version need this; older Android grants it implicitly.
-  /// Returns true if granted (or already granted).
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
       final android = _plugin
@@ -73,10 +65,9 @@ class AlarmService {
     return true;
   }
 
-  /// Fire the alarm notification — heads-up, with the channel's default
-  /// alarm sound. Safe to call repeatedly; the same notification ID is
-  /// reused so the OS replaces an existing one rather than stacking.
   Future<void> ring() async {
+    // Reusing the same _notificationId means the OS replaces any prior
+    // alarm notification instead of stacking them.
     const androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
@@ -86,7 +77,6 @@ class AlarmService {
       category: AndroidNotificationCategory.alarm,
       playSound: true,
       enableVibration: true,
-      // Heads-up display even when app is foregrounded.
       fullScreenIntent: false,
       visibility: NotificationVisibility.public,
     );
@@ -105,8 +95,6 @@ class AlarmService {
     logFine('alarm fired', name: _tag);
   }
 
-  /// Dismiss the alarm notification (called when the user hits "Stop"
-  /// in the in-app dialog).
   Future<void> cancel() async {
     await _plugin.cancel(_notificationId);
   }

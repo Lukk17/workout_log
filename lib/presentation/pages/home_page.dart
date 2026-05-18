@@ -13,7 +13,6 @@ import 'package:workout_log/presentation/providers/theme_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
-/// Main page of application.
 class HomePage extends ConsumerStatefulWidget {
   final Function(Widget) callback;
 

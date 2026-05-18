@@ -1,8 +1,7 @@
 enum BodyPart { chest, back, arm, leg, abdominal, cardio, undefined }
 
-/// Decode a single token (from either the legacy SCREAMING_CASE format used by
-/// pre-1.2.3+8 installs, or the new `Enum.name` format) into a [BodyPart].
-/// Unknown tokens map to [BodyPart.undefined].
+// Accepts both `Enum.name` tokens (current) and SCREAMING_CASE (the
+// pre-1.2.3+8 format already on existing devices). Unknown -> undefined.
 BodyPart decodeBodyPart(String token) {
   try {
     return BodyPart.values.byName(token.toLowerCase());
