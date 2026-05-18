@@ -27,8 +27,18 @@ class _TimerPageState extends ConsumerState<TimerPage>
   @override
   bool get wantKeepAlive => true;
 
-  /// Common rest-between-sets durations, in seconds.
-  static const List<int> _presets = [30, 60, 90, 120, 180];
+  /// Sub-minute presets — top row.
+  static const List<int> _shortPresets = [30, 60, 90];
+
+  /// Multi-minute presets — bottom row.
+  static const List<int> _longPresets = [120, 180, 300];
+
+  /// Format a preset count for a chip label: under a minute -> "Ns",
+  /// otherwise "N min".
+  static String _presetLabel(int seconds) {
+    if (seconds < 60) return '${seconds}s';
+    return '${seconds ~/ 60} min';
+  }
 
   /// Local UI state — initialized from [timerPresetProvider] on first
   /// build (see `_syncFromPreset`), then kept in sync so the displayed
@@ -138,8 +148,12 @@ class _TimerPageState extends ConsumerState<TimerPage>
         ],
       ),
     );
-    // Dismiss the notification once the user acknowledges in-app.
+    // Dismiss the notification once the user acknowledges in-app, then
+    // reset the countdown to the selected duration so the chip + MM:SS
+    // are ready for the next set.
     await alarm.cancel();
+    if (!mounted) return;
+    setState(() => _remaining = _selected);
   }
 
   Future<void> _pickCustom() async {
@@ -202,22 +216,40 @@ class _TimerPageState extends ConsumerState<TimerPage>
             ),
           ),
 
-          // Preset chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
+          // Preset chips — two rows: sub-minute on top, multi-minute
+          // (with the Custom button) below.
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              for (final secs in _presets)
-                ChoiceChip(
-                  label: Text('${secs}s'),
-                  selected: _selected.inSeconds == secs,
-                  onSelected: _running ? null : (_) => _pickPreset(secs),
-                ),
-              ActionChip(
-                label: const Text('Custom'),
-                avatar: const Icon(Icons.edit, size: 18),
-                onPressed: _running ? null : _pickCustom,
+              Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.center,
+                children: <Widget>[
+                  for (final secs in _shortPresets)
+                    ChoiceChip(
+                      label: Text(_presetLabel(secs)),
+                      selected: _selected.inSeconds == secs,
+                      onSelected: _running ? null : (_) => _pickPreset(secs),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.center,
+                children: <Widget>[
+                  for (final secs in _longPresets)
+                    ChoiceChip(
+                      label: Text(_presetLabel(secs)),
+                      selected: _selected.inSeconds == secs,
+                      onSelected: _running ? null : (_) => _pickPreset(secs),
+                    ),
+                  ActionChip(
+                    label: const Text('Custom'),
+                    avatar: const Icon(Icons.edit, size: 18),
+                    onPressed: _running ? null : _pickCustom,
+                  ),
+                ],
               ),
             ],
           ),
