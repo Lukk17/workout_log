@@ -63,7 +63,7 @@ flutter run --release -d <deviceId>
 Release builds ship to the Google Play Store via a manual GitHub
 Actions workflow.
 
-See **[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)** for the full
+See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for the full
 procedure: how to trigger a release, the five GitHub secrets you need
 to configure (keystore + Google Play API service account), what the
 workflow actually does step-by-step, common failure modes and their

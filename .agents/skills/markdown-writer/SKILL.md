@@ -56,6 +56,7 @@ I write like a tired senior engineer, not a marketing intern.
 - No comments inside code blocks. The prose around the block does the explaining.
 - One command per code fence. No piling `cd x && ./y && ./z` unless that chain is genuinely the command.
 - Every shell snippet ships in two fences: one bash, one PowerShell.
+- **Links use plain text**, not code-styled text: `[docs/X.md](./docs/X.md)`, not `` [`docs/X.md`](./docs/X.md) ``. The double styling (link + code) is valid GFM but reads as visual noise — it screams "I am both a link and a path" when one of those is already obvious from context. Reserve backticks for inline references that are NOT also links (a function name in prose, a file path mentioned without anchoring).
 
 Bash example:
 
@@ -95,6 +96,7 @@ When polishing an existing README I walk this list:
 
 - ⚠️ Stale versions in install commands or badges
 - ⚠️ Dead links (relative paths that no longer resolve, broken anchors)
+- ⚠️ Backticks wrapping link text (`` [`x`](url) ``) — collapse to plain `[x](url)`
 - ❌ AI-tells: stacked em-dashes, "comprehensive", "robust", three-bullet parallel structures everywhere
 - ❌ Marketing copy with no concrete claim behind it
 - ❌ Unexplained jargon in the first 200 words
