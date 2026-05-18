@@ -99,12 +99,16 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.all(5),
           onPressed: onOpenCalendar,
           child: dims.isPortrait
-              ? Column(
-                  children: <Widget>[
-                    Icon(Icons.calendar_today, color: colors.titleColor),
-                    Text('Calendar',
-                        style: TextStyle(color: colors.titleColor)),
-                  ],
+              ? FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.calendar_today, color: colors.titleColor),
+                      Text('Calendar',
+                          style: TextStyle(color: colors.titleColor)),
+                    ],
+                  ),
                 )
               : Icon(Icons.calendar_today, color: colors.iconColor),
         ),
@@ -271,11 +275,14 @@ class _SettingSwitchRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Text(
-          label,
-          style: TextStyle(
-            color: colors.textColor,
-            fontSize: WorkoutTypography.fontSize,
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: colors.textColor,
+              fontSize: WorkoutTypography.fontSize,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         Switch(value: value, onChanged: onChanged),
