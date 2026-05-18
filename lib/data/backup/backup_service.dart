@@ -7,8 +7,6 @@ import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/util/log.dart';
 
-/// Raised when external (shared) storage is not available on the device,
-/// so backup/restore cannot read or write the backup file.
 class ExternalStorageUnavailableException implements Exception {
   final String message;
   ExternalStorageUnavailableException(
@@ -17,59 +15,56 @@ class ExternalStorageUnavailableException implements Exception {
   String toString() => message;
 }
 
-/// JSON backup / restore of the entire workout log. Writes a single file at
-/// `<externalStorage>/backup.json` containing a JSON array of every WorkLog.
 class BackupService {
-  BackupService(this._workLogDao);
+  BackupService(
+    this._workLogDao, {
+    Future<Directory> Function()? storageDir,
+  }) : _storageDir = storageDir ?? _defaultStorageDir;
 
   final WorkLogDao _workLogDao;
+  final Future<Directory> Function() _storageDir;
   static const _tag = 'BackupService';
+  static const _fileName = 'backup.json';
 
-  /// Override the external-storage directory lookup. Tests inject a temp
-  /// directory; production code leaves this null and gets the OS dir.
-  static Future<Directory> Function()? externalStorageOverride;
+  Future<String> get backupFilePath async {
+    final dir = await _storageDir();
+    return join(dir.path, _fileName);
+  }
 
   Future<void> backup() async {
-    final dir = await _externalStorageDir();
-    final backupPath = join(dir.path, 'backup.json');
-
+    final path = await backupFilePath;
     final list = await _workLogDao.getAll();
-    final encoded = jsonEncode(list);
-    await File(backupPath).writeAsString(encoded);
-    logFine('[backup] wrote ${list.length} workLogs to $backupPath', name: _tag);
+    await File(path).writeAsString(jsonEncode(list));
+    logFine('wrote ${list.length} workLogs to $path', name: _tag);
   }
 
   Future<void> restore() async {
-    final dir = await _externalStorageDir();
-    final backupPath = join(dir.path, 'backup.json');
-    final file = File(backupPath);
+    final path = await backupFilePath;
+    final file = File(path);
     if (!await file.exists()) {
       throw ExternalStorageUnavailableException(
-          'backup file not found at $backupPath');
+          'backup file not found at $path');
     }
     final raw = await file.readAsString();
     final decoded = jsonDecode(raw) as List<dynamic>;
     for (final entry in decoded) {
       await _workLogDao.insert(WorkLog.fromJson(entry as Map<String, dynamic>));
     }
-    logFine('[restore] imported ${decoded.length} workLogs from $backupPath', name: _tag);
+    logFine('imported ${decoded.length} workLogs from $path', name: _tag);
   }
+}
 
-  Future<Directory> _externalStorageDir() async {
-    if (externalStorageOverride != null) {
-      return externalStorageOverride!();
+Future<Directory> _defaultStorageDir() async {
+  try {
+    final dir = await getExternalStorageDirectory();
+    if (dir == null) {
+      throw ExternalStorageUnavailableException();
     }
-    try {
-      final dir = await getExternalStorageDirectory();
-      if (dir == null) {
-        throw ExternalStorageUnavailableException();
-      }
-      return dir;
-    } on ExternalStorageUnavailableException {
-      rethrow;
-    } catch (e) {
-      throw ExternalStorageUnavailableException(
-          'failed to access external storage: $e');
-    }
+    return dir;
+  } on ExternalStorageUnavailableException {
+    rethrow;
+  } catch (e) {
+    throw ExternalStorageUnavailableException(
+        'failed to access external storage: $e');
   }
 }

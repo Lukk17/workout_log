@@ -18,12 +18,10 @@ void main() {
   setUp(() async {
     env = await DaoTestEnv.create();
     backupDir = await Directory.systemTemp.createTemp('workout_log_backup_');
-    BackupService.externalStorageOverride = () async => backupDir;
-    service = BackupService(env.workLogDao);
+    service = BackupService(env.workLogDao, storageDir: () async => backupDir);
   });
 
   tearDown(() async {
-    BackupService.externalStorageOverride = null;
     if (await backupDir.exists()) {
       await backupDir.delete(recursive: true);
     }
