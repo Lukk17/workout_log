@@ -180,13 +180,72 @@ turns out to be broken:
 3. Investigate, fix, and ship a new build with an incremented
    `versionCode` — Play never lets you re-use a code.
 
-## Bypassing the workflow
+## Bypassing the workflow — manual build + upload
 
-If GitHub Actions is down or you need a one-off build off a private
-branch, the manual path still works:
+If GitHub Actions is down, or you want to ship from a branch the
+workflow won't touch, the manual path still works.
+
+### Prerequisite — local signing config
+
+The first time you build a release on a fresh machine, you need the
+keystore + `key.properties` on disk. Copy the keystore (`*.jks`) into
+`android/`, then create `android/key.properties` next to it:
 
 ```
-flutter build appbundle --release
+storePassword=<store password>
+keyPassword=<key password>
+keyAlias=key
+storeFile=workout_log-keystore.jks
 ```
 
-Produces the same AAB locally. Upload via Play Console's web UI.
+Both files are gitignored. The Gradle build reads `key.properties`
+and uses the credentials to sign the release AAB.
+
+### Build the AAB
+
+1. Bump the `version:` line in `pubspec.yaml` (must increase the build
+   number after `+`).
+2. Run from the repo root:
+
+   ```
+   flutter build appbundle --release
+   ```
+
+3. The signed bundle lands at:
+
+   ```
+   build/app/outputs/bundle/release/app-release.aab
+   ```
+
+   Rename it to `workout_log-X.Y.Z.aab` if you want — Play Console
+   doesn't care about the filename.
+
+### Upload via Play Console
+
+1. Open <https://play.google.com/console>.
+2. Pick the app → **Release** → choose a track (Internal testing is
+   the safest first stop).
+3. **Create new release** → upload the `.aab`.
+4. Add release notes; click **Review release**, then **Start rollout**.
+
+Internal testing reaches your listed testers in ~minutes; promoting
+through alpha → beta → production triggers Play's normal review.
+
+## First-time signing setup
+
+If you've cloned the repo on a brand-new machine and don't have a
+keystore yet, generate one once and never lose it — every future
+release **must** be signed by the same keystore or Play refuses the
+upload:
+
+```
+keytool -genkey -v -keystore workout_log-keystore.jks \
+        -keyalg RSA -keysize 2048 -validity 10000 -alias key
+```
+
+Move the resulting `workout_log-keystore.jks` into the `android/`
+folder, then create `android/key.properties` as described above.
+
+Back it up somewhere safe (password manager, encrypted cloud backup) —
+losing the keystore means the app can never be updated under the same
+package name on Play.

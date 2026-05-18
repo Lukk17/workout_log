@@ -60,77 +60,12 @@ flutter run --release -d <deviceId>
 
 ### Deployment
 
-1. Change app version 
+Release builds ship to the Google Play Store via a manual GitHub
+Actions workflow.
 
-2. [pubspec.yaml](./pubspec.yaml)
-   ```
-   version: X.Y.Z+A
-   ```
-   
-3. Make sure [android/key.properties](./android/key.properties) `android/key.properties` are present and have correct passes:
-   ```
-   storePassword=XXX  
-   keyPassword=XXX  
-   keyAlias=key  
-   storeFile=workout_log-keystore.jks
-   ```
-   
-4. Run in the terminal (without an app folder) :
- 
-   ```
-   flutter build appbundle
-   ```
-   
-   `appbundle` will be generated in [release](./build/app/outputs/bundle/release/) folder:
-   ```
-   build/app/outputs/bundle/release/app-release.aab
-   ```
-   rename to 
-   ```
-   workout_log-X.Y.Z.aab
-   ```
-   `X.Y.Z` - version number
-
----
-
-### Publish
-
-1. Go to
-   [https://play.google.com/apps/publish](https://play.google.com/apps/publish)
-   
-2. Create a release (or create a new application if first published) and "Let Google manage and protect your app signing key"
-
-   - upload bundle
-   - enter the release name (same as in pubspec.yaml)
-   - edit Store listening (icon, screenshots, feature graphic), content rating, app content and pricing& distribution PAGES
-
-3. Start with "Internal testing" then rollout to alpha
-
----
-### Signing app for the first time
-
-Create keystore:
-
-```
-keytool -export -rfc -keystore upload-keystore.jks -alias upload -file upload_certificate.pem
-```
-
-SAVE IT!
-
-Every next version must be signed with the SAME keystore or Google won't publish it
-
-Create a file name `<app dir>/android/key.properties` names must be same as generated before
-
-
-Highlight
-
-```
-storePassword=< password from previous step >  
-keyPassword=< password from previous step >  
-keyAlias=upload-keystore  
-storeFile=workout_log-keystore.jks  
-```
-
-where `workout_log-keystore.jks` needs to be [android root](./android) folder.  
-
-This will link `key.properties` created before with Gradle.
+See **[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)** for the full
+procedure: how to trigger a release, the five GitHub secrets you need
+to configure (keystore + Google Play API service account), what the
+workflow actually does step-by-step, common failure modes and their
+fixes, and the manual `flutter build appbundle` path for when CI is
+unavailable. The first-time keystore-signing setup is in there too.
