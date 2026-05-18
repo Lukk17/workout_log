@@ -111,8 +111,8 @@ class _TimerPageState extends ConsumerState<TimerPage>
         content: const Text('Time to lift.'),
         actions: <Widget>[
           FilledButton.icon(
-            icon: const Icon(Icons.stop),
-            label: const Text('Stop'),
+            icon: const Icon(Icons.check),
+            label: const Text('Done'),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
