@@ -24,7 +24,6 @@ class _TimerPageState extends ConsumerState<TimerPage>
   Timer? _ticker;
   bool _running = false;
   bool _permissionRequested = false;
-  bool _hydrated = false;
 
   @override
   void initState() {
@@ -40,15 +39,15 @@ class _TimerPageState extends ConsumerState<TimerPage>
     super.dispose();
   }
 
-  // Hydration runs from build, not initState, because the persisted
-  // value may not have loaded by the time initState runs.
+  // Sync runs from build, not initState, because the persisted value
+  // loads asynchronously after the notifier is constructed — so on
+  // first render we may see the in-memory default before the real
+  // persisted preset arrives.
   void _syncFromPreset(Duration persisted) {
-    if (_hydrated || _running) return;
-    _hydrated = true;
-    if (persisted != _selected) {
-      _selected = persisted;
-      _remaining = persisted;
-    }
+    if (_running) return;
+    if (persisted == _selected) return;
+    _selected = persisted;
+    _remaining = persisted;
   }
 
   Future<void> _ensurePermission() async {
@@ -218,39 +217,66 @@ class _PresetChips extends StatelessWidget {
   final ValueChanged<Duration> onPickPreset;
   final VoidCallback onPickCustom;
 
-  static String _presetLabel(int seconds) {
-    if (seconds < 120) return '${seconds}s';
-    return '${seconds ~/ 60} min';
-  }
-
-  Widget _row(List<int> presets) => Wrap(
-        spacing: 8,
-        alignment: WrapAlignment.center,
-        children: <Widget>[
-          for (final secs in presets)
-            ChoiceChip(
-              label: Text(_presetLabel(secs)),
-              selected: selected.inSeconds == secs,
-              onSelected:
-                  enabled ? (_) => onPickPreset(Duration(seconds: secs)) : null,
-            ),
-        ],
-      );
-
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        _row(_shortPresets),
+        _PresetChipRow(
+          presets: _shortPresets,
+          selected: selected,
+          enabled: enabled,
+          onPick: onPickPreset,
+        ),
         const SizedBox(height: 8),
-        _row(_longPresets),
+        _PresetChipRow(
+          presets: _longPresets,
+          selected: selected,
+          enabled: enabled,
+          onPick: onPickPreset,
+        ),
         const SizedBox(height: 8),
         ActionChip(
           label: const Text('Custom'),
           avatar: const Icon(Icons.edit, size: 18),
           onPressed: enabled ? onPickCustom : null,
         ),
+      ],
+    );
+  }
+}
+
+class _PresetChipRow extends StatelessWidget {
+  const _PresetChipRow({
+    required this.presets,
+    required this.selected,
+    required this.enabled,
+    required this.onPick,
+  });
+
+  final List<int> presets;
+  final Duration selected;
+  final bool enabled;
+  final ValueChanged<Duration> onPick;
+
+  static String labelFor(int seconds) {
+    if (seconds < 120) return '${seconds}s';
+    return '${seconds ~/ 60} min';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      alignment: WrapAlignment.center,
+      children: <Widget>[
+        for (final secs in presets)
+          ChoiceChip(
+            label: Text(labelFor(secs)),
+            selected: selected.inSeconds == secs,
+            onSelected:
+                enabled ? (_) => onPick(Duration(seconds: secs)) : null,
+          ),
       ],
     );
   }
