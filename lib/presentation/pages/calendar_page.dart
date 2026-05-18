@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/util/log.dart';
@@ -8,11 +9,13 @@ DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Modal calendar shown from the home page app bar.
 ///
-/// Three ways to pick:
-///   - Tap a day in the grid — selects + dismisses immediately.
-///   - "Today" chip — jumps to today and dismisses.
-///   - "Pick date…" chip — opens Material 3 `showDatePicker` which lets
-///     you tap the year header to jump distant months/years quickly.
+/// Interactions:
+///   - Tap a day in the grid -> selects + dismisses.
+///   - Tap the "May 2026" header -> opens the year-grid picker for
+///     fast cross-year jumps. Picking a date there both selects and
+///     dismisses; picking nothing returns to the grid unchanged.
+///   - Tap "Today" -> jumps to and selects today, then dismisses.
+///   - Tap "Close" -> dismiss without changing the date.
 class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
 
@@ -35,6 +38,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
   Widget build(BuildContext context) {
     final selected = ref.watch(selectedDateProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
       clipBehavior: Clip.antiAlias,
@@ -64,23 +68,39 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   shape: BoxShape.circle,
                 ),
               ),
+              calendarBuilders: CalendarBuilders(
+                headerTitleBuilder: (context, day) => InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: _openYearPicker,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          DateFormat.yMMMM('en_US').format(day),
+                          style: textTheme.titleMedium,
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               onDaySelected: _onDaySelected,
               onPageChanged: (focused) => setState(() => _focused = focused),
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              alignment: WrapAlignment.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.today),
                   label: const Text('Today'),
                   onPressed: () => _pick(DateTime.now()),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.calendar_month),
-                  label: const Text('Pick date…'),
-                  onPressed: _openMaterialDatePicker,
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -103,16 +123,13 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _openMaterialDatePicker() async {
+  Future<void> _openYearPicker() async {
     final navigator = Navigator.of(context);
     final picked = await showDatePicker(
       context: context,
-      initialDate: ref.read(selectedDateProvider),
+      initialDate: _focused,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      // Open in year-grid view so a jump of years is one tap, not 24
-      // chevron clicks.
-      initialEntryMode: DatePickerEntryMode.calendar,
       initialDatePickerMode: DatePickerMode.year,
     );
     if (picked == null || !mounted) return;
