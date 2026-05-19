@@ -104,6 +104,53 @@ When it finishes:
   release notes drawn from commits and PR titles since the previous
   tag.
 
+## Enrolling testers (internal and closed tracks)
+
+Internal testing and closed testing tracks are gated by an opt-in URL
+per testers list. Adding a tester's email in Play Console is **not
+enough** — the tester must open the per-list opt-in URL while signed
+into Google as the listed email, click **Become a tester**, and
+accept. Only then will the Play Store on their device show the new
+track's build.
+
+This is **distinct from the public open-testing (beta) program**,
+which has its own join link on the app's Play Store page. Joining the
+public beta does *not* enroll you in internal testing.
+
+### Where to find the opt-in URL
+
+Play Console → your app → **Testing → Internal testing** → **Testers**
+tab → scroll to **"How testers join your test"** → there's a **Copy
+link** button for each list. The URL looks like
+`https://play.google.com/apps/internaltest/<numeric-id>`.
+
+Closed testing tracks have the same flow under **Testing → Closed
+testing**, with a different URL per list.
+
+### Per-tester one-time setup
+
+1. On the tester's device, confirm Play Store is signed in with the
+   exact email that's on the testers list. Play Store → top-right
+   avatar → check the active account; switch if needed.
+2. Open the opt-in URL on that device (or in a browser signed into
+   Google as the tester account).
+3. Tap **Become a tester**. You'll get a confirmation page.
+4. Open the app's Play Store listing. If production was already
+   installed, you'll see an **Update** button for the internal-track
+   build. Otherwise, **Install**.
+5. If the update doesn't appear within 5–10 minutes, force-stop Play
+   Store and re-open the app page. First-time enrollment can take up
+   to an hour to propagate.
+
+### Confirming enrollment from Play Console
+
+Play Console → Testing → Internal testing → **Testers** tab → each
+list shows the count of testers who have **accepted** the invite, not
+just been added. If the counter doesn't tick up after the tester taps
+"Become a tester", something went wrong — wrong Google account on the
+device, typo in the testers list email, or the URL was opened in a
+browser signed into a different account than the device's Play Store.
+
 ## Required GitHub secrets
 
 All five secrets live under **Settings → Secrets and variables → Actions
@@ -332,6 +379,13 @@ alias. Easy way to verify the secrets locally: decode
 `keytool -list -v -keystore that-file.jks -alias <ANDROID_KEY_ALIAS>`
 and enter the password. If `keytool` accepts it, the secrets are
 correct; the failure is somewhere else.
+
+**"I'm on the testers list but the internal-track build isn't showing
+up in my Play Store"**: the tester hasn't opted in via the per-list
+URL, or opted in while signed into the wrong Google account. See
+"Enrolling testers (internal and closed tracks)" above. Joining the
+public open-beta program is *not* the same as opting into internal
+testing.
 
 ## Release notes
 
