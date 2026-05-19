@@ -27,6 +27,23 @@ class ExerciseDao {
     return Exercise.fromMap(rows.first);
   }
 
+  /// Resolves multiple exercises in a single `WHERE id IN (...)` query.
+  /// Used by [WorkLogDao] to hydrate a page of workouts without the
+  /// N+1 round-trips that came from calling [getById] per row.
+  Future<Map<String, Exercise>> findByIds(List<String> ids) async {
+    if (ids.isEmpty) return const {};
+    final db = await _db;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final rows = await db.query(
+      exerciseTable,
+      where: 'id IN ($placeholders)',
+      whereArgs: ids,
+    );
+    return {
+      for (final row in rows) row['id'] as String: Exercise.fromMap(row),
+    };
+  }
+
   Future<Exercise?> findByName(String name) async {
     final db = await _db;
     final rows = await db.query(
