@@ -86,8 +86,8 @@ class WorkLogDao {
       return null;
     }
 
-    final exercise =
-        await _exerciseDao.getById(rows.first['exercise_id'].toString());
+    final exerciseId = rows.first['exercise_id'].toString();
+    final exercise = await _exerciseDao.getById(exerciseId);
 
     return WorkLog.fromMap(rows.first, exercise);
   }
@@ -128,7 +128,7 @@ class WorkLogDao {
     }
 
     final exerciseIds =
-        rows.map((r) => r['exercise_id'].toString()).toSet().toList();
+    rows.map((r) => r['exercise_id'].toString()).toSet().toList();
     // Batch-resolve every referenced exercise in one query instead of
     // issuing N round-trips (was visibly slow with day pages that have
     // many entries against many distinct exercises).
