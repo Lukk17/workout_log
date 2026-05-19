@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/presentation/pages/exercise_detail/detail_table_layout.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/util/body_part_color.dart';
 
 class BodyPartBlocks extends StatelessWidget {
   const BodyPartBlocks({
@@ -22,10 +22,10 @@ class BodyPartBlocks extends StatelessWidget {
               height: layout.screenHeight * 0.05,
               width: layout.screenWidth * 0.3,
               child: Container(
-                color: Util.getBpColor(bp, colors),
+                color: bp.color(colors),
                 child: Center(
                   child: Text(
-                    Util.getBpName(bp),
+                    bp.displayName,
                     style: const TextStyle(color: Colors.amber),
                   ),
                 ),

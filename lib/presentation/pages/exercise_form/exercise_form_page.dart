@@ -11,7 +11,7 @@ import 'package:workout_log/presentation/pages/exercise_form/widgets/name_field.
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/util/system_chrome.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 import 'package:workout_log/util/log.dart';
 
@@ -118,7 +118,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   }
 
   void _cancel() {
-    Util.hideKeyboard(context);
+    hideKeyboard(context);
     Navigator.pop(context);
   }
 
@@ -148,7 +148,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
       await _exerciseDao.replace(updated);
       logFine('Updating exercise: $updated', name: _tag);
       if (!mounted) return;
-      Util.hideKeyboard(context);
+      hideKeyboard(context);
       ref.invalidate(exercisesProvider);
       ref.invalidate(workLogsByDateProvider(selectedDate));
       navigator.popUntil(ModalRoute.withName(Navigator.defaultRouteName));

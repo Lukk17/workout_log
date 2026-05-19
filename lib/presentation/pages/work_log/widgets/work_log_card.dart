@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/domain/models/body_part.dart';
+import 'package:workout_log/presentation/util/body_part_color.dart';
 import 'package:workout_log/presentation/widgets/delete_action_pane.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
@@ -93,8 +94,8 @@ class WorkLogCard extends StatelessWidget {
     ].take(3);
     return parts
         .map((bp) => Text(
-              Util.getBpName(bp),
-              style: TextStyle(color: Util.getBpColor(bp, colors)),
+              bp.displayName,
+              style: TextStyle(color: bp.color(colors)),
             ))
         .toList();
   }

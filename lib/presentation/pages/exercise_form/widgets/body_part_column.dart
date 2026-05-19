@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
 
 class BodyPartColumn extends StatelessWidget {
   const BodyPartColumn({
@@ -24,12 +23,11 @@ class BodyPartColumn extends StatelessWidget {
     for (final bp in BodyPart.values) {
       if (bp == BodyPart.undefined) continue;
       if (excluded.contains(bp)) continue;
-      final name = Util.getBpName(bp);
       checkboxes.add(Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         alignment: WrapAlignment.center,
         children: <Widget>[
-          Text(name, style: TextStyle(color: colors.textColor)),
+          Text(bp.displayName, style: TextStyle(color: colors.textColor)),
           Checkbox(
             value: selected.contains(bp),
             onChanged: (value) => onToggle(bp, value ?? false),

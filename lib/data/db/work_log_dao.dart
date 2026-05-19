@@ -4,7 +4,7 @@ import 'package:workout_log/data/db/exercise_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/util/date_format.dart';
 import 'package:workout_log/util/log.dart';
 
 class WorkLogDao {
@@ -92,7 +92,7 @@ class WorkLogDao {
     return _hydrate(await db.query(
       workLogTable,
       where: 'created = ?',
-      whereArgs: [Util.formatter.format(date)],
+      whereArgs: [dateFormatter.format(date)],
     ));
   }
 
@@ -113,12 +113,16 @@ class WorkLogDao {
   }
 
   Future<List<WorkLog>> _hydrate(List<Map<String, Object?>> rows) async {
-    final result = <WorkLog>[];
-    for (final row in rows) {
-      final exercise =
-          await _exerciseDao.getById(row['exercise_id'].toString());
-      result.add(WorkLog.fromMap(row, exercise));
-    }
-    return result;
+    if (rows.isEmpty) return const [];
+    final exerciseIds =
+        rows.map((r) => r['exercise_id'].toString()).toSet().toList();
+    // Batch-resolve every referenced exercise in one query instead of
+    // issuing N round-trips (was visibly slow with day pages that have
+    // many entries against many distinct exercises).
+    final exercises = await _exerciseDao.findByIds(exerciseIds);
+    return rows
+        .map((row) =>
+            WorkLog.fromMap(row, exercises[row['exercise_id'].toString()]!))
+        .toList();
   }
 }

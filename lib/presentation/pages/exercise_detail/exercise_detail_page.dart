@@ -12,7 +12,7 @@ import 'package:workout_log/presentation/pages/exercise_detail/widgets/table_hea
 import 'package:workout_log/presentation/pages/exercise_form/exercise_form_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/util/system_chrome.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 import 'package:workout_log/util/log.dart';
 
@@ -127,7 +127,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
   }
 
   Future<void> _openEditDialog(EditField field, String setKey) async {
-    Util.blockOrientation(_layout.isPortrait);
+    blockOrientation(portrait: _layout.isPortrait);
     final result = await showDialog<String>(
       context: context,
       builder: (_) => SetValueDialog(
@@ -139,7 +139,7 @@ class _ExerciseDetailPageState extends ConsumerState<ExerciseDetailPage> {
         screenHeight: _layout.screenHeight,
       ),
     );
-    Util.unlockOrientation();
+    unlockOrientation();
     if (!mounted || result == null) return;
 
     final updated = field == EditField.load

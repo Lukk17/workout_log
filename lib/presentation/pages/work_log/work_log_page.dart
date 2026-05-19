@@ -12,7 +12,7 @@ import 'package:workout_log/presentation/pages/work_log/widgets/work_log_card.da
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/util/system_chrome.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 import 'package:workout_log/util/log.dart';
 
@@ -92,7 +92,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
     final exercises = await _exerciseDao.getAll();
     if (!mounted) return;
 
-    Util.blockOrientation(dims.isPortrait);
+    blockOrientation(portrait: dims.isPortrait);
 
     await showDialog<void>(
       context: context,
@@ -104,7 +104,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
     );
 
     if (!mounted) return;
-    Util.unlockOrientation();
+    unlockOrientation();
     _invalidateWorkLogs();
   }
 

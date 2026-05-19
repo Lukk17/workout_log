@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:workout_log/domain/models/exercise.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/util/date_format.dart';
 
 part 'work_log.freezed.dart';
 part 'work_log.g.dart';
@@ -58,7 +58,7 @@ sealed class WorkLog with _$WorkLog {
         'exercise_id': exercise.id,
         'series': jsonEncode(series),
         'load': jsonEncode(load),
-        'created': Util.formatter.format(created),
+        'created': dateFormatter.format(created),
       };
 
   String getReps(String set) => series[set] ?? '';

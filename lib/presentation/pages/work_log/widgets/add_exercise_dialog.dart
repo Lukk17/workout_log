@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/presentation/pages/exercise_form/exercise_form_page.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
+import 'package:workout_log/presentation/util/system_chrome.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 class AddExerciseDialog extends StatelessWidget {
@@ -72,7 +72,7 @@ class AddExerciseDialog extends StatelessWidget {
                   MaterialButton(
                     color: colors.greenButtonColor,
                     onPressed: () async {
-                      Util.unlockOrientation();
+                      unlockOrientation();
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
