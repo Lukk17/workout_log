@@ -43,14 +43,14 @@ void main() {
     expect(gateway.initialized, isTrue);
   });
 
-  test('ring() shows notification with id 1001 / Rest over / Time to lift.',
+  test('ring() shows notification with id 1001 / Rest over / Time to lift',
       () async {
     await service.ring();
 
     expect(gateway.shown, hasLength(1));
     expect(gateway.shown.single.id, 1001);
     expect(gateway.shown.single.title, 'Rest over');
-    expect(gateway.shown.single.body, 'Time to lift.');
+    expect(gateway.shown.single.body, 'Time to lift');
   });
 
   test('cancel() cancels the same id used by ring()', () async {

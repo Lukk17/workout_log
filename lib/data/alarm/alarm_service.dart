@@ -1,14 +1,17 @@
 import 'package:workout_log/data/alarm/notification_gateway.dart';
 import 'package:workout_log/util/log.dart';
 
+/// Copy reused by both the OS notification and the in-app dialog so
+/// the two surfaces never drift.
+const String alarmTitle = 'Rest over';
+const String alarmBody = 'Time to lift';
+
 class AlarmService {
   AlarmService(this._gateway);
 
   final NotificationGateway _gateway;
   static const _tag = 'AlarmService';
   static const _notificationId = 1001;
-  static const _title = 'Rest over';
-  static const _body = 'Time to lift.';
 
   Future<void> initialize() => _gateway.initialize();
 
@@ -21,7 +24,7 @@ class AlarmService {
   Future<void> ring() async {
     // Reusing _notificationId means the OS replaces any prior alarm
     // notification instead of stacking them.
-    await _gateway.show(id: _notificationId, title: _title, body: _body);
+    await _gateway.show(id: _notificationId, title: alarmTitle, body: alarmBody);
     logFine('alarm fired', name: _tag);
   }
 
