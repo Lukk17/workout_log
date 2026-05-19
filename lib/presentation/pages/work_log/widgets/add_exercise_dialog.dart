@@ -43,7 +43,11 @@ class AddExerciseDialog extends StatelessWidget {
                       return MaterialButton(
                         onPressed: () async {
                           await onPickExercise(e);
-                          if (!context.mounted) return;
+
+                          if (!context.mounted) {
+                            return;
+                          }
+
                           Navigator.pop(context);
                         },
                         child: Text(
@@ -80,7 +84,11 @@ class AddExerciseDialog extends StatelessWidget {
                               const ExerciseFormPage(exercise: null),
                         ),
                       );
-                      if (!context.mounted) return;
+
+                      if (!context.mounted) {
+                        return;
+                      }
+
                       Navigator.pop(context);
                     },
                     child: Text(

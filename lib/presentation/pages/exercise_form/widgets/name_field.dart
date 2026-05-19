@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 class NameField extends StatelessWidget {
-  const NameField({
-    super.key,
-    required this.controller,
-    required this.width,
-  });
+  const NameField({super.key, required this.controller, required this.width});
 
   final TextEditingController controller;
   final double width;

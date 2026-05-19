@@ -6,17 +6,22 @@ import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 
 void main() {
-  Exercise sampleExercise() => Exercise(
-        id: 'ex-1',
-        name: 'Bench',
-        bodyParts: {BodyPart.chest},
-      );
+  Exercise sampleExercise() =>
+      Exercise(id: 'ex-1', name: 'Bench', bodyParts: {BodyPart.chest});
 
   group('WorkLog (freezed)', () {
     test('value equality', () {
       final created = DateTime(2026, 5, 16);
-      final a = WorkLog(id: 'w-1', exercise: sampleExercise(), created: created);
-      final b = WorkLog(id: 'w-1', exercise: sampleExercise(), created: created);
+      final a = WorkLog(
+        id: 'w-1',
+        exercise: sampleExercise(),
+        created: created,
+      );
+      final b = WorkLog(
+        id: 'w-1',
+        exercise: sampleExercise(),
+        created: created,
+      );
       expect(a, equals(b));
     });
 

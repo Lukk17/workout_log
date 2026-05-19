@@ -19,9 +19,7 @@ void main() {
 
     await tester.pumpWidget(
       testApp(
-        overrides: [
-          exercisesProvider.overrideWith((ref) async => exercises),
-        ],
+        overrides: [exercisesProvider.overrideWith((ref) async => exercises)],
         child: const ExerciseListPage(),
       ),
     );
@@ -52,11 +50,15 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('shows an error message when the provider throws', (tester) async {
+  testWidgets('shows an error message when the provider throws', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       testApp(
         overrides: [
-          exercisesProvider.overrideWith((ref) async => throw Exception('boom')),
+          exercisesProvider.overrideWith(
+            (ref) async => throw Exception('boom'),
+          ),
         ],
         child: const ExerciseListPage(),
       ),

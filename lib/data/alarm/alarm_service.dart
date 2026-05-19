@@ -24,7 +24,8 @@ class AlarmService {
   Future<void> ring() async {
     // Reusing _notificationId means the OS replaces any prior alarm
     // notification instead of stacking them.
-    await _gateway.show(id: _notificationId, title: alarmTitle, body: alarmBody);
+    await _gateway.show(
+        id: _notificationId, title: alarmTitle, body: alarmBody);
     logFine('alarm fired', name: _tag);
   }
 

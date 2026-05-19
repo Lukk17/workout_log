@@ -15,7 +15,7 @@ class BodyPartSections extends StatelessWidget {
   final Set<BodyPart> secondary;
   final bool isPortrait;
   final void Function(BodyPart, {required bool secondary, required bool value})
-      onToggle;
+  onToggle;
 
   @override
   Widget build(BuildContext context) {

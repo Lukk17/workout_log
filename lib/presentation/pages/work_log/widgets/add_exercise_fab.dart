@@ -11,6 +11,7 @@ class AddExerciseFab extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = WorkoutColors.of(context);
     final dims = ResponsiveDimensions.of(context);
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[

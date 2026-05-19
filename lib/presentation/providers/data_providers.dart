@@ -14,8 +14,9 @@ Future<String> _productionDatabasePath() async {
   return join(dir.path, 'worklog.db');
 }
 
-final appDatabaseProvider =
-    Provider<AppDatabase>((ref) => AppDatabase(_productionDatabasePath()));
+final appDatabaseProvider = Provider<AppDatabase>(
+  (ref) => AppDatabase(_productionDatabasePath()),
+);
 
 final exerciseDaoProvider = Provider<ExerciseDao>(
   (ref) => ExerciseDao(ref.watch(appDatabaseProvider)),
@@ -32,8 +33,10 @@ final backupServiceProvider = Provider<BackupService>(
   (ref) => BackupService(ref.watch(workLogDaoProvider)),
 );
 
-final workLogsByDateProvider =
-    FutureProvider.family<List<WorkLog>, DateTime>((ref, date) {
+final workLogsByDateProvider = FutureProvider.family<List<WorkLog>, DateTime>((
+  ref,
+  date,
+) {
   return ref.watch(workLogDaoProvider).getForDate(date);
 });
 

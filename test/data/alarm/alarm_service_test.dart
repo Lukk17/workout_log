@@ -43,15 +43,17 @@ void main() {
     expect(gateway.initialized, isTrue);
   });
 
-  test('ring() shows notification with id 1001 / Rest over / Time to lift',
-      () async {
-    await service.ring();
+  test(
+    'ring() shows notification with id 1001 / Rest over / Time to lift',
+    () async {
+      await service.ring();
 
-    expect(gateway.shown, hasLength(1));
-    expect(gateway.shown.single.id, 1001);
-    expect(gateway.shown.single.title, 'Rest over');
-    expect(gateway.shown.single.body, 'Time to lift');
-  });
+      expect(gateway.shown, hasLength(1));
+      expect(gateway.shown.single.id, 1001);
+      expect(gateway.shown.single.title, 'Rest over');
+      expect(gateway.shown.single.body, 'Time to lift');
+    },
+  );
 
   test('cancel() cancels the same id used by ring()', () async {
     await service.ring();
@@ -60,20 +62,24 @@ void main() {
     expect(gateway.cancelled, [1001]);
   });
 
-  test('requestPermissions() returns the gateway response unchanged (granted)',
-      () async {
-    gateway.permissionResponse = true;
-    expect(await service.requestPermissions(), isTrue);
-  });
+  test(
+    'requestPermissions() returns the gateway response unchanged (granted)',
+    () async {
+      gateway.permissionResponse = true;
+      expect(await service.requestPermissions(), isTrue);
+    },
+  );
 
-  test('requestPermissions() returns the gateway response unchanged (denied)',
-      () async {
-    // Negative path: the user (or OS) denied notification permission.
-    // AlarmService must surface that to the caller verbatim so the
-    // timer UI can decide whether the alarm is reliable.
-    gateway.permissionResponse = false;
-    expect(await service.requestPermissions(), isFalse);
-  });
+  test(
+    'requestPermissions() returns the gateway response unchanged (denied)',
+    () async {
+      // Negative path: the user (or OS) denied notification permission.
+      // AlarmService must surface that to the caller verbatim so the
+      // timer UI can decide whether the alarm is reliable.
+      gateway.permissionResponse = false;
+      expect(await service.requestPermissions(), isFalse);
+    },
+  );
 
   test('ring() propagates gateway exceptions to the caller', () async {
     // Negative path: revoked permission / dead platform channel makes

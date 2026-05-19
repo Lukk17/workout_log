@@ -57,8 +57,10 @@ class _SetValueDialogState extends State<SetValueDialog> {
         MaterialButton(
           color: colors.cancelButtonColor,
           onPressed: () => Navigator.pop(context),
-          child:
-              Text('CANCEL', style: TextStyle(color: colors.buttonTextColor)),
+          child: Text(
+            'CANCEL',
+            style: TextStyle(color: colors.buttonTextColor),
+          ),
         ),
       ],
     );

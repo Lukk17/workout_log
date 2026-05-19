@@ -14,12 +14,12 @@ extension BodyPartName on BodyPart {
   /// User-facing label. Empty string for `undefined` so it can be
   /// dropped silently from row displays.
   String get displayName => switch (this) {
-        BodyPart.chest => 'chest',
-        BodyPart.back => 'back',
-        BodyPart.leg => 'leg',
-        BodyPart.arm => 'arm',
-        BodyPart.cardio => 'cardio',
-        BodyPart.abdominal => 'abdominal',
-        BodyPart.undefined => '',
-      };
+    BodyPart.chest => 'chest',
+    BodyPart.back => 'back',
+    BodyPart.leg => 'leg',
+    BodyPart.arm => 'arm',
+    BodyPart.cardio => 'cardio',
+    BodyPart.abdominal => 'abdominal',
+    BodyPart.undefined => '',
+  };
 }

@@ -44,8 +44,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Icon(Icons.calendar_today, color: colors.titleColor),
-                      Text('Calendar',
-                          style: TextStyle(color: colors.titleColor)),
+                      Text(
+                        'Calendar',
+                        style: TextStyle(color: colors.titleColor),
+                      ),
                     ],
                   ),
                 )

@@ -44,8 +44,9 @@ void main() {
     expect(find.text('Reset'), findsOneWidget);
   });
 
-  testWidgets('Picking a long preset (3 min) updates the countdown',
-      (tester) async {
+  testWidgets('Picking a long preset (3 min) updates the countdown', (
+    tester,
+  ) async {
     await _useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await tester.pumpAndSettle();
@@ -81,8 +82,9 @@ void main() {
     expect(find.text('Seconds'), findsOneWidget);
   });
 
-  testWidgets('All six preset labels are present in the widget tree',
-      (tester) async {
+  testWidgets('All six preset labels are present in the widget tree', (
+    tester,
+  ) async {
     await _useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await tester.pumpAndSettle();
@@ -93,20 +95,48 @@ void main() {
     }
   });
 
-  testWidgets('Hydrates from a persisted preset on first build (180s -> 03:00)',
-      (tester) async {
-    // Persisted value differs from the in-memory default (60s) so we
-    // know the hydration path ran instead of just rendering the default.
-    SharedPreferences.setMockInitialValues({'timer_preset_seconds': 180});
-    await _useTallSurface(tester);
-    await tester.pumpWidget(wrap());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Hydrates from a persisted preset on first build (180s -> 03:00)',
+    (tester) async {
+      // Persisted value differs from the in-memory default (60s) so we
+      // know the hydration path ran instead of just rendering the default.
+      SharedPreferences.setMockInitialValues({'timer_preset_seconds': 180});
+      await _useTallSurface(tester);
+      await tester.pumpWidget(wrap());
+      await tester.pumpAndSettle();
 
-    expect(find.text('03:00'), findsOneWidget);
-  });
+      expect(find.text('03:00'), findsOneWidget);
+    },
+  );
 
-  testWidgets('Custom duration dialog with blank input returns null (no change)',
-      (tester) async {
+  testWidgets(
+    'Custom duration dialog with blank input returns null (no change)',
+    (tester) async {
+      await _useTallSurface(tester);
+      await tester.pumpWidget(wrap());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+
+      // Clear both fields and confirm. parse fails -> 0 + 0 = 0 -> the
+      // dialog returns null and _pickPreset is never invoked.
+      final minutesField = find.widgetWithText(TextField, 'Minutes');
+      final secondsField = find.widgetWithText(TextField, 'Seconds');
+      await tester.enterText(minutesField, '');
+      await tester.enterText(secondsField, '');
+      await tester.tap(find.text('Set'));
+      await tester.pumpAndSettle();
+
+      // Dial still shows the default 01:00, dialog dismissed.
+      expect(find.text('01:00'), findsOneWidget);
+      expect(find.text('Custom duration'), findsNothing);
+    },
+  );
+
+  testWidgets('Custom duration dialog with valid input updates the dial', (
+    tester,
+  ) async {
     await _useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await tester.pumpAndSettle();
@@ -114,50 +144,28 @@ void main() {
     await tester.tap(find.text('Custom'));
     await tester.pumpAndSettle();
 
-    // Clear both fields and confirm. parse fails -> 0 + 0 = 0 -> the
-    // dialog returns null and _pickPreset is never invoked.
-    final minutesField = find.widgetWithText(TextField, 'Minutes');
-    final secondsField = find.widgetWithText(TextField, 'Seconds');
-    await tester.enterText(minutesField, '');
-    await tester.enterText(secondsField, '');
-    await tester.tap(find.text('Set'));
-    await tester.pumpAndSettle();
-
-    // Dial still shows the default 01:00, dialog dismissed.
-    expect(find.text('01:00'), findsOneWidget);
-    expect(find.text('Custom duration'), findsNothing);
-  });
-
-  testWidgets('Custom duration dialog with valid input updates the dial',
-      (tester) async {
-    await _useTallSurface(tester);
-    await tester.pumpWidget(wrap());
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Custom'));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Minutes'), '4');
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Seconds'), '15');
+    await tester.enterText(find.widgetWithText(TextField, 'Minutes'), '4');
+    await tester.enterText(find.widgetWithText(TextField, 'Seconds'), '15');
     await tester.tap(find.text('Set'));
     await tester.pumpAndSettle();
 
     expect(find.text('04:15'), findsOneWidget);
   });
 
-  testWidgets('Countdown reaching zero fires the alarm and shows Rest over',
-      (tester) async {
+  testWidgets('Countdown reaching zero fires the alarm and shows Rest over', (
+    tester,
+  ) async {
     final gateway = _FakeGateway();
     await _useTallSurface(tester);
-    await tester.pumpWidget(testApp(
-      child: const Scaffold(body: TimerPage()),
-      overrides: [
-        notificationGatewayProvider.overrideWithValue(gateway),
-        alarmServiceProvider.overrideWithValue(AlarmService(gateway)),
-      ],
-    ));
+    await tester.pumpWidget(
+      testApp(
+        child: const Scaffold(body: TimerPage()),
+        overrides: [
+          notificationGatewayProvider.overrideWithValue(gateway),
+          alarmServiceProvider.overrideWithValue(AlarmService(gateway)),
+        ],
+      ),
+    );
     await tester.pumpAndSettle();
 
     // Pick the shortest preset (30s) then advance the fake clock past

@@ -23,17 +23,19 @@ class BodyPartColumn extends StatelessWidget {
     for (final bp in BodyPart.values) {
       if (bp == BodyPart.undefined) continue;
       if (excluded.contains(bp)) continue;
-      checkboxes.add(Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.center,
-        children: <Widget>[
-          Text(bp.displayName, style: TextStyle(color: colors.textColor)),
-          Checkbox(
-            value: selected.contains(bp),
-            onChanged: (value) => onToggle(bp, value ?? false),
-          ),
-        ],
-      ));
+      checkboxes.add(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.center,
+          children: <Widget>[
+            Text(bp.displayName, style: TextStyle(color: colors.textColor)),
+            Checkbox(
+              value: selected.contains(bp),
+              onChanged: (value) => onToggle(bp, value ?? false),
+            ),
+          ],
+        ),
+      );
     }
     return Column(
       children: <Widget>[

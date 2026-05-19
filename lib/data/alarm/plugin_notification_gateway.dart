@@ -37,7 +37,7 @@ class PluginNotificationGateway implements NotificationGateway {
       );
       await _plugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
     }
   }
@@ -47,14 +47,14 @@ class PluginNotificationGateway implements NotificationGateway {
     if (Platform.isAndroid) {
       final granted = await _plugin
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
       return granted ?? false;
     }
     if (Platform.isIOS) {
       final granted = await _plugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+          IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(alert: true, sound: true, badge: false);
       return granted ?? false;
     }

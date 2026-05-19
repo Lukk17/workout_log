@@ -31,11 +31,11 @@ class SeriesRowBody extends StatelessWidget {
     );
 
     Widget cell({required double width, required Widget child}) => Container(
-          height: cellHeight,
-          width: width,
-          alignment: const FractionalOffset(0.5, 0.5),
-          child: child,
-        );
+      height: cellHeight,
+      width: width,
+      alignment: const FractionalOffset(0.5, 0.5),
+      child: child,
+    );
 
     return Row(
       children: <Widget>[

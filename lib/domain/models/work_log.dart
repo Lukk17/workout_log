@@ -6,6 +6,7 @@ import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/util/date_format.dart';
 
 part 'work_log.freezed.dart';
+
 part 'work_log.g.dart';
 
 // Truncating to start-of-day prevents same-day workouts from sorting
@@ -40,7 +41,7 @@ sealed class WorkLog with _$WorkLog {
     // The map<String,dynamic> cast on series/load handles legacy rows
     // that wrote int values where we now store strings.
     final seriesRaw =
-        jsonDecode(map['series'] as String) as Map<String, dynamic>;
+    jsonDecode(map['series'] as String) as Map<String, dynamic>;
     final loadRaw = jsonDecode(map['load'] as String) as Map<String, dynamic>;
     return WorkLog(
       id: map['id'] as String,
@@ -52,7 +53,8 @@ sealed class WorkLog with _$WorkLog {
     );
   }
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>
+      {
         'id': id,
         'bodyWeight': bodyWeight,
         'exercise_id': exercise.id,

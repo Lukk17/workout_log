@@ -52,7 +52,11 @@ class ExerciseDao {
       whereArgs: [name],
       limit: 1,
     );
-    if (rows.isEmpty) return null;
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
     return Exercise.fromMap(rows.first);
   }
 
@@ -75,18 +79,20 @@ class ExerciseDao {
       whereArgs: [exercise.id],
       limit: 1,
     );
-    if (rows.isEmpty) return -1;
+    if (rows.isEmpty) {
+      return -1;
+    }
 
     final existing = Exercise.fromMap(rows.first);
     final updated = replaceBodyParts
         ? existing.copyWith(
-            name: exercise.name,
-            bodyParts: exercise.bodyParts,
-            secondaryBodyParts: exercise.secondaryBodyParts,
-          )
+      name: exercise.name,
+      bodyParts: exercise.bodyParts,
+      secondaryBodyParts: exercise.secondaryBodyParts,
+    )
         : existing.copyWith(
-            bodyParts: {...existing.bodyParts, ...exercise.bodyParts},
-          );
+      bodyParts: {...existing.bodyParts, ...exercise.bodyParts},
+    );
 
     logFine('[save] $updated', name: _tag);
     return db.update(

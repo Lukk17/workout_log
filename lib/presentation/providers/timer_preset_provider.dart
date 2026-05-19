@@ -18,7 +18,10 @@ class _TimerPresetNotifier extends StateNotifier<Duration> {
   }
 
   Future<void> set(Duration value) async {
-    if (value.inSeconds <= 0) return;
+    if (value.inSeconds <= 0) {
+      return;
+    }
+
     state = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_key, value.inSeconds);
@@ -27,4 +30,5 @@ class _TimerPresetNotifier extends StateNotifier<Duration> {
 
 final timerPresetProvider =
     StateNotifierProvider<_TimerPresetNotifier, Duration>(
-        (ref) => _TimerPresetNotifier());
+      (ref) => _TimerPresetNotifier(),
+    );

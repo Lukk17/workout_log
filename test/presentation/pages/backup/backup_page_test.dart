@@ -90,21 +90,21 @@ void main() {
   }
 
   Widget wrap({BackupService? override}) => testApp(
-        child: const BackupPage(),
-        overrides: [
-          appDatabaseProvider.overrideWithValue(env.appDatabase),
-          exerciseDaoProvider.overrideWithValue(env.exerciseDao),
-          workLogDaoProvider.overrideWithValue(env.workLogDao),
-          backupServiceProvider.overrideWithValue(
-            override ??
-                BackupService(env.workLogDao,
-                    storageDir: () async => backupDir),
-          ),
-        ],
-      );
+    child: const BackupPage(),
+    overrides: [
+      appDatabaseProvider.overrideWithValue(env.appDatabase),
+      exerciseDaoProvider.overrideWithValue(env.exerciseDao),
+      workLogDaoProvider.overrideWithValue(env.workLogDao),
+      backupServiceProvider.overrideWithValue(
+        override ??
+            BackupService(env.workLogDao, storageDir: () async => backupDir),
+      ),
+    ],
+  );
 
-  testWidgets('Renders the resolved backup path once FutureBuilder settles',
-      (tester) async {
+  testWidgets('Renders the resolved backup path once FutureBuilder settles', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);
@@ -114,8 +114,9 @@ void main() {
     expect(find.text('Import backup'), findsOneWidget);
   });
 
-  testWidgets('Create backup button delegates to BackupService.backup()',
-      (tester) async {
+  testWidgets('Create backup button delegates to BackupService.backup()', (
+    tester,
+  ) async {
     // End-to-end "tap -> file on disk" needs real DB I/O inside the
     // widget tree, which doesn't compose with flutter_test's FakeAsync
     // zone. The persistent side effect is already covered by
@@ -133,8 +134,9 @@ void main() {
     expect(recording.backupCalls, 1);
   });
 
-  testWidgets('Import backup -> Cancel keeps the dialog from running restore',
-      (tester) async {
+  testWidgets('Import backup -> Cancel keeps the dialog from running restore', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);
@@ -150,51 +152,61 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
-  testWidgets('Import backup -> Replace surfaces an error SnackBar when no backup file',
-      (tester) async {
+  testWidgets(
+    'Import backup -> Replace surfaces an error SnackBar when no backup file',
+    (tester) async {
+      await useTallSurface(tester);
+      await tester.pumpWidget(wrap());
+      await _settle(tester);
+
+      await tester.tap(find.text('Import backup'));
+      await _settle(tester);
+      await tester.tap(find.text('Replace'));
+      // The file-existence check is real I/O, so pump via runAsync to let
+      // the actual filesystem call finish before checking for the
+      // resulting SnackBar.
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await _settle(tester);
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.textContaining('Restore failed'), findsAtLeastNWidgets(1));
+    },
+  );
+
+  testWidgets(
+    'Import backup -> Replace surfaces ExternalStorage failure SnackBar',
+    (tester) async {
+      await useTallSurface(tester);
+      await tester.pumpWidget(
+        wrap(override: _ThrowingBackupService(env.workLogDao)),
+      );
+      await _settle(tester);
+
+      await tester.tap(find.text('Import backup'));
+      await _settle(tester);
+      await tester.tap(find.text('Replace'));
+      await tester.runAsync(() async {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await _settle(tester);
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+        find.textContaining('Restore failed: read denied'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('Create backup surfaces ExternalStorage failure SnackBar', (
+    tester,
+  ) async {
     await useTallSurface(tester);
-    await tester.pumpWidget(wrap());
-    await _settle(tester);
-
-    await tester.tap(find.text('Import backup'));
-    await _settle(tester);
-    await tester.tap(find.text('Replace'));
-    // The file-existence check is real I/O, so pump via runAsync to let
-    // the actual filesystem call finish before checking for the
-    // resulting SnackBar.
-    await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await _settle(tester);
-
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(find.textContaining('Restore failed'), findsAtLeastNWidgets(1));
-  });
-
-  testWidgets('Import backup -> Replace surfaces ExternalStorage failure SnackBar',
-      (tester) async {
-    await useTallSurface(tester);
-    await tester
-        .pumpWidget(wrap(override: _ThrowingBackupService(env.workLogDao)));
-    await _settle(tester);
-
-    await tester.tap(find.text('Import backup'));
-    await _settle(tester);
-    await tester.tap(find.text('Replace'));
-    await tester.runAsync(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-    });
-    await _settle(tester);
-
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(find.textContaining('Restore failed: read denied'), findsOneWidget);
-  });
-
-  testWidgets('Create backup surfaces ExternalStorage failure SnackBar',
-      (tester) async {
-    await useTallSurface(tester);
-    await tester
-        .pumpWidget(wrap(override: _ThrowingBackupService(env.workLogDao)));
+    await tester.pumpWidget(
+      wrap(override: _ThrowingBackupService(env.workLogDao)),
+    );
     await _settle(tester);
 
     await tester.tap(find.text('Create backup'));

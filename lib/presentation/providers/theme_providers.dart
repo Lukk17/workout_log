@@ -27,11 +27,13 @@ class _ThemeModeNotifier extends StateNotifier<ThemeMode> {
     await prefs.setBool(_isDarkKey, mode == ThemeMode.dark);
   }
 
-  Future<void> toggle(bool isDark) => set(isDark ? ThemeMode.dark : ThemeMode.light);
+  Future<void> toggle(bool isDark) =>
+      set(isDark ? ThemeMode.dark : ThemeMode.light);
 }
 
-final themeModeProvider =
-    StateNotifierProvider<_ThemeModeNotifier, ThemeMode>((ref) => _ThemeModeNotifier());
+final themeModeProvider = StateNotifierProvider<_ThemeModeNotifier, ThemeMode>(
+  (ref) => _ThemeModeNotifier(),
+);
 
 class _BackgroundImageNotifier extends StateNotifier<bool> {
   _BackgroundImageNotifier() : super(true) {
@@ -57,4 +59,6 @@ class _BackgroundImageNotifier extends StateNotifier<bool> {
 }
 
 final backgroundImageProvider =
-    StateNotifierProvider<_BackgroundImageNotifier, bool>((ref) => _BackgroundImageNotifier());
+    StateNotifierProvider<_BackgroundImageNotifier, bool>(
+      (ref) => _BackgroundImageNotifier(),
+    );

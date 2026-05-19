@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 
 part 'exercise.freezed.dart';
+
 part 'exercise.g.dart';
 
 @freezed
@@ -31,14 +32,17 @@ sealed class Exercise with _$Exercise {
   factory Exercise.fromJson(Map<String, dynamic> json) =>
       _$ExerciseFromJson(json);
 
-  factory Exercise.fromMap(Map<String, dynamic> map) => Exercise(
+  factory Exercise.fromMap(Map<String, dynamic> map) =>
+      Exercise(
         id: map['id'] as String,
         name: map['name'] as String? ?? '',
         bodyParts: _decodeBodyParts(map['bodyPart'] as String?),
-        secondaryBodyParts: _decodeBodyParts(map['secondaryBodyPart'] as String?),
+        secondaryBodyParts: _decodeBodyParts(
+            map['secondaryBodyPart'] as String?),
       );
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>
+      {
         'id': id,
         'name': name,
         'bodyPart': _encodeBodyParts(bodyParts),
@@ -47,12 +51,18 @@ sealed class Exercise with _$Exercise {
 }
 
 String _encodeBodyParts(Set<BodyPart> parts) {
-  if (parts.isEmpty) return '';
+  if (parts.isEmpty) {
+    return '';
+  }
+
   return '${parts.map((b) => b.name).join('&')}&';
 }
 
 Set<BodyPart> _decodeBodyParts(String? raw) {
-  if (raw == null || raw.isEmpty) return <BodyPart>{};
+  if (raw == null || raw.isEmpty) {
+    return <BodyPart>{};
+  }
+
   return raw
       .split('&')
       .where((s) => s.isNotEmpty)

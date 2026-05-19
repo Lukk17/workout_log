@@ -40,23 +40,21 @@ void main() {
   tearDown(() => env.dispose());
 
   List<Override> daoOverrides() => [
-        appDatabaseProvider.overrideWithValue(env.appDatabase),
-        exerciseDaoProvider.overrideWithValue(env.exerciseDao),
-        workLogDaoProvider.overrideWithValue(env.workLogDao),
-      ];
+    appDatabaseProvider.overrideWithValue(env.appDatabase),
+    exerciseDaoProvider.overrideWithValue(env.exerciseDao),
+    workLogDaoProvider.overrideWithValue(env.workLogDao),
+  ];
 
-  Widget wrap() => testApp(
-        child: const HomePage(),
-        overrides: daoOverrides(),
-      );
+  Widget wrap() => testApp(child: const HomePage(), overrides: daoOverrides());
 
   Future<void> useTallSurface(WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(420, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
   }
 
-  testWidgets('Renders Log + Timer tabs and the gear/calendar actions',
-      (tester) async {
+  testWidgets('Renders Log + Timer tabs and the gear/calendar actions', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);
@@ -67,8 +65,9 @@ void main() {
     expect(find.byIcon(Icons.calendar_today), findsOneWidget);
   });
 
-  testWidgets('Tapping the Timer tab swaps the body to TimerPage',
-      (tester) async {
+  testWidgets('Tapping the Timer tab swaps the body to TimerPage', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);
@@ -94,17 +93,22 @@ void main() {
     expect(find.text('Edit Exercises'), findsOneWidget);
   });
 
-  testWidgets('Toggling dark mode switch flips themeModeProvider',
-      (tester) async {
+  testWidgets('Toggling dark mode switch flips themeModeProvider', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     late ProviderContainer container;
-    await tester.pumpWidget(testApp(
-      child: Builder(builder: (context) {
-        container = ProviderScope.containerOf(context);
-        return const HomePage();
-      }),
-      overrides: daoOverrides(),
-    ));
+    await tester.pumpWidget(
+      testApp(
+        child: Builder(
+          builder: (context) {
+            container = ProviderScope.containerOf(context);
+            return const HomePage();
+          },
+        ),
+        overrides: daoOverrides(),
+      ),
+    );
     await _settle(tester);
 
     expect(container.read(themeModeProvider), ThemeMode.dark);
@@ -117,8 +121,9 @@ void main() {
     expect(container.read(themeModeProvider), ThemeMode.light);
   });
 
-  testWidgets('Edit Exercises drawer button navigates to ExerciseListPage',
-      (tester) async {
+  testWidgets('Edit Exercises drawer button navigates to ExerciseListPage', (
+    tester,
+  ) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);

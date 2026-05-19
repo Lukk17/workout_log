@@ -29,8 +29,7 @@ class PresetChipRow extends StatelessWidget {
           ChoiceChip(
             label: Text(labelFor(secs)),
             selected: selected.inSeconds == secs,
-            onSelected:
-                enabled ? (_) => onPick(Duration(seconds: secs)) : null,
+            onSelected: enabled ? (_) => onPick(Duration(seconds: secs)) : null,
           ),
       ],
     );

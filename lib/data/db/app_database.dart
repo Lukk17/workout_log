@@ -15,8 +15,7 @@ const int _schemaVersion = 2;
 // change. Each branch handles exactly one version step (e.g. `if (oldV < 3)`).
 // Never edit prior branches — they may already have run on user devices.
 class AppDatabase {
-  AppDatabase(
-    this._path, {
+  AppDatabase(this._path, {
     List<Exercise>? seed,
   }) : _seed = seed ?? defaultExerciseSeed;
 
@@ -44,11 +43,11 @@ class AppDatabase {
   Future<void> _onCreate(Database db, int version) async {
     await db.execute(
       'CREATE TABLE IF NOT EXISTS $exerciseTable ('
-      'id VARCHAR(32) PRIMARY KEY,'
-      'name TEXT,'
-      'bodyPart TEXT,'
-      'secondaryBodyPart TEXT'
-      ')',
+          'id VARCHAR(32) PRIMARY KEY,'
+          'name TEXT,'
+          'bodyPart TEXT,'
+          'secondaryBodyPart TEXT'
+          ')',
     );
 
     // `load` and `series` hold JSON strings (Map<String,String> encoded
@@ -56,14 +55,14 @@ class AppDatabase {
     // the honest affinity for what we store.
     await db.execute(
       'CREATE TABLE IF NOT EXISTS $workLogTable ('
-      'id VARCHAR(32) PRIMARY KEY,'
-      'load TEXT,'
-      'bodyWeight REAL,'
-      'series TEXT,'
-      'created TEXT,'
-      'exercise_id VARCHAR(32),'
-      'FOREIGN KEY(exercise_id) REFERENCES $exerciseTable(id)'
-      ')',
+          'id VARCHAR(32) PRIMARY KEY,'
+          'load TEXT,'
+          'bodyWeight REAL,'
+          'series TEXT,'
+          'created TEXT,'
+          'exercise_id VARCHAR(32),'
+          'FOREIGN KEY(exercise_id) REFERENCES $exerciseTable(id)'
+          ')',
     );
 
     for (final exercise in _seed) {

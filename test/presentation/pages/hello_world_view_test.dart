@@ -10,20 +10,24 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('themeModeProvider toggles light -> dark and persists', (tester) async {
+  testWidgets('themeModeProvider toggles light -> dark and persists', (
+    tester,
+  ) async {
     late ProviderContainer container;
     await tester.pumpWidget(
       ProviderScope(
-        child: Consumer(builder: (context, ref, _) {
-          container = ProviderScope.containerOf(context);
-          final mode = ref.watch(themeModeProvider);
-          return MaterialApp(
-            theme: lightTheme,
-            darkTheme: darkTheme,
-            themeMode: mode,
-            home: const SizedBox.shrink(),
-          );
-        }),
+        child: Consumer(
+          builder: (context, ref, _) {
+            container = ProviderScope.containerOf(context);
+            final mode = ref.watch(themeModeProvider);
+            return MaterialApp(
+              theme: lightTheme,
+              darkTheme: darkTheme,
+              themeMode: mode,
+              home: const SizedBox.shrink(),
+            );
+          },
+        ),
       ),
     );
     // Wait for the StateNotifier to load its initial value from SharedPreferences.
@@ -45,11 +49,13 @@ void main() {
     late ProviderContainer container;
     await tester.pumpWidget(
       ProviderScope(
-        child: Consumer(builder: (context, ref, _) {
-          container = ProviderScope.containerOf(context);
-          ref.watch(backgroundImageProvider);
-          return const MaterialApp(home: SizedBox.shrink());
-        }),
+        child: Consumer(
+          builder: (context, ref, _) {
+            container = ProviderScope.containerOf(context);
+            ref.watch(backgroundImageProvider);
+            return const MaterialApp(home: SizedBox.shrink());
+          },
+        ),
       ),
     );
     await tester.pumpAndSettle();

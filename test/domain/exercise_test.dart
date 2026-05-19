@@ -22,7 +22,10 @@ void main() {
     });
 
     test('copyWith produces a new instance', () {
-      final original = Exercise.create(name: 'Bench', bodyParts: {BodyPart.chest});
+      final original = Exercise.create(
+        name: 'Bench',
+        bodyParts: {BodyPart.chest},
+      );
       final updated = original.copyWith(name: 'Dip');
       expect(updated.name, 'Dip');
       expect(original.name, 'Bench');
@@ -81,10 +84,7 @@ void main() {
       );
       final map = ex.toMap();
       // Set iteration order is not guaranteed, so check both possibilities.
-      expect(
-        map['bodyPart'],
-        anyOf('chest&back&', 'back&chest&'),
-      );
+      expect(map['bodyPart'], anyOf('chest&back&', 'back&chest&'));
     });
 
     test('empty body parts encode to empty string', () {

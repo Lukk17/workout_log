@@ -17,10 +17,5 @@ Future<void> main() async {
   // the first time the user lands on the Timer page.
   await container.read(alarmServiceProvider).initialize();
 
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const MyApp(),
-    ),
-  );
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }

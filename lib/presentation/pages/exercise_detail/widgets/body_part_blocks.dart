@@ -5,11 +5,7 @@ import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/util/body_part_color.dart';
 
 class BodyPartBlocks extends StatelessWidget {
-  const BodyPartBlocks({
-    super.key,
-    required this.parts,
-    required this.layout,
-  });
+  const BodyPartBlocks({super.key, required this.parts, required this.layout});
 
   final Set<BodyPart> parts;
   final DetailTableLayout layout;
@@ -18,19 +14,21 @@ class BodyPartBlocks extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = WorkoutColors.of(context);
     final blocks = parts
-        .map((bp) => SizedBox(
-              height: layout.screenHeight * 0.05,
-              width: layout.screenWidth * 0.3,
-              child: Container(
-                color: bp.color(colors),
-                child: Center(
-                  child: Text(
-                    bp.displayName,
-                    style: const TextStyle(color: Colors.amber),
-                  ),
+        .map(
+          (bp) => SizedBox(
+            height: layout.screenHeight * 0.05,
+            width: layout.screenWidth * 0.3,
+            child: Container(
+              color: bp.color(colors),
+              child: Center(
+                child: Text(
+                  bp.displayName,
+                  style: const TextStyle(color: Colors.amber),
                 ),
               ),
-            ))
+            ),
+          ),
+        )
         .toList();
 
     if (blocks.length <= 3) {
@@ -42,12 +40,14 @@ class BodyPartBlocks extends StatelessWidget {
     return Column(
       children: <Widget>[
         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: blocks.take(3).toList()),
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: blocks.take(3).toList(),
+        ),
         SizedBox(height: layout.screenHeight * 0.01),
         Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: blocks.skip(3).toList()),
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: blocks.skip(3).toList(),
+        ),
       ],
     );
   }

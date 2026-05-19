@@ -7,7 +7,8 @@ final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
   colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFFAED581), // matches WorkoutColors.dark.specialTextColor
+    seedColor: const Color(0xFFAED581),
+    // matches WorkoutColors.dark.specialTextColor
     brightness: Brightness.dark,
   ),
   extensions: const <ThemeExtension<dynamic>>[WorkoutColors.dark],

@@ -9,8 +9,8 @@ import 'package:workout_log/data/alarm/plugin_notification_gateway.dart';
 // by overriding this provider.
 final _flutterLocalNotificationsProvider =
     Provider<FlutterLocalNotificationsPlugin>(
-  (ref) => FlutterLocalNotificationsPlugin(),
-);
+      (ref) => FlutterLocalNotificationsPlugin(),
+    );
 
 final notificationGatewayProvider = Provider<NotificationGateway>(
   (ref) =>

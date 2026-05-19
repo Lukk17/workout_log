@@ -17,41 +17,45 @@ void main() {
   tearDown(() => env.dispose());
 
   group('insert dedup', () {
-    test('inserting a workLog for an existing exercise reuses the row', () async {
-      final exercises = await env.exerciseDao.getAll();
-      final pushUp = exercises.firstWhere((e) => e.name == 'Push Up');
-      final beforeCount =
-          exercises.where((e) => e.name == 'Push Up').length;
+    test(
+      'inserting a workLog for an existing exercise reuses the row',
+      () async {
+        final exercises = await env.exerciseDao.getAll();
+        final pushUp = exercises.firstWhere((e) => e.name == 'Push Up');
+        final beforeCount = exercises.where((e) => e.name == 'Push Up').length;
 
-      final fresh = Exercise.create(
-          name: 'Push Up', bodyParts: {BodyPart.chest});
-      final w = WorkLog.create(
-        exercise: fresh,
-        on: DateTime(2026, 5, 16),
-      );
-      await env.workLogDao.insert(w);
+        final fresh = Exercise.create(
+          name: 'Push Up',
+          bodyParts: {BodyPart.chest},
+        );
+        final w = WorkLog.create(exercise: fresh, on: DateTime(2026, 5, 16));
+        await env.workLogDao.insert(w);
 
-      final after = await env.exerciseDao.getAll();
-      final afterCount = after.where((e) => e.name == 'Push Up').length;
-      expect(afterCount, beforeCount,
-          reason: 'no duplicate exercise row inserted');
-      expect(pushUp.id,
-          after.firstWhere((e) => e.name == 'Push Up').id);
-    });
+        final after = await env.exerciseDao.getAll();
+        final afterCount = after.where((e) => e.name == 'Push Up').length;
+        expect(
+          afterCount,
+          beforeCount,
+          reason: 'no duplicate exercise row inserted',
+        );
+        expect(pushUp.id, after.firstWhere((e) => e.name == 'Push Up').id);
+      },
+    );
 
     test('inserting with a new body part merges body parts', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
-      final fresh = Exercise.create(
-          name: 'Push Up', bodyParts: {BodyPart.cardio});
-      final w = WorkLog.create(
-        exercise: fresh,
-        on: DateTime(2026, 5, 16),
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
       );
+      final fresh = Exercise.create(
+        name: 'Push Up',
+        bodyParts: {BodyPart.cardio},
+      );
+      final w = WorkLog.create(exercise: fresh, on: DateTime(2026, 5, 16));
       await env.workLogDao.insert(w);
 
-      final updated = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
+      final updated = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
       expect(updated.id, pushUp.id);
       expect(updated.bodyParts, containsAll([BodyPart.chest, BodyPart.cardio]));
     });
@@ -59,8 +63,9 @@ void main() {
 
   group('getForDate', () {
     test('returns only entries on that date', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
       final w1 = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
       final w2 = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 17));
       await env.workLogDao.insert(w1);
@@ -79,16 +84,20 @@ void main() {
 
   group('getForDateAndBodyPart', () {
     test('filters by primary body part', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
-      final running = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Running');
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
+      final running = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Running',
+      );
       final date = DateTime(2026, 5, 16);
       await env.workLogDao.insert(WorkLog.create(exercise: pushUp, on: date));
       await env.workLogDao.insert(WorkLog.create(exercise: running, on: date));
 
       final chestOnly = await env.workLogDao.getForDateAndBodyPart(
-          date, BodyPart.chest);
+        date,
+        BodyPart.chest,
+      );
       expect(chestOnly.length, 1);
       expect(chestOnly.first.exercise.name, 'Push Up');
     });
@@ -96,8 +105,9 @@ void main() {
 
   group('delete', () {
     test('deleted workLog disappears from getAll', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
       final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
       await env.workLogDao.insert(w);
 
@@ -132,32 +142,37 @@ void main() {
         hasLength(1),
         reason: 'new exercise row was inserted alongside the workLog',
       );
-      final stored = (await env.workLogDao.getAll())
-          .firstWhere((wl) => wl.exercise.name == 'Front Lever');
+      final stored = (await env.workLogDao.getAll()).firstWhere(
+        (wl) => wl.exercise.name == 'Front Lever',
+      );
       expect(stored.exercise.bodyParts, {BodyPart.back, BodyPart.arm});
     });
   });
 
   group('insert (duplicate id path)', () {
-    test('inserting the same WorkLog twice returns 0 the second time',
-        () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
-      final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
+    test(
+      'inserting the same WorkLog twice returns 0 the second time',
+      () async {
+        final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+          (e) => e.name == 'Push Up',
+        );
+        final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
 
-      final first = await env.workLogDao.insert(w);
-      final second = await env.workLogDao.insert(w);
+        final first = await env.workLogDao.insert(w);
+        final second = await env.workLogDao.insert(w);
 
-      expect(first, greaterThan(0));
-      expect(second, 0, reason: 'DatabaseException swallowed -> 0');
-      expect((await env.workLogDao.getAll()).length, 1);
-    });
+        expect(first, greaterThan(0));
+        expect(second, 0, reason: 'DatabaseException swallowed -> 0');
+        expect((await env.workLogDao.getAll()).length, 1);
+      },
+    );
   });
 
   group('update', () {
     test('rewrites series/load/bodyWeight for an existing workLog', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
       final original = WorkLog.create(
         exercise: pushUp,
         on: DateTime(2026, 5, 16),
@@ -187,8 +202,9 @@ void main() {
     });
 
     test('round-trips a stored workLog including its exercise', () async {
-      final pushUp = (await env.exerciseDao.getAll())
-          .firstWhere((e) => e.name == 'Push Up');
+      final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+        (e) => e.name == 'Push Up',
+      );
       final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
       await env.workLogDao.insert(w);
 

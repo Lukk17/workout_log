@@ -7,11 +7,12 @@ import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 /// rows so the swipe-to-delete affordance looks the same everywhere.
 class DeleteActionPane extends ActionPane {
   DeleteActionPane({super.key, required VoidCallback onDelete})
-      : super(
-          motion: const ScrollMotion(),
-          extentRatio: 0.25,
-          children: [
-            Builder(builder: (context) {
+    : super(
+        motion: const ScrollMotion(),
+        extentRatio: 0.25,
+        children: [
+          Builder(
+            builder: (context) {
               final dims = ResponsiveDimensions.of(context);
               return Container(
                 margin: EdgeInsets.symmetric(vertical: dims.height * 0.01),
@@ -23,7 +24,8 @@ class DeleteActionPane extends ActionPane {
                   label: 'Delete',
                 ),
               );
-            }),
-          ],
-        );
+            },
+          ),
+        ],
+      );
 }

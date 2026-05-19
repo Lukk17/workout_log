@@ -27,6 +27,7 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
   static const _tag = 'WorkLogPage';
 
   WorkLogDao get _workLogDao => ref.read(workLogDaoProvider);
+
   ExerciseDao get _exerciseDao => ref.read(exerciseDaoProvider);
 
   @override
@@ -50,18 +51,19 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
                   children: <Widget>[
                     Column(
                       children: workLogs
-                          .map((w) => WorkLogCard(
-                                workLog: w,
-                                onDelete: () => _deleteWorkLog(w),
-                                onTap: () => _openDetail(w),
-                              ))
+                          .map(
+                            (w) => WorkLogCard(
+                              workLog: w,
+                              onDelete: () => _deleteWorkLog(w),
+                              onTap: () => _openDetail(w),
+                            ),
+                          )
                           .toList(),
                     ),
                     SizedBox(height: dims.height * 0.15),
                   ],
                 ),
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(
                   child: Text(
                     'Failed to load workouts: $e',
@@ -81,16 +83,24 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => ExerciseDetailPage(workLog: workLog)),
+        builder: (context) => ExerciseDetailPage(workLog: workLog),
+      ),
     );
-    if (!mounted) return;
+
+    if (!mounted) {
+      return;
+    }
+
     _invalidateWorkLogs();
   }
 
   Future<void> _openAddExerciseDialog() async {
     final dims = ResponsiveDimensions.of(context);
     final exercises = await _exerciseDao.getAll();
-    if (!mounted) return;
+
+    if (!mounted) {
+      return;
+    }
 
     blockOrientation(portrait: dims.isPortrait);
 
@@ -103,7 +113,10 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
       ),
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
+
     unlockOrientation();
     _invalidateWorkLogs();
   }
@@ -142,7 +155,11 @@ class _WorkLogPageState extends ConsumerState<WorkLogPage> {
   Future<void> _deleteWorkLog(WorkLog workLog) async {
     logFine('Deleted workLog: $workLog', name: _tag);
     await _workLogDao.delete(workLog);
-    if (!mounted) return;
+
+    if (!mounted) {
+      return;
+    }
+
     _invalidateWorkLogs();
   }
 }

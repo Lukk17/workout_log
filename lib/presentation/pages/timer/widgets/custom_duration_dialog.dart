@@ -59,10 +59,7 @@ class _CustomDurationDialogState extends State<CustomDurationDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        FilledButton(
-          onPressed: _confirm,
-          child: const Text('Set'),
-        ),
+        FilledButton(onPressed: _confirm, child: const Text('Set')),
       ],
     );
   }

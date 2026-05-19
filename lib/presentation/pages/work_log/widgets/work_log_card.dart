@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/presentation/util/body_part_color.dart';
 import 'package:workout_log/presentation/widgets/delete_action_pane.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
@@ -52,7 +52,9 @@ class WorkLogCard extends StatelessWidget {
               children: <Widget>[
                 Container(
                   margin: EdgeInsets.only(
-                      right: dims.width * 0.02, bottom: dims.height * 0.01),
+                    right: dims.width * 0.02,
+                    bottom: dims.height * 0.01,
+                  ),
                   child: Text(
                     'Series: ${workLog.series.length}',
                     style: TextStyle(
@@ -63,7 +65,9 @@ class WorkLogCard extends StatelessWidget {
                 ),
                 Container(
                   margin: EdgeInsets.only(
-                      left: dims.width * 0.02, bottom: dims.height * 0.01),
+                    left: dims.width * 0.02,
+                    bottom: dims.height * 0.01,
+                  ),
                   child: Text(
                     'Reps: ${workLog.getRepsSum()}',
                     style: TextStyle(
@@ -92,11 +96,12 @@ class WorkLogCard extends StatelessWidget {
       ...workLog.exercise.bodyParts,
       ...workLog.exercise.secondaryBodyParts,
     ].take(3);
+
     return parts
-        .map((bp) => Text(
-              bp.displayName,
-              style: TextStyle(color: bp.color(colors)),
-            ))
+        .map(
+          (bp) =>
+              Text(bp.displayName, style: TextStyle(color: bp.color(colors))),
+        )
         .toList();
   }
 }

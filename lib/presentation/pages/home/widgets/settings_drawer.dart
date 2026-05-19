@@ -61,7 +61,8 @@ class SettingsDrawer extends ConsumerWidget {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ExerciseListPage()),
+                  builder: (context) => const ExerciseListPage(),
+                ),
               ),
             ),
           ],

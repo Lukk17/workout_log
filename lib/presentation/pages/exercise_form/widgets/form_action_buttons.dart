@@ -44,7 +44,9 @@ class FormActionButtons extends StatelessWidget {
 
     return dims.isPortrait
         ? Column(
-            crossAxisAlignment: CrossAxisAlignment.center, children: children)
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: children,
+          )
         : Row(mainAxisAlignment: MainAxisAlignment.center, children: children);
   }
 }

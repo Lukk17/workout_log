@@ -34,7 +34,9 @@ class BodyPartsSection extends StatelessWidget {
         const Text('Secondary'),
         SizedBox(height: layout.screenHeight * 0.01),
         BodyPartBlocks(
-            parts: workLog.exercise.secondaryBodyParts, layout: layout),
+          parts: workLog.exercise.secondaryBodyParts,
+          layout: layout,
+        ),
       ],
     );
   }

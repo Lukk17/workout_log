@@ -27,6 +27,7 @@ class WorkLogDao {
       final firstNewBp = workLog.exercise.bodyParts.isEmpty
           ? null
           : workLog.exercise.bodyParts.first;
+
       if (firstNewBp != null && !existing.bodyParts.contains(firstNewBp)) {
         resolvedExercise = existing.copyWith(
           bodyParts: {...existing.bodyParts, ...workLog.exercise.bodyParts},
@@ -39,7 +40,9 @@ class WorkLogDao {
         );
         logFine('[insert] UPDATED EXERCISE: $resolvedExercise', name: _tag);
       }
+
       final toInsert = workLog.copyWith(exercise: resolvedExercise);
+
       try {
         final id = await db.insert(workLogTable, toInsert.toMap());
         logFine('[insert] INSERTED WORKLOG: $toInsert', name: _tag);
@@ -58,12 +61,14 @@ class WorkLogDao {
   Future<int> update(WorkLog workLog) async {
     final db = await _db;
     logFine('[update] $workLog', name: _tag);
+
     await db.update(
       exerciseTable,
       workLog.exercise.toMap(),
       where: 'id = ?',
       whereArgs: [workLog.exercise.id],
     );
+
     return db.update(
       workLogTable,
       workLog.toMap(),
@@ -76,9 +81,14 @@ class WorkLogDao {
     final db = await _db;
     final rows = await db
         .query(workLogTable, where: 'id = ?', whereArgs: [id], limit: 1);
-    if (rows.isEmpty) return null;
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
     final exercise =
         await _exerciseDao.getById(rows.first['exercise_id'].toString());
+
     return WorkLog.fromMap(rows.first, exercise);
   }
 
@@ -96,8 +106,8 @@ class WorkLogDao {
     ));
   }
 
-  Future<List<WorkLog>> getForDateAndBodyPart(
-      DateTime date, BodyPart part) async {
+  Future<List<WorkLog>> getForDateAndBodyPart(DateTime date,
+      BodyPart part) async {
     final all = await getForDate(date);
     final filtered = all
         .where((wl) => wl.exercise.bodyParts.contains(part))
@@ -113,7 +123,10 @@ class WorkLogDao {
   }
 
   Future<List<WorkLog>> _hydrate(List<Map<String, Object?>> rows) async {
-    if (rows.isEmpty) return const [];
+    if (rows.isEmpty) {
+      return const [];
+    }
+
     final exerciseIds =
         rows.map((r) => r['exercise_id'].toString()).toSet().toList();
     // Batch-resolve every referenced exercise in one query instead of
@@ -122,7 +135,7 @@ class WorkLogDao {
     final exercises = await _exerciseDao.findByIds(exerciseIds);
     return rows
         .map((row) =>
-            WorkLog.fromMap(row, exercises[row['exercise_id'].toString()]!))
+        WorkLog.fromMap(row, exercises[row['exercise_id'].toString()]!))
         .toList();
   }
 }

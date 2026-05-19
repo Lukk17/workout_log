@@ -27,8 +27,9 @@ void main() {
     expect(find.text('You forgot about exercise name :)'), findsOneWidget);
   });
 
-  testWidgets('Save with name but no body parts surfaces a SnackBar',
-      (tester) async {
+  testWidgets('Save with name but no body parts surfaces a SnackBar', (
+    tester,
+  ) async {
     await _useTallSurface(tester);
     await tester.pumpWidget(
       testApp(child: const ExerciseFormPage(exercise: null)),
@@ -41,10 +42,7 @@ void main() {
     await tester.tap(find.text('SAVE'));
     await tester.pump();
 
-    expect(
-      find.text('You forgot about exercise body part :)'),
-      findsOneWidget,
-    );
+    expect(find.text('You forgot about exercise body part :)'), findsOneWidget);
   });
 
   testWidgets('Form chrome (sections, buttons) renders', (tester) async {
@@ -60,7 +58,9 @@ void main() {
     expect(find.text('Cancel'), findsOneWidget);
   });
 
-  testWidgets('Tapping a body-part checkbox keeps SAVE enabled', (tester) async {
+  testWidgets('Tapping a body-part checkbox keeps SAVE enabled', (
+    tester,
+  ) async {
     await _useTallSurface(tester);
     await tester.pumpWidget(
       testApp(child: const ExerciseFormPage(exercise: null)),

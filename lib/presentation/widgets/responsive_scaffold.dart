@@ -19,9 +19,15 @@ class ResponsiveDimensions {
   static ResponsiveDimensions of(BuildContext context) {
     final inh = context
         .dependOnInheritedWidgetOfExactType<_ResponsiveDimensionsProvider>();
-    if (inh != null) return inh.dimensions;
+
+    if (inh != null) {
+      return inh.dimensions;
+    }
+
     final size = MediaQuery.sizeOf(context);
-    final isPortrait = MediaQuery.orientationOf(context) == Orientation.portrait;
+    final isPortrait =
+        MediaQuery.orientationOf(context) == Orientation.portrait;
+
     return ResponsiveDimensions(
       width: size.width,
       height: size.height,
@@ -57,7 +63,8 @@ class ResponsiveScaffold extends StatelessWidget {
   final bool resizeToAvoidBottomInset;
 
   // When set, takes precedence over [appBar].
-  final PreferredSizeWidget Function(BuildContext, ResponsiveDimensions)? appBarBuilder;
+  final PreferredSizeWidget Function(BuildContext, ResponsiveDimensions)?
+  appBarBuilder;
 
   const ResponsiveScaffold({
     super.key,
@@ -73,27 +80,29 @@ class ResponsiveScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-      final media = MediaQuery.sizeOf(context);
-      final isPortrait = orientation == Orientation.portrait;
-      final dims = ResponsiveDimensions(
-        width: media.width,
-        height: media.height,
-        isPortrait: isPortrait,
-        appBarHeight: media.height * (isPortrait ? 0.08 : 0.1),
-      );
-      return _ResponsiveDimensionsProvider(
-        dimensions: dims,
-        child: Scaffold(
-          key: scaffoldKey,
-          resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-          appBar: appBarBuilder?.call(context, dims) ?? appBar,
-          body: body,
-          drawer: drawer,
-          bottomNavigationBar: bottomNavigationBar,
-          floatingActionButton: floatingActionButton,
-        ),
-      );
-    });
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final media = MediaQuery.sizeOf(context);
+        final isPortrait = orientation == Orientation.portrait;
+        final dims = ResponsiveDimensions(
+          width: media.width,
+          height: media.height,
+          isPortrait: isPortrait,
+          appBarHeight: media.height * (isPortrait ? 0.08 : 0.1),
+        );
+        return _ResponsiveDimensionsProvider(
+          dimensions: dims,
+          child: Scaffold(
+            key: scaffoldKey,
+            resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+            appBar: appBarBuilder?.call(context, dims) ?? appBar,
+            body: body,
+            drawer: drawer,
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: floatingActionButton,
+          ),
+        );
+      },
+    );
   }
 }

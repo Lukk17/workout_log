@@ -6,12 +6,14 @@ void hideKeyboard(BuildContext context) {
 }
 
 void blockOrientation({required bool portrait}) {
-  SystemChrome.setPreferredOrientations(portrait
-      ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
-      : const [
-          DeviceOrientation.landscapeRight,
-          DeviceOrientation.landscapeLeft,
-        ]);
+  SystemChrome.setPreferredOrientations(
+    portrait
+        ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
+        : const [
+            DeviceOrientation.landscapeRight,
+            DeviceOrientation.landscapeLeft,
+          ],
+  );
 }
 
 void unlockOrientation() {

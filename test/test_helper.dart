@@ -11,7 +11,12 @@ void initSqfliteForTests() {
 }
 
 class DaoTestEnv {
-  DaoTestEnv._(this.tempDir, this.appDatabase, this.exerciseDao, this.workLogDao);
+  DaoTestEnv._(
+    this.tempDir,
+    this.appDatabase,
+    this.exerciseDao,
+    this.workLogDao,
+  );
 
   final Directory tempDir;
   final AppDatabase appDatabase;

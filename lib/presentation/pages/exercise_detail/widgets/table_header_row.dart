@@ -14,18 +14,18 @@ class TableHeaderRow extends StatelessWidget {
         ? layout.portraitColumnHeight
         : layout.headerLandscapeColumnHeight;
     Widget cell(String text, double width) => Container(
-          height: height,
-          width: width,
-          alignment: const FractionalOffset(0.5, 0.5),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: colors.textColor,
-              fontSize: WorkoutTypography.fontSize,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
+      height: height,
+      width: width,
+      alignment: const FractionalOffset(0.5, 0.5),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: colors.textColor,
+          fontSize: WorkoutTypography.fontSize,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
     return Row(
       children: <Widget>[
         cell('series', layout.seriesColumnWidth),

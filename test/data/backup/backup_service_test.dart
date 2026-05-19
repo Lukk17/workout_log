@@ -34,10 +34,12 @@ void main() {
   });
 
   test('backup writes a JSON file with every workLog', () async {
-    final pushUp = (await env.exerciseDao.getAll())
-        .firstWhere((e) => e.name == 'Push Up');
-    await env.workLogDao
-        .insert(WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16)));
+    final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+      (e) => e.name == 'Push Up',
+    );
+    await env.workLogDao.insert(
+      WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16)),
+    );
 
     await service.backup();
 
@@ -49,8 +51,9 @@ void main() {
   });
 
   test('restore round-trips through backup.json', () async {
-    final pushUp = (await env.exerciseDao.getAll())
-        .firstWhere((e) => e.name == 'Push Up');
+    final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+      (e) => e.name == 'Push Up',
+    );
     final w = WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
     await env.workLogDao.insert(w);
 
@@ -66,10 +69,7 @@ void main() {
   });
 
   test('restore throws BackupNotFoundException when no backup file', () async {
-    expect(
-      () => service.restore(),
-      throwsA(isA<BackupNotFoundException>()),
-    );
+    expect(() => service.restore(), throwsA(isA<BackupNotFoundException>()));
   });
 
   test('insert via restore preserves body parts', () async {
@@ -84,9 +84,13 @@ void main() {
     await env.workLogDao.delete(w);
     await service.restore();
 
-    final restored = (await env.workLogDao.getAll())
-        .firstWhere((wl) => wl.exercise.name == 'Custom Lift');
-    expect(restored.exercise.bodyParts, containsAll([BodyPart.arm, BodyPart.back]));
+    final restored = (await env.workLogDao.getAll()).firstWhere(
+      (wl) => wl.exercise.name == 'Custom Lift',
+    );
+    expect(
+      restored.exercise.bodyParts,
+      containsAll([BodyPart.arm, BodyPart.back]),
+    );
   });
 
   test('backup of an empty DB writes an empty JSON array', () async {
@@ -104,47 +108,61 @@ void main() {
     expect(await file.readAsString(), '[]');
   });
 
-  test('restore throws BackupCorruptException on a malformed backup.json',
-      () async {
-    // Negative path: corrupted file on disk. BackupService must not
-    // silently truncate or partially insert garbage; it must surface
-    // the decode failure to the caller as a typed exception.
-    final file = File('${backupDir.path}/backup.json');
-    await file.writeAsString('this is not json');
+  test(
+    'restore throws BackupCorruptException on a malformed backup.json',
+    () async {
+      // Negative path: corrupted file on disk. BackupService must not
+      // silently truncate or partially insert garbage; it must surface
+      // the decode failure to the caller as a typed exception.
+      final file = File('${backupDir.path}/backup.json');
+      await file.writeAsString('this is not json');
 
-    await expectLater(
-        service.restore(), throwsA(isA<BackupCorruptException>()));
-  });
+      await expectLater(
+        service.restore(),
+        throwsA(isA<BackupCorruptException>()),
+      );
+    },
+  );
 
-  test('restore throws BackupCorruptException when JSON is not a list',
-      () async {
-    // Negative path: a malformed but parseable backup.json (e.g. an
-    // object at the root). The "must be a list" check rejects it
-    // instead of silently no-oping.
-    final file = File('${backupDir.path}/backup.json');
-    await file.writeAsString('{"nope": true}');
+  test(
+    'restore throws BackupCorruptException when JSON is not a list',
+    () async {
+      // Negative path: a malformed but parseable backup.json (e.g. an
+      // object at the root). The "must be a list" check rejects it
+      // instead of silently no-oping.
+      final file = File('${backupDir.path}/backup.json');
+      await file.writeAsString('{"nope": true}');
 
-    await expectLater(
-        service.restore(), throwsA(isA<BackupCorruptException>()));
-  });
+      await expectLater(
+        service.restore(),
+        throwsA(isA<BackupCorruptException>()),
+      );
+    },
+  );
 
   test('restore replaces existing workouts (does not append)', () async {
     // Negative-path semantic check: previously restore appended, with
     // duplicate ids silently dropped. The new contract is replace-all
     // so the user sees exactly what was in the backup.
-    final pushUp = (await env.exerciseDao.getAll())
-        .firstWhere((e) => e.name == 'Push Up');
-    final pullUp = (await env.exerciseDao.getAll())
-        .firstWhere((e) => e.name == 'Pull Up');
-    final keepInBackup =
-        WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
+    final pushUp = (await env.exerciseDao.getAll()).firstWhere(
+      (e) => e.name == 'Push Up',
+    );
+    final pullUp = (await env.exerciseDao.getAll()).firstWhere(
+      (e) => e.name == 'Pull Up',
+    );
+    final keepInBackup = WorkLog.create(
+      exercise: pushUp,
+      on: DateTime(2026, 5, 16),
+    );
     await env.workLogDao.insert(keepInBackup);
     await service.backup();
 
     // Add a different workout AFTER taking the backup. Restore should
     // remove it.
-    final shouldBeRemoved =
-        WorkLog.create(exercise: pullUp, on: DateTime(2026, 5, 17));
+    final shouldBeRemoved = WorkLog.create(
+      exercise: pullUp,
+      on: DateTime(2026, 5, 17),
+    );
     await env.workLogDao.insert(shouldBeRemoved);
     expect((await env.workLogDao.getAll()).length, 2);
 
@@ -171,8 +189,9 @@ void main() {
     await env.workLogDao.delete(w);
     await service.restore();
 
-    final restored = (await env.workLogDao.getAll())
-        .firstWhere((wl) => wl.exercise.name == 'Bench Press');
+    final restored = (await env.workLogDao.getAll()).firstWhere(
+      (wl) => wl.exercise.name == 'Bench Press',
+    );
     expect(restored.series, {'1': '10', '2': '8', '3': '6'});
     expect(restored.load, {'1': '60', '2': '60', '3': '60'});
     expect(restored.bodyWeight, 80);

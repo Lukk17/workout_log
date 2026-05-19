@@ -14,14 +14,17 @@ import '../../test_helper.dart';
 class _NoopGateway implements NotificationGateway {
   @override
   Future<void> initialize() async {}
+
   @override
   Future<bool> requestPermissions() async => true;
+
   @override
   Future<void> show({
     required int id,
     required String title,
     required String body,
   }) async {}
+
   @override
   Future<void> cancel(int id) async {}
 }
@@ -41,21 +44,24 @@ void main() {
 
   tearDown(() => env.dispose());
 
-  testWidgets('MyApp mounts HomePage inside ProviderScope without throwing',
-      (tester) async {
+  testWidgets('MyApp mounts HomePage inside ProviderScope without throwing', (
+    tester,
+  ) async {
     await tester.binding.setSurfaceSize(const Size(420, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        appDatabaseProvider.overrideWithValue(env.appDatabase),
-        exerciseDaoProvider.overrideWithValue(env.exerciseDao),
-        workLogDaoProvider.overrideWithValue(env.workLogDao),
-        notificationGatewayProvider.overrideWithValue(_NoopGateway()),
-        alarmServiceProvider.overrideWithValue(AlarmService(_NoopGateway())),
-      ],
-      child: const MyApp(),
-    ));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(env.appDatabase),
+          exerciseDaoProvider.overrideWithValue(env.exerciseDao),
+          workLogDaoProvider.overrideWithValue(env.workLogDao),
+          notificationGatewayProvider.overrideWithValue(_NoopGateway()),
+          alarmServiceProvider.overrideWithValue(AlarmService(_NoopGateway())),
+        ],
+        child: const MyApp(),
+      ),
+    );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 

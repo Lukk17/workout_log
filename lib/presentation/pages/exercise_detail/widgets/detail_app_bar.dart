@@ -10,9 +10,9 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   final DetailTableLayout layout;
 
   @override
-  Size get preferredSize => Size.fromHeight(layout.isPortrait
-      ? layout.screenHeight * 0.08
-      : layout.screenHeight * 0.1);
+  Size get preferredSize => Size.fromHeight(
+    layout.isPortrait ? layout.screenHeight * 0.08 : layout.screenHeight * 0.1,
+  );
 
   @override
   Widget build(BuildContext context) {
