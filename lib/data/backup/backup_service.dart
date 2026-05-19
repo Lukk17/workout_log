@@ -7,31 +7,42 @@ import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/util/log.dart';
 
-class ExternalStorageUnavailableException implements Exception {
-  final String message;
+/// Common supertype so a single `on BackupException catch` clause covers
+/// every failure mode the backup/restore flow can surface. The concrete
+/// types stay separate for tests + log filtering, but UI code that just
+/// wants "the operation failed" can match the interface once.
+sealed class BackupException implements Exception {}
+
+class ExternalStorageUnavailableException implements BackupException {
   ExternalStorageUnavailableException(
       [this.message = 'External storage not available']);
+
+  final String message;
+
   @override
   String toString() => message;
 }
 
-class BackupNotFoundException implements Exception {
+class BackupNotFoundException implements BackupException {
   BackupNotFoundException(this.path);
+
   final String path;
+
   @override
   String toString() => 'backup file not found at $path';
 }
 
-class BackupCorruptException implements Exception {
+class BackupCorruptException implements BackupException {
   BackupCorruptException(this.cause);
+
   final Object cause;
+
   @override
   String toString() => 'backup file is malformed: $cause';
 }
 
 class BackupService {
-  BackupService(
-    this._workLogDao, {
+  BackupService(this._workLogDao, {
     Future<Directory> Function()? storageDir,
   }) : _storageDir = storageDir ?? _defaultStorageDir;
 
@@ -65,11 +76,14 @@ class BackupService {
   Future<void> restore() async {
     final path = await backupFilePath;
     final file = File(path);
+
     if (!await file.exists()) {
       throw BackupNotFoundException(path);
     }
+
     final raw = await file.readAsString();
     final List<dynamic> decoded;
+
     try {
       final parsed = jsonDecode(raw);
       if (parsed is! List) {
@@ -79,7 +93,9 @@ class BackupService {
     } on FormatException catch (e) {
       throw BackupCorruptException(e);
     }
+
     final workLogs = <WorkLog>[];
+
     try {
       for (final entry in decoded) {
         workLogs.add(WorkLog.fromJson(entry as Map<String, dynamic>));
@@ -94,6 +110,7 @@ class BackupService {
     for (final existing in await _workLogDao.getAll()) {
       await _workLogDao.delete(existing);
     }
+
     for (final w in workLogs) {
       await _workLogDao.insert(w);
     }

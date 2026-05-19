@@ -8,19 +8,15 @@ import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 import 'package:workout_log/util/log.dart';
 
-class BackupPage extends ConsumerStatefulWidget {
+class BackupPage extends ConsumerWidget {
   const BackupPage({super.key});
 
-  @override
-  ConsumerState<BackupPage> createState() => _BackupPageState();
-}
-
-class _BackupPageState extends ConsumerState<BackupPage> {
   static const _tag = 'BackupPage';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = WorkoutColors.of(context);
+
     return ResponsiveScaffold(
       appBarBuilder: (context, dims) => PreferredSize(
         preferredSize: Size.fromHeight(dims.appBarHeight),
@@ -36,27 +32,35 @@ class _BackupPageState extends ConsumerState<BackupPage> {
         future: ref.watch(backupServiceProvider).backupFilePath,
         builder: (context, snap) => BackupBody(
           backupFilePath: snap.data,
-          onBackup: _backup,
-          onRestore: _restore,
+          onBackup: () => _backup(context, ref),
+          onRestore: () => _restore(context, ref),
         ),
       ),
     );
   }
 
-  Future<void> _backup() async {
+  Future<void> _backup(BuildContext context, WidgetRef ref) async {
     logFine('Creating backup...', name: _tag);
     final messenger = ScaffoldMessenger.of(context);
+
     try {
       await ref.read(backupServiceProvider).backup();
-      if (!mounted) return;
+
+      if (!context.mounted) {
+        return;
+      }
+
       messenger.showSnackBar(const SnackBar(content: Text('Backup created.')));
-    } on ExternalStorageUnavailableException catch (e) {
-      if (!mounted) return;
+    } on BackupException catch (e) {
+      if (!context.mounted) {
+        return;
+      }
+
       messenger.showSnackBar(SnackBar(content: Text('Backup failed: $e')));
     }
   }
 
-  Future<void> _restore() async {
+  Future<void> _restore(BuildContext context, WidgetRef ref) async {
     logFine('Restoring from backup...', name: _tag);
     final messenger = ScaffoldMessenger.of(context);
     final selectedDate = ref.read(selectedDateProvider);
@@ -83,22 +87,26 @@ class _BackupPageState extends ConsumerState<BackupPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
 
     try {
       await ref.read(backupServiceProvider).restore();
-      if (!mounted) return;
+
+      if (!context.mounted) {
+        return;
+      }
+
       ref.invalidate(exercisesProvider);
       ref.invalidate(workLogsByDateProvider(selectedDate));
       messenger.showSnackBar(const SnackBar(content: Text('Backup restored.')));
-    } on BackupNotFoundException catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
-    } on BackupCorruptException catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
-    } on ExternalStorageUnavailableException catch (e) {
-      if (!mounted) return;
+    } on BackupException catch (e) {
+      if (!context.mounted) {
+        return;
+      }
+
       messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
     }
   }
