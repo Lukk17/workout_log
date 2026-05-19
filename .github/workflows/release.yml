@@ -3,12 +3,29 @@ name: Release to Play Store
 # Manual-only. Trigger from the Actions tab -> "Release to Play Store"
 # -> "Run workflow" -> pick the track. Never fires on push or tag.
 #
+# About signing: this app uses Play App Signing with the app-signing
+# key managed by Google. That means Google holds the final signing
+# key and signs the APKs delivered to users. The keystore configured
+# below is the *upload key* — your locally-held key that Play uses to
+# authenticate that an upload actually came from you. Play verifies
+# the upload-key signature, strips it, then re-signs with the
+# Google-held app-signing key. Both keys are required: even with
+# Google managing the final signing, every upload must still be
+# signed with the registered upload key.
+#
+# Local files (gitignored):
+#   android/workout_log-keystore.jks  the upload-key store
+#   android/key.properties            storePassword/keyPassword/keyAlias
+# Back up the .jks somewhere off the dev machine — Google cannot
+# recover it for you; if it's lost the only recourse is Play Console
+# -> Setup -> App integrity -> "Reset upload key".
+#
 # Required GitHub repo secrets (Settings -> Secrets and variables -> Actions):
-#   ANDROID_KEYSTORE_BASE64   base64-encoded contents of workout_log-keystore.jks
-#                             generate with: base64 -w 0 workout_log-keystore.jks
-#   ANDROID_KEYSTORE_PASSWORD store password
-#   ANDROID_KEY_PASSWORD      key password
-#   ANDROID_KEY_ALIAS         key alias (currently `key`)
+#   ANDROID_KEYSTORE_BASE64   base64-encoded contents of the upload keystore
+#                             regenerate with: base64 -w 0 android/workout_log-keystore.jks
+#   ANDROID_KEYSTORE_PASSWORD store password (matches key.properties storePassword)
+#   ANDROID_KEY_PASSWORD      key password    (matches key.properties keyPassword)
+#   ANDROID_KEY_ALIAS         key alias       (matches key.properties keyAlias)
 #   PLAY_SERVICE_ACCOUNT_JSON contents of the Google Play API service account JSON.
 #                             Create via:
 #                               1. Google Cloud Console -> IAM & Admin -> Service Accounts
