@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workout_log/domain/models/exercise.dart';
-import 'package:workout_log/presentation/pages/exercise_form_page.dart';
+import 'package:workout_log/presentation/pages/exercise_form/exercise_form_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';

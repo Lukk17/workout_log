@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
-import 'package:workout_log/presentation/pages/exercise_list_page.dart';
+import 'package:workout_log/presentation/pages/exercise_list/exercise_list_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 
-import '../helpers/test_app.dart';
+import '../../../helpers/test_app.dart';
 
 void main() {
   testWidgets('renders all exercises from the provider', (tester) async {

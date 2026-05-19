@@ -5,6 +5,9 @@ import 'package:workout_log/data/db/work_log_dao.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
+import 'package:workout_log/presentation/pages/exercise_form/widgets/body_part_sections.dart';
+import 'package:workout_log/presentation/pages/exercise_form/widgets/form_action_buttons.dart';
+import 'package:workout_log/presentation/pages/exercise_form/widgets/name_field.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
@@ -94,16 +97,16 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
               ? MainAxisAlignment.spaceEvenly
               : MainAxisAlignment.start,
           children: <Widget>[
-            _NameField(controller: _nameController, width: dims.width * 0.7),
+            NameField(controller: _nameController, width: dims.width * 0.7),
             if (!dims.isPortrait) SizedBox(height: dims.height * 0.1),
-            _BodyPartSections(
+            BodyPartSections(
               primary: _primaryBodyParts,
               secondary: _secondaryBodyParts,
               isPortrait: dims.isPortrait,
               onToggle: _toggleBodyPart,
             ),
             if (!dims.isPortrait) SizedBox(height: dims.height * 0.08),
-            _FormActionButtons(
+            FormActionButtons(
               dims: dims,
               onSave: _saveExercise,
               onCancel: _cancel,
@@ -182,156 +185,5 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
     await _workLogDao.insert(workLog);
     logFine('New workLog saved to DB: $workLog', name: _tag);
     return workLog;
-  }
-}
-
-class _NameField extends StatelessWidget {
-  const _NameField({required this.controller, required this.width});
-
-  final TextEditingController controller;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: TextFormField(
-        textAlign: TextAlign.center,
-        controller: controller,
-        style: const TextStyle(fontSize: WorkoutTypography.headerSize),
-      ),
-    );
-  }
-}
-
-class _BodyPartSections extends StatelessWidget {
-  const _BodyPartSections({
-    required this.primary,
-    required this.secondary,
-    required this.isPortrait,
-    required this.onToggle,
-  });
-
-  final Set<BodyPart> primary;
-  final Set<BodyPart> secondary;
-  final bool isPortrait;
-  final void Function(BodyPart, {required bool secondary, required bool value})
-      onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final sections = <Widget>[
-      _BodyPartColumn(
-        title: 'Main Body Parts:',
-        selected: primary,
-        excluded: secondary,
-        onToggle: (bp, value) => onToggle(bp, secondary: false, value: value),
-      ),
-      _BodyPartColumn(
-        title: 'Secondary Body Parts:',
-        selected: secondary,
-        excluded: primary,
-        onToggle: (bp, value) => onToggle(bp, secondary: true, value: value),
-      ),
-    ];
-    return isPortrait
-        ? Column(children: sections)
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: sections,
-          );
-  }
-}
-
-class _BodyPartColumn extends StatelessWidget {
-  const _BodyPartColumn({
-    required this.title,
-    required this.selected,
-    required this.excluded,
-    required this.onToggle,
-  });
-
-  final String title;
-  final Set<BodyPart> selected;
-  final Set<BodyPart> excluded;
-  final void Function(BodyPart bp, bool value) onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = WorkoutColors.of(context);
-    final checkboxes = <Widget>[];
-    for (final bp in BodyPart.values) {
-      if (bp == BodyPart.undefined) continue;
-      if (excluded.contains(bp)) continue;
-      final name = Util.getBpName(bp);
-      checkboxes.add(Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.center,
-        children: <Widget>[
-          Text(name, style: TextStyle(color: colors.textColor)),
-          Checkbox(
-            value: selected.contains(bp),
-            onChanged: (value) => onToggle(bp, value ?? false),
-          ),
-        ],
-      ));
-    }
-    return Column(
-      children: <Widget>[
-        Text(title),
-        Wrap(
-          alignment: WrapAlignment.spaceAround,
-          spacing: 8,
-          runSpacing: 4,
-          children: checkboxes,
-        ),
-      ],
-    );
-  }
-}
-
-class _FormActionButtons extends StatelessWidget {
-  const _FormActionButtons({
-    required this.dims,
-    required this.onSave,
-    required this.onCancel,
-  });
-
-  final ResponsiveDimensions dims;
-  final VoidCallback onSave;
-  final VoidCallback onCancel;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = WorkoutColors.of(context);
-    final buttonHeight = dims.height * (dims.isPortrait ? 0.06 : 0.1);
-    final buttonWidth = dims.width * (dims.isPortrait ? 0.5 : 0.27);
-    final saveButton = MaterialButton(
-      onPressed: onSave,
-      height: buttonHeight,
-      minWidth: buttonWidth,
-      color: colors.greenButtonColor,
-      splashColor: colors.buttonSplashColor,
-      textColor: colors.buttonTextColor,
-      child: const Text('SAVE'),
-    );
-    final cancelButton = MaterialButton(
-      onPressed: onCancel,
-      height: buttonHeight,
-      minWidth: buttonWidth,
-      color: colors.cancelButtonColor,
-      splashColor: colors.buttonSplashColor,
-      textColor: colors.buttonTextColor,
-      child: const Text('Cancel'),
-    );
-    final spacer = dims.isPortrait
-        ? SizedBox(height: dims.height * 0.05)
-        : SizedBox(width: dims.width * 0.1);
-    final children = <Widget>[saveButton, spacer, cancelButton];
-
-    return dims.isPortrait
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.center, children: children)
-        : Row(mainAxisAlignment: MainAxisAlignment.center, children: children);
   }
 }
