@@ -39,11 +39,13 @@ class TimerSession {
 
 class TimerSessionNotifier extends StateNotifier<TimerSession> {
   TimerSessionNotifier(this._ref)
-      : super(const TimerSession(
+    : super(
+        const TimerSession(
           selected: Duration(seconds: 60),
           remaining: Duration(seconds: 60),
           running: false,
-        )) {
+        ),
+      ) {
     // Mirror the persisted preset into the session whenever it changes.
     // SharedPreferences loads after construction so the initial state
     // is the in-memory default until this listener fires.
@@ -133,5 +135,5 @@ class TimerSessionNotifier extends StateNotifier<TimerSession> {
 
 final timerSessionProvider =
     StateNotifierProvider<TimerSessionNotifier, TimerSession>(
-  (ref) => TimerSessionNotifier(ref),
-);
+      (ref) => TimerSessionNotifier(ref),
+    );

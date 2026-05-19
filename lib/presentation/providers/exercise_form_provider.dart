@@ -8,14 +8,14 @@ import 'package:workout_log/domain/models/exercise.dart';
 /// edited so the create-new and edit-existing flows don't share state.
 @immutable
 class ExerciseFormState {
-  const ExerciseFormState({
-    required this.primary,
-    required this.secondary,
-  });
+  const ExerciseFormState({required this.primary, required this.secondary});
 
   factory ExerciseFormState.from(Exercise? exercise) {
     if (exercise == null) {
-      return const ExerciseFormState(primary: <BodyPart>{}, secondary: <BodyPart>{});
+      return const ExerciseFormState(
+        primary: <BodyPart>{},
+        secondary: <BodyPart>{},
+      );
     }
 
     return ExerciseFormState(
@@ -40,7 +40,7 @@ class ExerciseFormState {
 
 class ExerciseFormNotifier extends StateNotifier<ExerciseFormState> {
   ExerciseFormNotifier(Exercise? initial)
-      : super(ExerciseFormState.from(initial));
+    : super(ExerciseFormState.from(initial));
 
   void togglePrimary(BodyPart bp, {required bool value}) {
     if (value) {
@@ -75,5 +75,5 @@ class ExerciseFormNotifier extends StateNotifier<ExerciseFormState> {
 
 final exerciseFormProvider = StateNotifierProvider.autoDispose
     .family<ExerciseFormNotifier, ExerciseFormState, Exercise?>(
-  (ref, initial) => ExerciseFormNotifier(initial),
-);
+      (ref, initial) => ExerciseFormNotifier(initial),
+    );

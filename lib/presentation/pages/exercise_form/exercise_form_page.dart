@@ -54,8 +54,7 @@ class _ExerciseFormPageState extends ConsumerState<ExerciseFormPage> {
   Widget build(BuildContext context) {
     final colors = WorkoutColors.of(context);
     final form = ref.watch(exerciseFormProvider(widget.exercise));
-    final notifier =
-        ref.read(exerciseFormProvider(widget.exercise).notifier);
+    final notifier = ref.read(exerciseFormProvider(widget.exercise).notifier);
 
     return ResponsiveScaffold(
       resizeToAvoidBottomInset: false,

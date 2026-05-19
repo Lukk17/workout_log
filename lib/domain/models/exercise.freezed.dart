@@ -49,8 +49,8 @@ mixin _$Exercise {
   @override
   int get hashCode =>
       Object.hash(
-      runtimeType, id, name, const DeepCollectionEquality().hash(bodyParts),
-      const DeepCollectionEquality().hash(secondaryBodyParts));
+          runtimeType, id, name, const DeepCollectionEquality().hash(bodyParts),
+          const DeepCollectionEquality().hash(secondaryBodyParts));
 
   @override
   String toString() {
@@ -311,8 +311,8 @@ class _Exercise extends Exercise {
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, name,
-      const DeepCollectionEquality().hash(_bodyParts),
-      const DeepCollectionEquality().hash(_secondaryBodyParts));
+          const DeepCollectionEquality().hash(_bodyParts),
+          const DeepCollectionEquality().hash(_secondaryBodyParts));
 
   @override
   String toString() {

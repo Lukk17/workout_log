@@ -18,6 +18,7 @@ class AlarmService {
   Future<bool> requestPermissions() async {
     final granted = await _gateway.requestPermissions();
     logFine('notification permission: $granted', name: _tag);
+
     return granted;
   }
 

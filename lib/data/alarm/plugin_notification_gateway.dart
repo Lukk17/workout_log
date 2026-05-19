@@ -84,6 +84,7 @@ class PluginNotificationGateway implements NotificationGateway {
       presentAlert: true,
       interruptionLevel: InterruptionLevel.timeSensitive,
     );
+
     await _plugin.show(
       id,
       title,

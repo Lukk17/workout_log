@@ -81,5 +81,5 @@ class ExerciseDetailNotifier extends StateNotifier<WorkLog> {
 
 final exerciseDetailProvider = StateNotifierProvider.autoDispose
     .family<ExerciseDetailNotifier, WorkLog, WorkLog>(
-  (ref, initial) => ExerciseDetailNotifier(ref, initial),
-);
+      (ref, initial) => ExerciseDetailNotifier(ref, initial),
+    );

@@ -11,8 +11,7 @@ DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 /// Page-local state: which month is currently focused in the calendar
 /// header. autoDispose so two consecutive openings don't carry state
 /// across.
-final _focusedDayProvider =
-    StateProvider.autoDispose<DateTime?>((ref) => null);
+final _focusedDayProvider = StateProvider.autoDispose<DateTime?>((ref) => null);
 
 class CalendarPage extends ConsumerWidget {
   const CalendarPage({super.key});
@@ -131,6 +130,7 @@ class CalendarPage extends ConsumerWidget {
     final normalized = _startOfDay(picked);
     ref.read(selectedDateProvider.notifier).state = normalized;
     logFine('Chosen date (year picker): $normalized', name: _tag);
+
     navigator.pop();
   }
 }

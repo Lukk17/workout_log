@@ -25,23 +25,34 @@ class ExerciseDetailPage extends ConsumerWidget {
     final notifier = ref.read(exerciseDetailProvider(workLog).notifier);
 
     return ResponsiveScaffold(
-      appBarBuilder: (context, dims) => DetailAppBar(
-        workLog: current,
-        layout: DetailTableLayout.from(dims),
-      ),
+      appBarBuilder: (context, dims) =>
+          DetailAppBar(workLog: current, layout: DetailTableLayout.from(dims)),
       body: Builder(
         builder: (context) {
-          final layout =
-              DetailTableLayout.from(ResponsiveDimensions.of(context));
+          final layout = DetailTableLayout.from(
+            ResponsiveDimensions.of(context),
+          );
 
           return _DetailBody(
             workLog: current,
             layout: layout,
             onEditExercise: () => _openEditExercise(context, current),
-            onEditLoad: (setKey) =>
-                _openEditDialog(context, EditField.load, setKey, current, notifier, layout),
-            onEditRepeats: (setKey) =>
-                _openEditDialog(context, EditField.repeats, setKey, current, notifier, layout),
+            onEditLoad: (setKey) => _openEditDialog(
+              context,
+              EditField.load,
+              setKey,
+              current,
+              notifier,
+              layout,
+            ),
+            onEditRepeats: (setKey) => _openEditDialog(
+              context,
+              EditField.repeats,
+              setKey,
+              current,
+              notifier,
+              layout,
+            ),
             onDeleteSeries: notifier.deleteSeries,
           );
         },

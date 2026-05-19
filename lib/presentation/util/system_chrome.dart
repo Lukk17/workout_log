@@ -10,9 +10,9 @@ void blockOrientation({required bool portrait}) {
     portrait
         ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
         : const [
-            DeviceOrientation.landscapeRight,
-            DeviceOrientation.landscapeLeft,
-          ],
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ],
   );
 }
 
