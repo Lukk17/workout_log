@@ -65,10 +65,10 @@ void main() {
     expect(afterRestore, beforeCount);
   });
 
-  test('restore throws ExternalStorageUnavailable when no backup file', () async {
+  test('restore throws BackupNotFoundException when no backup file', () async {
     expect(
       () => service.restore(),
-      throwsA(isA<ExternalStorageUnavailableException>()),
+      throwsA(isA<BackupNotFoundException>()),
     );
   });
 
@@ -104,25 +104,55 @@ void main() {
     expect(await file.readAsString(), '[]');
   });
 
-  test('restore throws FormatException on a malformed backup.json', () async {
+  test('restore throws BackupCorruptException on a malformed backup.json',
+      () async {
     // Negative path: corrupted file on disk. BackupService must not
     // silently truncate or partially insert garbage; it must surface
-    // the decode failure to the caller.
+    // the decode failure to the caller as a typed exception.
     final file = File('${backupDir.path}/backup.json');
     await file.writeAsString('this is not json');
 
-    await expectLater(service.restore(), throwsA(isA<FormatException>()));
+    await expectLater(
+        service.restore(), throwsA(isA<BackupCorruptException>()));
   });
 
-  test('restore throws TypeError when JSON is valid but not a list',
+  test('restore throws BackupCorruptException when JSON is not a list',
       () async {
     // Negative path: a malformed but parseable backup.json (e.g. an
-    // object at the root). The cast to List<dynamic> rejects it instead
-    // of silently no-oping.
+    // object at the root). The "must be a list" check rejects it
+    // instead of silently no-oping.
     final file = File('${backupDir.path}/backup.json');
     await file.writeAsString('{"nope": true}');
 
-    await expectLater(service.restore(), throwsA(isA<TypeError>()));
+    await expectLater(
+        service.restore(), throwsA(isA<BackupCorruptException>()));
+  });
+
+  test('restore replaces existing workouts (does not append)', () async {
+    // Negative-path semantic check: previously restore appended, with
+    // duplicate ids silently dropped. The new contract is replace-all
+    // so the user sees exactly what was in the backup.
+    final pushUp = (await env.exerciseDao.getAll())
+        .firstWhere((e) => e.name == 'Push Up');
+    final pullUp = (await env.exerciseDao.getAll())
+        .firstWhere((e) => e.name == 'Pull Up');
+    final keepInBackup =
+        WorkLog.create(exercise: pushUp, on: DateTime(2026, 5, 16));
+    await env.workLogDao.insert(keepInBackup);
+    await service.backup();
+
+    // Add a different workout AFTER taking the backup. Restore should
+    // remove it.
+    final shouldBeRemoved =
+        WorkLog.create(exercise: pullUp, on: DateTime(2026, 5, 17));
+    await env.workLogDao.insert(shouldBeRemoved);
+    expect((await env.workLogDao.getAll()).length, 2);
+
+    await service.restore();
+
+    final after = await env.workLogDao.getAll();
+    expect(after, hasLength(1));
+    expect(after.single.id, keepInBackup.id);
   });
 
   test('restore round-trip preserves series + load + body weight', () async {

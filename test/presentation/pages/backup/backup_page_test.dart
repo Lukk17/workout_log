@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/data/backup/backup_service.dart';
-import 'package:workout_log/domain/models/work_log.dart';
 import 'package:workout_log/presentation/pages/backup/backup_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 
@@ -134,13 +133,32 @@ void main() {
     expect(recording.backupCalls, 1);
   });
 
-  testWidgets('Import backup surfaces an error SnackBar when no backup file',
+  testWidgets('Import backup -> Cancel keeps the dialog from running restore',
       (tester) async {
     await useTallSurface(tester);
     await tester.pumpWidget(wrap());
     await _settle(tester);
 
     await tester.tap(find.text('Import backup'));
+    await _settle(tester);
+    expect(find.text('Replace current workouts?'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await _settle(tester);
+
+    expect(find.text('Replace current workouts?'), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('Import backup -> Replace surfaces an error SnackBar when no backup file',
+      (tester) async {
+    await useTallSurface(tester);
+    await tester.pumpWidget(wrap());
+    await _settle(tester);
+
+    await tester.tap(find.text('Import backup'));
+    await _settle(tester);
+    await tester.tap(find.text('Replace'));
     // The file-existence check is real I/O, so pump via runAsync to let
     // the actual filesystem call finish before checking for the
     // resulting SnackBar.
@@ -153,7 +171,7 @@ void main() {
     expect(find.textContaining('Restore failed'), findsAtLeastNWidgets(1));
   });
 
-  testWidgets('Import backup surfaces ExternalStorage failure SnackBar',
+  testWidgets('Import backup -> Replace surfaces ExternalStorage failure SnackBar',
       (tester) async {
     await useTallSurface(tester);
     await tester
@@ -161,6 +179,8 @@ void main() {
     await _settle(tester);
 
     await tester.tap(find.text('Import backup'));
+    await _settle(tester);
+    await tester.tap(find.text('Replace'));
     await tester.runAsync(() async {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     });

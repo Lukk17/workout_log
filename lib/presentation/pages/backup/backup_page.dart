@@ -60,12 +60,43 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     logFine('Restoring from backup...', name: _tag);
     final messenger = ScaffoldMessenger.of(context);
     final selectedDate = ref.read(selectedDateProvider);
+
+    // restore() now replaces existing data. Confirm before we wipe.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Replace current workouts?'),
+        content: const Text(
+          'Restoring will delete every workout currently in the app '
+          'and replace it with the contents of backup.json. '
+          'This cannot be undone.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
     try {
       await ref.read(backupServiceProvider).restore();
       if (!mounted) return;
       ref.invalidate(exercisesProvider);
       ref.invalidate(workLogsByDateProvider(selectedDate));
       messenger.showSnackBar(const SnackBar(content: Text('Backup restored.')));
+    } on BackupNotFoundException catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
+    } on BackupCorruptException catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
     } on ExternalStorageUnavailableException catch (e) {
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));

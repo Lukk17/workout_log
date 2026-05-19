@@ -15,6 +15,20 @@ class ExternalStorageUnavailableException implements Exception {
   String toString() => message;
 }
 
+class BackupNotFoundException implements Exception {
+  BackupNotFoundException(this.path);
+  final String path;
+  @override
+  String toString() => 'backup file not found at $path';
+}
+
+class BackupCorruptException implements Exception {
+  BackupCorruptException(this.cause);
+  final Object cause;
+  @override
+  String toString() => 'backup file is malformed: $cause';
+}
+
 class BackupService {
   BackupService(
     this._workLogDao, {
@@ -38,19 +52,52 @@ class BackupService {
     logFine('wrote ${list.length} workLogs to $path', name: _tag);
   }
 
+  /// Restores the workouts in `backup.json` into the database, **replacing**
+  /// the current set. Existing rows are deleted first; failing
+  /// half-way through leaves a partially-restored DB, which is the
+  /// same risk the previous append-mode had (with the extra surprise
+  /// that duplicate ids were silently dropped).
+  ///
+  /// Throws [BackupNotFoundException] if no backup exists,
+  /// [BackupCorruptException] if the file is not parseable as a JSON
+  /// list of workLogs, and [ExternalStorageUnavailableException] if
+  /// the storage directory itself is unreachable.
   Future<void> restore() async {
     final path = await backupFilePath;
     final file = File(path);
     if (!await file.exists()) {
-      throw ExternalStorageUnavailableException(
-          'backup file not found at $path');
+      throw BackupNotFoundException(path);
     }
     final raw = await file.readAsString();
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    for (final entry in decoded) {
-      await _workLogDao.insert(WorkLog.fromJson(entry as Map<String, dynamic>));
+    final List<dynamic> decoded;
+    try {
+      final parsed = jsonDecode(raw);
+      if (parsed is! List) {
+        throw BackupCorruptException('expected a JSON list at the root');
+      }
+      decoded = parsed;
+    } on FormatException catch (e) {
+      throw BackupCorruptException(e);
     }
-    logFine('imported ${decoded.length} workLogs from $path', name: _tag);
+    final workLogs = <WorkLog>[];
+    try {
+      for (final entry in decoded) {
+        workLogs.add(WorkLog.fromJson(entry as Map<String, dynamic>));
+      }
+    } catch (e) {
+      throw BackupCorruptException(e);
+    }
+
+    // Replace, don't merge: the user is asking to restore from a
+    // snapshot, and append-mode (the old behavior) silently dropped
+    // duplicate ids without telling them.
+    for (final existing in await _workLogDao.getAll()) {
+      await _workLogDao.delete(existing);
+    }
+    for (final w in workLogs) {
+      await _workLogDao.insert(w);
+    }
+    logFine('imported ${workLogs.length} workLogs from $path', name: _tag);
   }
 }
 

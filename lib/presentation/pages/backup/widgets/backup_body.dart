@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
-import 'package:workout_log/presentation/util/responsive.dart';
 import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 
 class BackupBody extends StatelessWidget {
