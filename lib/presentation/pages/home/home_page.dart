@@ -9,9 +9,7 @@ import 'package:workout_log/presentation/widgets/responsive_scaffold.dart';
 import 'package:workout_log/util/log.dart';
 
 class HomePage extends ConsumerStatefulWidget {
-  final Function(Widget) callback;
-
-  const HomePage({super.key, required this.callback});
+  const HomePage({super.key});
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();

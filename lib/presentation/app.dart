@@ -17,7 +17,7 @@ class MyApp extends ConsumerWidget {
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: mode,
-      home: HomePage(callback: (widget) => {}),
+      home: const HomePage(),
     );
   }
 }

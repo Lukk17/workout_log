@@ -46,7 +46,7 @@ void main() {
       ];
 
   Widget wrap() => testApp(
-        child: HomePage(callback: (_) {}),
+        child: const HomePage(),
         overrides: daoOverrides(),
       );
 
@@ -101,7 +101,7 @@ void main() {
     await tester.pumpWidget(testApp(
       child: Builder(builder: (context) {
         container = ProviderScope.containerOf(context);
-        return HomePage(callback: (_) {});
+        return const HomePage();
       }),
       overrides: daoOverrides(),
     ));
