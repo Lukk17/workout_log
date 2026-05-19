@@ -47,16 +47,19 @@ class AppDatabase {
       'id VARCHAR(32) PRIMARY KEY,'
       'name TEXT,'
       'bodyPart TEXT,'
-      'secondaryBodyPart'
+      'secondaryBodyPart TEXT'
       ')',
     );
 
+    // `load` and `series` hold JSON strings (Map<String,String> encoded
+    // via jsonEncode). They were originally declared BLOB but TEXT is
+    // the honest affinity for what we store.
     await db.execute(
       'CREATE TABLE IF NOT EXISTS $workLogTable ('
       'id VARCHAR(32) PRIMARY KEY,'
-      'load BLOB,'
+      'load TEXT,'
       'bodyWeight REAL,'
-      'series BLOB,'
+      'series TEXT,'
       'created TEXT,'
       'exercise_id VARCHAR(32),'
       'FOREIGN KEY(exercise_id) REFERENCES $exerciseTable(id)'
