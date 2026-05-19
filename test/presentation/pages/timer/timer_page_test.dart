@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/data/alarm/alarm_service.dart';
 import 'package:workout_log/data/alarm/notification_gateway.dart';
-import 'package:workout_log/presentation/pages/timer_page.dart';
+import 'package:workout_log/presentation/pages/timer/timer_page.dart';
 import 'package:workout_log/presentation/providers/alarm_providers.dart';
 import 'package:workout_log/presentation/providers/timer_preset_provider.dart';
 
-import '../helpers/test_app.dart';
+import '../../../helpers/test_app.dart';
 
 // The real FlutterLocalNotificationsPlugin is fine on the test surface:
 // requestPermissions short-circuits (no Android/iOS binding present) and

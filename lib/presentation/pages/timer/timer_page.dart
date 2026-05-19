@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:workout_log/presentation/pages/timer/widgets/alarm_done_dialog.dart';
+import 'package:workout_log/presentation/pages/timer/widgets/countdown_dial.dart';
+import 'package:workout_log/presentation/pages/timer/widgets/custom_duration_dialog.dart';
+import 'package:workout_log/presentation/pages/timer/widgets/preset_chips.dart';
+import 'package:workout_log/presentation/pages/timer/widgets/timer_controls.dart';
 import 'package:workout_log/presentation/providers/alarm_providers.dart';
 import 'package:workout_log/presentation/providers/timer_preset_provider.dart';
-import 'package:workout_log/presentation/theme/workout_colors.dart';
 
 class TimerPage extends ConsumerStatefulWidget {
   const TimerPage({super.key});
@@ -107,7 +111,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const _AlarmDoneDialog(),
+      builder: (context) => const AlarmDoneDialog(),
     );
     // Dismiss the notification once the user acknowledges in-app, then
     // reset the countdown to the selected duration so the chip + MM:SS
@@ -120,7 +124,7 @@ class _TimerPageState extends ConsumerState<TimerPage>
   Future<void> _pickCustom() async {
     final picked = await showDialog<Duration>(
       context: context,
-      builder: (context) => const _CustomDurationDialog(),
+      builder: (context) => const CustomDurationDialog(),
     );
     if (picked == null || !mounted) return;
     _pickPreset(picked);
@@ -136,14 +140,14 @@ class _TimerPageState extends ConsumerState<TimerPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          _CountdownDial(remaining: _remaining, total: _selected),
-          _PresetChips(
+          CountdownDial(remaining: _remaining, total: _selected),
+          PresetChips(
             selected: _selected,
             enabled: !_running,
             onPickPreset: _pickPreset,
             onPickCustom: _pickCustom,
           ),
-          _TimerControls(
+          TimerControls(
             running: _running,
             onStart: _start,
             onPause: _pause,
@@ -151,254 +155,6 @@ class _TimerPageState extends ConsumerState<TimerPage>
           ),
         ],
       ),
-    );
-  }
-}
-
-class _CountdownDial extends StatelessWidget {
-  const _CountdownDial({required this.remaining, required this.total});
-
-  final Duration remaining;
-  final Duration total;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final workoutColors = WorkoutColors.of(context);
-    final progress =
-        total.inMilliseconds == 0 ? 0.0 : remaining.inMilliseconds / total.inMilliseconds;
-
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Stack(
-        alignment: Alignment.center,
-        children: <Widget>[
-          SizedBox.expand(
-            child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 12,
-              color: workoutColors.arcColor,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-            ),
-          ),
-          Text(
-            _format(remaining),
-            style: textTheme.displayMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _format(Duration d) {
-    final m = d.inMinutes.toString().padLeft(2, '0');
-    final s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-}
-
-class _PresetChips extends StatelessWidget {
-  const _PresetChips({
-    required this.selected,
-    required this.enabled,
-    required this.onPickPreset,
-    required this.onPickCustom,
-  });
-
-  static const _shortPresets = [30, 60, 90];
-  static const _longPresets = [120, 180, 300];
-
-  final Duration selected;
-  final bool enabled;
-  final ValueChanged<Duration> onPickPreset;
-  final VoidCallback onPickCustom;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        _PresetChipRow(
-          presets: _shortPresets,
-          selected: selected,
-          enabled: enabled,
-          onPick: onPickPreset,
-        ),
-        const SizedBox(height: 8),
-        _PresetChipRow(
-          presets: _longPresets,
-          selected: selected,
-          enabled: enabled,
-          onPick: onPickPreset,
-        ),
-        const SizedBox(height: 8),
-        ActionChip(
-          label: const Text('Custom'),
-          avatar: const Icon(Icons.edit, size: 18),
-          onPressed: enabled ? onPickCustom : null,
-        ),
-      ],
-    );
-  }
-}
-
-class _PresetChipRow extends StatelessWidget {
-  const _PresetChipRow({
-    required this.presets,
-    required this.selected,
-    required this.enabled,
-    required this.onPick,
-  });
-
-  final List<int> presets;
-  final Duration selected;
-  final bool enabled;
-  final ValueChanged<Duration> onPick;
-
-  static String labelFor(int seconds) {
-    if (seconds < 120) return '${seconds}s';
-    return '${seconds ~/ 60} min';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      alignment: WrapAlignment.center,
-      children: <Widget>[
-        for (final secs in presets)
-          ChoiceChip(
-            label: Text(labelFor(secs)),
-            selected: selected.inSeconds == secs,
-            onSelected:
-                enabled ? (_) => onPick(Duration(seconds: secs)) : null,
-          ),
-      ],
-    );
-  }
-}
-
-class _TimerControls extends StatelessWidget {
-  const _TimerControls({
-    required this.running,
-    required this.onStart,
-    required this.onPause,
-    required this.onReset,
-  });
-
-  final bool running;
-  final VoidCallback onStart;
-  final VoidCallback onPause;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        FilledButton.icon(
-          onPressed: running ? onPause : onStart,
-          icon: Icon(running ? Icons.pause : Icons.play_arrow),
-          label: Text(running ? 'Pause' : 'Start'),
-        ),
-        OutlinedButton.icon(
-          onPressed: onReset,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Reset'),
-        ),
-      ],
-    );
-  }
-}
-
-class _AlarmDoneDialog extends StatelessWidget {
-  const _AlarmDoneDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      icon: const Icon(Icons.alarm, size: 48),
-      title: const Text('Rest over', textAlign: TextAlign.center),
-      actionsAlignment: MainAxisAlignment.center,
-      actions: <Widget>[
-        FilledButton.icon(
-          icon: const Icon(Icons.fitness_center),
-          label: const Text('Time to lift'),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
-  }
-}
-
-class _CustomDurationDialog extends StatefulWidget {
-  const _CustomDurationDialog();
-
-  @override
-  State<_CustomDurationDialog> createState() => _CustomDurationDialogState();
-}
-
-class _CustomDurationDialogState extends State<_CustomDurationDialog> {
-  final _minutesController = TextEditingController(text: '2');
-  final _secondsController = TextEditingController(text: '0');
-
-  @override
-  void dispose() {
-    _minutesController.dispose();
-    _secondsController.dispose();
-    super.dispose();
-  }
-
-  void _confirm() {
-    final m = int.tryParse(_minutesController.text) ?? 0;
-    final s = int.tryParse(_secondsController.text) ?? 0;
-    final total = Duration(minutes: m, seconds: s);
-    Navigator.pop(context, total.inSeconds > 0 ? total : null);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Custom duration'),
-      content: Row(
-        children: <Widget>[
-          Expanded(
-            child: TextField(
-              controller: _minutesController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Minutes',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _secondsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Seconds',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _confirm,
-          child: const Text('Set'),
-        ),
-      ],
     );
   }
 }
