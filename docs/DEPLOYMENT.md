@@ -10,11 +10,16 @@ workflow. Two workflows live under `.github/workflows/`:
   a hand-curated style the default formatter would revert. See the
   `code-formatter` skill in `.agents/skills/` for the rules. Pinned to
   Flutter 3.41.9 and Java 21 (Temurin).
-- **`release.yml`** is **manual-only**. It builds a signed AAB and
-  uploads it to a chosen Play Store track (internal / alpha / beta /
-  production). It never fires on a tag push or a commit; only from the
-  Actions tab. Same pinned Flutter + Java versions as CI. Serialised
-  via a `concurrency` group so two simultaneous triggers can't race.
+- **`release.yml`** is **manual-only**. Five jobs in sequence with
+  two manual approval gates: `verify-version` → `verify` → `build` →
+  *(gate)* → `play-store-release` → *(gate)* → `github-release`. The
+  AAB is built once and consumed by both the Play upload and the
+  GitHub Release. Each gate is a GitHub Environment (see "Environment
+  gates" below). It never fires on a tag push or a commit; only from
+  the Actions tab. Same pinned Flutter + Java versions as CI.
+  Serialised via a `concurrency` group so two simultaneous triggers
+  can't race, and `cancel-in-progress: false` so a run paused at a
+  gate isn't killed by a fresh trigger.
 
 ## Signing model: upload key vs app signing key
 
@@ -38,28 +43,66 @@ the **upload key** — keep it, back it up, treat it like production.
 Losing it means going through Play Console's "Reset upload key" flow,
 which works but takes a few business days for Google to action.
 
+## Environment gates
+
+The two manual gates are GitHub Environments with a required reviewer.
+They exist once per repo, not per release. One-time setup:
+
+1. Repo **Settings → Environments → New environment**.
+2. Create `play-store`. Enable **Required reviewers**, add yourself.
+3. Create `github-release`. Enable **Required reviewers**, add yourself.
+
+The job YAML references these names verbatim (`environment: play-store`
+and `environment: github-release` in `release.yml`). If you rename one
+in the UI you must rename it in the YAML too, or the gated job will
+sit in "waiting" with no reviewer queue to satisfy it.
+
+Protected environments are free on **public** repos for all accounts.
+On private repos they require GitHub Pro / Team / Enterprise.
+
 ## Triggering a release
 
 1. Bump the `version:` line in `pubspec.yaml` (e.g. `2.0.0+9` → `2.0.0+10`).
    The build number after `+` must be **strictly greater** than the last
-   one uploaded to Play; Play rejects equal or lower codes.
+   one uploaded to Play; Play rejects equal or lower codes. The semver
+   prefix (`2.0.0`) becomes the GitHub Release tag (`v2.0.0`), so if a
+   release with that tag already exists, also bump the semver.
 2. Commit and push to `master`. The CI workflow runs; wait for it to
    go green.
-3. Open the repo on GitHub → **Actions** tab → **Release to Play Store**
-   on the left → **Run workflow** on the right.
+3. Open the repo on GitHub → **Actions** tab → **Release** on the left
+   → **Run workflow** on the right.
 4. Pick a track from the dropdown:
    - `internal`: fastest review, only the testers you've listed in
      Play Console. Default; use it for every dry run.
    - `alpha` / `beta`: closed and open testing tracks.
    - `production`: public release; goes through Play's normal review.
-5. Click the green **Run workflow** button.
+5. Click the green **Run workflow** button. The first three jobs
+   (`verify-version`, `verify`, `build`) run automatically; ~5 min.
+6. **First gate.** When `build` finishes, the run pauses on
+   `play-store-release` with a "Review deployments" button. Glance at
+   Play Console to confirm you're ready to ship, then click **Approve
+   and deploy**. The upload to Play runs (~1 min).
+7. **Second gate.** When Play upload finishes, the run pauses on
+   `github-release`. Open Play Console and confirm the draft / release
+   landed correctly on the chosen track. Approve the gate. The
+   GitHub Release is created with the AAB attached (~10 s).
 
-The job takes ~5–8 minutes. When it finishes:
+End-to-end with prompt approvals: ~7–9 minutes. If you walk away
+between gates the run waits up to 30 days for approval (idle runs
+don't burn CI minutes).
+
+When it finishes:
 
 - The AAB lands in Play Console under the selected track.
 - A copy of the AAB is uploaded as a GitHub workflow artifact (kept 30
   days), handy for sideloading on a test device without going through
   Play.
+- A **GitHub Release** is published at
+  `https://github.com/<owner>/<repo>/releases/tag/v<semver>`, with the
+  AAB attached as a downloadable asset (renamed to
+  `workout_log-<version>.aab` on the release page) and auto-generated
+  release notes drawn from commits and PR titles since the previous
+  tag.
 
 ## Required GitHub secrets
 
@@ -117,11 +160,21 @@ One-time setup, about 10 minutes:
 1. **Google Cloud Console** at <https://console.cloud.google.com/>
    1. Create a project (any name; "workout-log-ci" is fine) if you
       don't already have one to bind to.
-   2. Navigate to **IAM & Admin → Service Accounts**.
-   3. Click **Create service account**. Name it something like
+   2. **Enable the Google Play Android Developer API** for this
+      project. Open
+      <https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com>
+      (the URL pre-selects the API; pick your project in the
+      top-bar selector if it isn't already), then click **Enable**.
+      Wait 2–3 minutes after enabling before the first release-
+      workflow run; the enablement takes a moment to propagate and
+      uploads in the meantime fail with "Google Play Android
+      Developer API has not been used in project N before or it is
+      disabled" (see Common failures below).
+   3. Navigate to **IAM & Admin → Service Accounts**.
+   4. Click **Create service account**. Name it something like
       `play-publisher`. Skip the optional role grant (Play Console
       assigns the permissions, not Cloud IAM).
-   4. Click the newly-created service account → **Keys** tab → **Add
+   5. Click the newly-created service account → **Keys** tab → **Add
       key → Create new key → JSON**. A `.json` file downloads.
 
 2. **Google Play Console** at <https://play.google.com/console>
@@ -139,7 +192,7 @@ One-time setup, about 10 minutes:
       back-and-forth needed.
 
 3. **GitHub secret**
-   - Open the JSON file from step 1.4 in a text editor.
+   - Open the JSON file from step 1.5 in a text editor.
    - Copy the entire contents.
    - Paste into the `PLAY_SERVICE_ACCOUNT_JSON` secret value field.
 
@@ -148,44 +201,120 @@ service account and push the AAB to the chosen track.
 
 ## What `release.yml` actually does
 
-Step-by-step, in case you need to debug a failed run:
+Step-by-step per job, in case you need to debug a failed run.
 
-1. **Checkout** the repo at the commit you ran from.
+### Job 1: `verify-version` (~10 s)
+
+1. Checkout.
+2. **Parse `version:` from `pubspec.yaml`**, e.g. `2.0.0+9`. Strip the
+   `+<build>` suffix to derive the semver (`2.0.0`) and the tag
+   (`v2.0.0`). Both values are exposed as job outputs for downstream
+   jobs.
+3. **Check GitHub Releases for the tag**: `gh release view v<semver>`.
+   If a release with that tag already exists, fail the job - the
+   `github-release` step at the end of the pipeline would collide on
+   `gh release create`. Fix is to bump the semver in `pubspec.yaml`.
+
+### Job 2: `verify` (~2 min)
+
+1. Checkout.
 2. **Set up Java 21** (Temurin distribution). Matches the
    `JavaVersion.VERSION_21` setting in `android/app/build.gradle`.
-3. **Set up Flutter** pinned to `3.41.9` (the version `pubspec.lock`
-   was resolved against), with caching so re-runs start in ~30 s
-   instead of 3 min.
+3. **Set up Flutter** pinned to `3.41.9`, with caching.
 4. **`flutter pub get`** resolves dependencies.
 5. **`flutter analyze`** fails fast on any analyzer warning.
 6. **`flutter test`** fails fast on any failing unit/widget test.
-7. **Decode keystore**: `printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64
+
+Keystore secrets are deliberately out of scope here - this job
+shouldn't see them.
+
+### Job 3: `build` (~3 min)
+
+1. Checkout, set up Java + Flutter, `flutter pub get` (same as
+   `verify`; the duplicated setup is the cost of isolating
+   failure modes).
+2. **Decode keystore**: `printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64
    --decode` writes the upload key to
    `android/workout_log-keystore.jks` (recreating exactly what you
    have locally). `printf` is binary-safe; `echo` can mangle
    backslashes on some shells.
-8. **Write `key.properties`** from the three discrete `ANDROID_*`
+3. **Write `key.properties`** from the three discrete `ANDROID_*`
    password secrets via per-line `printf 'key=%s\n' "$VAL"`. The
    per-line approach beats a heredoc because heredoc variable
    expansion would mangle any password containing `$`, backticks, or
    double quotes.
-9. **`flutter build appbundle --release`** produces an AAB at
+4. **`flutter build appbundle --release`** produces an AAB at
    `build/app/outputs/bundle/release/app-release.aab`, signed with
    the upload key. Play strips this signature and re-signs with the
    app signing key after upload.
-10. **Resolve upload status**: the production track is uploaded with
-    `status: draft` so a human in Play Console makes the final
-    go-live decision. Internal / alpha / beta upload with
-    `status: completed` and roll out immediately to that track.
-11. **Upload to Play Store** via the `r0adkll/upload-google-play@v1`
-    action, using `PLAY_SERVICE_ACCOUNT_JSON` to authenticate. The
-    `track` input from the manual trigger picks the destination.
-12. **Archive the AAB** as a workflow artifact for 30 days.
+5. **Upload the AAB as a workflow artifact** (`app-release-aab`,
+   30-day retention). Downstream jobs download from here rather
+   than re-building.
+
+### Gate: `play-store` environment approval
+
+The run pauses. Reviewer (you) clicks "Review deployments" → approve
+in the GitHub UI. No CI minutes consumed while paused.
+
+### Job 4: `play-store-release` (~1 min)
+
+1. **Download the AAB** from the `app-release-aab` artifact into
+   `build/app/outputs/bundle/release/`.
+2. **Resolve upload status**: the production track is uploaded with
+   `status: draft` so a human in Play Console makes the final
+   go-live decision. Internal / alpha / beta upload with
+   `status: completed` and roll out immediately to that track.
+3. **Upload to Play Store** via the `r0adkll/upload-google-play@v1`
+   action, using `PLAY_SERVICE_ACCOUNT_JSON` to authenticate. The
+   `track` input from the manual trigger picks the destination.
+
+The keystore is *not* re-decoded here - the AAB is already signed,
+and this job has no business touching the upload key.
+
+### Gate: `github-release` environment approval
+
+Second pause. Confirm Play upload landed correctly in Play Console
+before approving. If something went wrong on the Play side, *don't*
+approve - debug Play first, re-run the `play-store-release` job if
+needed, then resume.
+
+### Job 5: `github-release` (~10 s)
+
+1. Checkout (at the same commit `verify-version` ran on).
+2. **Download the AAB** from the `app-release-aab` artifact into
+   `dist/`.
+3. **`gh release create`** with the tag from `verify-version`'s
+   outputs (`v<semver>`), the AAB attached and renamed on the release
+   page to `workout_log-<full-version>.aab`, and `--generate-notes`
+   to auto-build release notes from PRs and commits since the
+   previous tag. Tag is created against the commit that triggered
+   the workflow run.
+
+This job needs `contents: write` permission to push the tag and
+attach assets; the top-level `permissions: contents: read` is
+overridden at the job level.
 
 ## Common failures
 
+**"GitHub Release 'vX.Y.Z' already exists"** from `verify-version`:
+the semver in `pubspec.yaml` matches an existing tagged release. Bump
+the semver (e.g. `2.0.0` → `2.0.1`) and re-trigger. This is the
+fail-fast gate that exists specifically to stop you from doing a
+3-minute build that can't land.
+
 **"versionCode … has already been used"**: you didn't bump the build
 number. Increment the `+N` part of `version:` in `pubspec.yaml`.
+
+**"Google Play Android Developer API has not been used in project N
+before or it is disabled"**: the Cloud Console project that owns your
+service account doesn't have the Android Publisher API enabled yet.
+Open
+<https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com>,
+make sure the top-bar project selector matches the project number from
+the error message, click **Enable**, wait 2–3 minutes for propagation,
+then re-run the failed job in Actions (the **"Re-run failed jobs"**
+button on the failed run's page; uses the same workflow run id, so
+the same versionCode applies — no `pubspec.yaml` bump needed).
 
 **"The caller does not have permission" from the upload step**: the
 service account isn't invited to the Play Console app, or doesn't have

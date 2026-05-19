@@ -1,12 +1,25 @@
-name: Release to Play Store
+name: Release
 
-# Manual-only. Trigger from the Actions tab -> "Release to Play Store"
-# -> "Run workflow" -> pick the track. Never fires on push or tag.
+# Manual-only. Trigger from the Actions tab -> "Release" -> "Run workflow"
+# -> pick the track. Never fires on push or tag.
+#
+# Flow (5 jobs, 2 manual gates):
+#   verify-version    Fail if v<X.Y.Z> GitHub Release tag already exists.
+#   verify            flutter analyze + flutter test.
+#   build             Decode keystore, build signed AAB, artifact it.
+#   --- gate: play-store environment, required reviewer = repo owner ---
+#   play-store-release   Download AAB, upload to chosen Play track.
+#   --- gate: github-release environment, required reviewer = repo owner ---
+#   github-release    Create GitHub Release with AAB attached + auto-notes.
+#
+# Each gate is a GitHub Environment (Settings -> Environments) with
+# "Required reviewers" set to the repo owner. The workflow run pauses at
+# the gate until the reviewer approves "Review deployments".
 #
 # About signing: this app uses Play App Signing with the app-signing
 # key managed by Google. That means Google holds the final signing
 # key and signs the APKs delivered to users. The keystore configured
-# below is the *upload key* — your locally-held key that Play uses to
+# below is the *upload key* - your locally-held key that Play uses to
 # authenticate that an upload actually came from you. Play verifies
 # the upload-key signature, strips it, then re-signs with the
 # Google-held app-signing key. Both keys are required: even with
@@ -16,7 +29,7 @@ name: Release to Play Store
 # Local files (gitignored):
 #   android/workout_log-keystore.jks  the upload-key store
 #   android/key.properties            storePassword/keyPassword/keyAlias
-# Back up the .jks somewhere off the dev machine — Google cannot
+# Back up the .jks somewhere off the dev machine - Google cannot
 # recover it for you; if it's lost the only recourse is Play Console
 # -> Setup -> App integrity -> "Reset upload key".
 #
@@ -49,18 +62,90 @@ on:
 permissions:
   contents: read
 
-# Serialize releases. Don't cancel in-progress runs — the keystore +
-# Play upload aren't safely interruptible.
+# Serialize releases. Don't cancel in-progress runs - the keystore +
+# Play upload aren't safely interruptible, and a queued run sitting at
+# a manual gate must not be killed by a fresh trigger.
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Build and upload AAB
+  verify-version:
+    name: Verify version
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.read_version.outputs.version }}
+      semver: ${{ steps.read_version.outputs.semver }}
+      tag: ${{ steps.read_version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Parse version from pubspec.yaml
+        id: read_version
+        run: |
+          # pubspec line looks like:  version: 2.0.0+9
+          # We strip the +<build> suffix for the GitHub tag (users care
+          # about semver; the build number is a Play-only artifact).
+          VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not parse 'version:' from pubspec.yaml"
+            exit 1
+          fi
+          SEMVER=${VERSION%+*}
+          TAG="v$SEMVER"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Parsed version=$VERSION semver=$SEMVER tag=$TAG"
+
+      - name: Fail if GitHub Release already exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.read_version.outputs.tag }}
+        run: |
+          # `gh release view` exits 0 if a release with that tag exists,
+          # non-zero (typically 1) otherwise. Existence is failure here:
+          # the github-release job would collide on `gh release create`.
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::GitHub Release '$TAG' already exists. Bump the semver in pubspec.yaml before re-running."
+            exit 1
+          fi
+          echo "No existing release for '$TAG' - safe to proceed."
+
+  verify:
+    name: Analyze and test
+    needs: verify-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.41.9'
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test
+
+  build:
+    name: Build signed AAB
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -80,12 +165,6 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Static analysis (fail fast)
-        run: flutter analyze
-
-      - name: Tests (fail fast)
-        run: flutter test
-
       - name: Decode keystore
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -101,7 +180,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           # Write each property with printf so passwords containing $,
-          # `, \, or " survive intact — a heredoc with unquoted EOF
+          # `, \, or " survive intact - a heredoc with unquoted EOF
           # would substitute them into bash variables.
           {
             printf 'storePassword=%s\n' "$STORE_PASSWORD"
@@ -112,6 +191,28 @@ jobs:
 
       - name: Build app bundle
         run: flutter build appbundle --release
+
+      - name: Upload AAB as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+  play-store-release:
+    name: Release to Play Store
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Gated: workflow pauses here until a reviewer approves the
+    # "play-store" environment in the GitHub UI.
+    environment: play-store
+    steps:
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release
 
       - name: Resolve upload status
         id: upload_status
@@ -137,10 +238,42 @@ jobs:
           # If you maintain release notes under fastlane/metadata/android/<lang>/changelogs/,
           # the action picks them up automatically. Otherwise create that tree on demand.
 
-      - name: Upload AAB as workflow artifact
-        if: always()
-        uses: actions/upload-artifact@v4
+  github-release:
+    name: Publish GitHub Release
+    needs: [verify-version, build, play-store-release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Gated: workflow pauses here until a reviewer approves the
+    # "github-release" environment. Sequenced after play-store-release
+    # so the GitHub Release never announces a version that failed to
+    # upload to Play.
+    environment: github-release
+    permissions:
+      # `gh release create` needs write access to push the tag + assets.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
         with:
           name: app-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
-          retention-days: 30
+          path: dist
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.verify-version.outputs.tag }}
+          VERSION: ${{ needs.verify-version.outputs.version }}
+        run: |
+          # Asset syntax `<path>#<displayname>` renames the file as it
+          # appears on the release page without touching the on-disk
+          # filename. Releases tagged on the commit that triggered the
+          # workflow, with notes auto-generated from PR titles + commits
+          # since the previous tag.
+          gh release create "$TAG" \
+            "dist/app-release.aab#workout_log-${VERSION}.aab" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes
