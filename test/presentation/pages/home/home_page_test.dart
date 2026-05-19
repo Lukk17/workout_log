@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workout_log/presentation/pages/exercise_list_page.dart';
-import 'package:workout_log/presentation/pages/home_page.dart';
+import 'package:workout_log/presentation/pages/exercise_list/exercise_list_page.dart';
+import 'package:workout_log/presentation/pages/home/home_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/theme_providers.dart';
 
-import '../helpers/test_app.dart';
-import '../test_helper.dart';
+import '../../../helpers/test_app.dart';
+import '../../../test_helper.dart';
 
 // We cannot use pumpAndSettle because WorkLogPage's FutureProvider may
 // still be resolving when the spinner appears, and a Material spinner
