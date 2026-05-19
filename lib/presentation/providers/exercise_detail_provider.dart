@@ -8,6 +8,13 @@ import 'package:workout_log/util/log.dart';
 /// initial workLog the page received via navigation, so every detail
 /// route gets its own notifier instance; autoDispose tears it down when
 /// the page pops.
+///
+/// Note: the family key is a [WorkLog] (a freezed value class with
+/// stable equality), so a re-navigation with a value-equal WorkLog
+/// reuses the existing notifier. If a parent provider hands the page a
+/// WorkLog with refreshed fields, a *new* notifier is spawned and the
+/// old one auto-disposes — that's intentional, the user's local edits
+/// in the previous route are dropped when the underlying data shifts.
 class ExerciseDetailNotifier extends StateNotifier<WorkLog> {
   ExerciseDetailNotifier(this._ref, WorkLog initial) : super(initial);
 

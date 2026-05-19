@@ -3,6 +3,18 @@ import 'package:workout_log/data/db/app_database.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/util/log.dart';
 
+/// Thrown by [ExerciseDao.getById] when no row matches the requested id.
+/// Typed so callers can catch this specifically instead of trying to
+/// match a generic `Exception`.
+class ExerciseNotFoundException implements Exception {
+  ExerciseNotFoundException(this.id);
+
+  final String id;
+
+  @override
+  String toString() => 'exercise with id "$id" was not found';
+}
+
 class ExerciseDao {
   ExerciseDao(this._appDatabase);
 
@@ -22,8 +34,9 @@ class ExerciseDao {
     final rows = await db
         .query(exerciseTable, where: 'id = ?', whereArgs: [id], limit: 1);
     if (rows.isEmpty) {
-      throw Exception('exercise with id: $id was NOT found');
+      throw ExerciseNotFoundException(id);
     }
+
     return Exercise.fromMap(rows.first);
   }
 
