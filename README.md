@@ -1,135 +1,114 @@
 # workout_log
 
+*Android-first Flutter app for logging gym workouts. Track exercises,
+body parts worked, sets and reps per session, dated. Offline-only,
+SQLite-backed, no account, no network.*
 
-## Application for saving workout logs.
+[Get it on Google Play](https://play.google.com/store/apps/details?id=com.lukk.workoutlog)
 
-In logs, you can add date, exercise name, body part which you train, how many sets and repeats in each one did you do. 
+## Architecture
 
-<br>
+```mermaid
+graph TB
+    subgraph Presentation
+        Pages[Pages]
+        Widgets[Shared widgets]
+        Providers[Riverpod providers]
+    end
+    subgraph Domain
+        Models[Freezed value types]
+    end
+    subgraph Data
+        DAOs[sqflite DAOs]
+        Backup[BackupService]
+        Alarm[AlarmService]
+    end
 
- You can find it on Play Store:
- <br>
-https://play.google.com/store/apps/details?id=com.lukk.workoutlog
-
-
----
-
-Clean build files:
+    Pages --> Providers
+    Widgets --> Providers
+    Providers --> DAOs
+    Providers --> Backup
+    Providers --> Alarm
+    DAOs --> SQLite[(SQLite on device)]
+    Backup --> File[(backup.json on external storage)]
+    Alarm --> FLN[flutter_local_notifications]
 ```
-flutter clean
-```
 
-Get dependencies:
-```
+`lib/` follows the standard three-layer split. Pages and widgets read
+and write through Riverpod providers; the providers wrap DAOs and
+services. Nothing in the presentation layer talks to SQLite or the
+notification plugin directly. The domain models in `lib/domain/` are
+all `freezed` value types with generated equality and JSON.
+
+## Quick start
+
+Clone the repo, then from the project root run the standard Flutter
+bring-up:
+
+```bash
 flutter pub get
 ```
 
-Generate classes:
-```
+Generate the `freezed` and `json_serializable` outputs (one-time, and
+again whenever a model changes):
+
+```bash
 dart run build_runner build
 ```
 
-Generate with deleting of conflicted ones:
-```
-dart run build_runner build --delete-conflicting-outputs
+If a regen fails because stale generated files conflict, wipe them
+first:
+
+```bash
+dart run build_runner clean
 ```
 
-Find emulator id:
-```
+(The old `--delete-conflicting-outputs` flag was removed in
+`build_runner` 2.15+.)
+
+List attached devices / emulators:
+
+```bash
 flutter devices
 ```
 
-Run on a device:
-```
+Run on a specific device, where `<deviceId>` is the id printed by the
+previous command (e.g. `emulator-5554`):
+
+```bash
 flutter run -d <deviceId>
 ```
-where `deviceId` is id from previous command eg. `emulator-5554`
 
-Run in verbose mode:
-```
-flutter run -v -d <deviceId>
-```
+Add `-v` for verbose output or `--release` for a release-mode build.
 
-Run in release mode:
-```
-flutter run --release -d <deviceId>
+If you hit weird build-cache issues:
+
+```bash
+flutter clean
 ```
 
----
+## Deployment
 
-### Deployment
+Release builds ship to the Google Play Store via a manual GitHub
+Actions workflow. See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for
+the full procedure: how to trigger a release, the five GitHub secrets
+you need to configure (upload keystore + Google Play API service
+account), what the workflow actually does step-by-step, common failure
+modes and their fixes, and the manual `flutter build appbundle` path
+for when CI is unavailable. The first-time keystore-signing setup is
+in there too.
 
-1. Change app version 
+## Docs
 
-2. [pubspec.yaml](./pubspec.yaml)
-   ```
-   version: X.Y.Z+A
-   ```
-   
-3. Make sure [android/key.properties](./android/key.properties) `android/key.properties` are present and have correct passes:
-   ```
-   storePassword=XXX  
-   keyPassword=XXX  
-   keyAlias=key  
-   storeFile=workout_log-keystore.jks
-   ```
-   
-4. Run in the terminal (without an app folder) :
- 
-   ```
-   flutter build appbundle
-   ```
-   
-   `appbundle` will be generated in [release](./build/app/outputs/bundle/release/) folder:
-   ```
-   build/app/outputs/bundle/release/app-release.aab
-   ```
-   rename to 
-   ```
-   workout_log-X.Y.Z.aab
-   ```
-   `X.Y.Z` - version number
+| File | Covers |
+|---|---|
+| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Release process, signing model, GitHub secrets |
+| [docs/AGENT_TOOLING.md](./docs/AGENT_TOOLING.md) | How the project is set up for AI coding agents (Claude Code, Codex, etc.) |
+| [AGENTS.md](./AGENTS.md) | Agent-facing instructions and skill references |
+| [.agents/skills/](./.agents/skills/) | Project-scoped skills (code-formatter, openspec workflow, etc.) |
 
----
+## License
 
-### Publish
-
-1. Go to
-   [https://play.google.com/apps/publish](https://play.google.com/apps/publish)
-   
-2. Create a release (or create a new application if first published) and "Let Google manage and protect your app signing key"
-
-   - upload bundle
-   - enter the release name (same as in pubspec.yaml)
-   - edit Store listening (icon, screenshots, feature graphic), content rating, app content and pricing& distribution PAGES
-
-3. Start with "Internal testing" then rollout to alpha
-
----
-### Signing app for the first time
-
-Create keystore:
-
-```
-keytool -export -rfc -keystore upload-keystore.jks -alias upload -file upload_certificate.pem
-```
-
-SAVE IT!
-
-Every next version must be signed with the SAME keystore or Google won't publish it
-
-Create a file name `<app dir>/android/key.properties` names must be same as generated before
-
-
-Highlight
-
-```
-storePassword=< password from previous step >  
-keyPassword=< password from previous step >  
-keyAlias=upload-keystore  
-storeFile=workout_log-keystore.jks  
-```
-
-where `workout_log-keystore.jks` needs to be [android root](./android) folder.  
-
-This will link `key.properties` created before with Gradle.
+Personal project, all rights reserved by Łukasz Sarna. No public
+license. The source is published for portfolio / agent-tooling
+demonstration; not intended for redistribution or repackaging.

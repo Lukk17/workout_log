@@ -1,39 +1,21 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:logging/logging.dart';
-import 'package:workout_log/setting/appThemeSettings.dart';
-import 'package:workout_log/util/appBuilder.dart';
-import 'package:workout_log/view/helloWorldView.dart';
+import 'package:workout_log/presentation/app.dart';
+import 'package:workout_log/presentation/providers/alarm_providers.dart';
 
-void main() async {
-  //  await AndroidAlarmManager.initialize();
-  initializeDateFormatting().then((_) => runApp(MyApp()));
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  // Build the container ourselves so the bootstrap initialize() call
+  // runs against the very same AlarmService instance the running app
+  // will use — no override gymnastics to share the plugin singleton.
+  final container = ProviderContainer();
+  // Initialize the notification channel up front so the OS knows about
+  // it before the first alarm fires. Permission is requested lazily
+  // the first time the user lands on the Timer page.
+  await container.read(alarmServiceProvider).initialize();
 
-  static const String TITLE = "Private WorkoutLog";
-
-  @override
-  Widget build(BuildContext context) {
-    /// setup logger
-    Logger.root.level = Level.ALL;
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.level.name}: \t ${rec.time}: ===================================== > \t ${rec.loggerName}: \t ${rec.message}');
-    });
-    final Logger _log = new Logger("Application");
-    _log.fine("started");
-
-    return AppBuilder(builder: (context) {
-      return MaterialApp(
-        title: TITLE,
-        theme: AppThemeSettings.theme,
-        home: HelloWorldView(
-          callback: (widget) => {},
-        ),
-      );
-    });
-  }
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }

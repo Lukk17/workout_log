@@ -53,6 +53,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
+        // flutter_local_notifications uses java.time on minSdk 26+; the
+        // plugin's manifest still asks for core-library desugaring so AGP
+        // accepts it without forcing a higher minSdk.
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -94,5 +98,10 @@ android {
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    // Required by flutter_local_notifications (see compileOptions).
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
 
