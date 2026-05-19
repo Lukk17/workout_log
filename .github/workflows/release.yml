@@ -32,6 +32,12 @@ on:
 permissions:
   contents: read
 
+# Serialize releases. Don't cancel in-progress runs — the keystore +
+# Play upload aren't safely interruptible.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build and upload AAB
@@ -49,6 +55,9 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pin to the version pubspec.lock was resolved against so a
+          # release six months from now still produces the same artifact.
+          flutter-version: '3.41.9'
           cache: true
 
       - name: Resolve dependencies
@@ -64,7 +73,9 @@ jobs:
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_B64" | base64 --decode > android/workout_log-keystore.jks
+          # printf '%s' is binary-safe; echo can mangle backslashes on
+          # some shells when the payload happens to contain them.
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/workout_log-keystore.jks
 
       - name: Write key.properties
         env:
@@ -72,15 +83,30 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          cat > android/key.properties <<EOF
-          storePassword=$STORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=workout_log-keystore.jks
-          EOF
+          # Write each property with printf so passwords containing $,
+          # `, \, or " survive intact — a heredoc with unquoted EOF
+          # would substitute them into bash variables.
+          {
+            printf 'storePassword=%s\n' "$STORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'storeFile=%s\n' 'workout_log-keystore.jks'
+          } > android/key.properties
 
       - name: Build app bundle
         run: flutter build appbundle --release
+
+      - name: Resolve upload status
+        id: upload_status
+        # production track gets `draft` so a human in the Play Console
+        # makes the final go-live decision; other tracks roll out
+        # immediately.
+        run: |
+          if [ "${{ inputs.track }}" = "production" ]; then
+            echo "status=draft" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=completed" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Upload to Play Store
         uses: r0adkll/upload-google-play@v1
@@ -89,7 +115,7 @@ jobs:
           packageName: com.lukk.workoutlog
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: ${{ inputs.track }}
-          status: completed
+          status: ${{ steps.upload_status.outputs.status }}
           changesNotSentForReview: false
           # If you maintain release notes under fastlane/metadata/android/<lang>/changelogs/,
           # the action picks them up automatically. Otherwise create that tree on demand.
