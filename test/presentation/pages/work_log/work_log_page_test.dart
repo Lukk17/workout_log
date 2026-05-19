@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
@@ -13,7 +11,6 @@ import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 
 import '../../../helpers/test_app.dart';
-import '../../../test_helper.dart';
 
 WorkLog _seedWorkLog(String name, DateTime date,
     {Set<BodyPart> bodyParts = const {BodyPart.chest}}) {

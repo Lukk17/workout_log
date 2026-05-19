@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/data/alarm/alarm_service.dart';
 import 'package:workout_log/data/alarm/notification_gateway.dart';
 import 'package:workout_log/presentation/pages/timer/timer_page.dart';
 import 'package:workout_log/presentation/providers/alarm_providers.dart';
-import 'package:workout_log/presentation/providers/timer_preset_provider.dart';
 
 import '../../../helpers/test_app.dart';
 
