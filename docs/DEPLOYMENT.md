@@ -4,11 +4,41 @@ This project ships to the Google Play Store via a manual GitHub Actions
 workflow. There are two workflows under `.github/workflows/`:
 
 - **`ci.yml`** — runs automatically on every push to `master` and on every
-  PR. Resolves deps, fails on any `dart format` drift, runs `flutter
-  analyze`, runs the test suite. No artifacts, no uploads.
+  PR. Resolves deps, runs `flutter analyze`, runs the test suite with
+  coverage, uploads the lcov report as a workflow artifact (14-day
+  retention). No `dart format` gate — the project uses a hand-curated
+  style the default formatter would revert; see the `code-formatter`
+  skill in `.agents/skills/` for the rules. Pinned to Flutter 3.41.9
+  + Java 21 (Temurin).
 - **`release.yml`** — **manual-only**. Builds a signed AAB and uploads it
   to a chosen Play Store track (internal / alpha / beta / production).
   Never fires on a tag push or a commit — only from the Actions tab.
+  Same pinned Flutter + Java versions as CI. Serialised via a
+  `concurrency` group so two simultaneous triggers can't race.
+
+## Signing model: upload key vs app signing key
+
+This is the most-misunderstood part of Play publishing, worth
+internalising before you touch the secrets.
+
+The app is enrolled in **Play App Signing** with the **app signing key
+managed by Google** (the current default for new apps). Two keys exist:
+
+- **App signing key** — held by Google. Signs the APKs delivered to
+  users. You never see it; Google doesn't expose it. *This is what
+  "Google is signing my app" means.*
+- **Upload key** — held by you (`android/workout_log-keystore.jks`).
+  Signs the AAB before it gets uploaded to Play. Play verifies the
+  upload-key signature, strips it, and re-signs with the Google-held
+  app signing key. The upload key is how Play knows the upload
+  actually came from you, not someone who stole the service-account
+  JSON.
+
+Both keys are required. The `ANDROID_KEYSTORE_BASE64` GitHub secret
+is the **upload key** — keep it, back it up, treat it like the
+production secret it is. Losing it means going through Play
+Console's "Reset upload key" flow, which works but takes a few
+business days for Google to action.
 
 ## Triggering a release
 
@@ -37,12 +67,18 @@ The job takes ~5–8 minutes. When it finishes:
 All five secrets live under **Settings → Secrets and variables → Actions
 → New repository secret**. Add them once; they persist across runs.
 
+**Important**: GitHub secrets only store strings, not files. Don't paste
+the contents of `android/key.properties` into one big secret — the
+workflow rebuilds that file from three discrete secrets so you can
+rotate one password without touching the rest. Each password secret
+holds the **value only**, no `key=` prefix.
+
 | Secret | What it is | How to produce it |
 |---|---|---|
-| `ANDROID_KEYSTORE_BASE64` | The signing keystore, base64-encoded. | See "Encoding the keystore" below. |
-| `ANDROID_KEYSTORE_PASSWORD` | The `storePassword` from your local `android/key.properties`. | You set this when you originally generated the keystore. |
-| `ANDROID_KEY_PASSWORD` | The `keyPassword` from `android/key.properties`. | Same. Often identical to the store password. |
-| `ANDROID_KEY_ALIAS` | The alias the signing key is stored under. | Currently `key`. Check `android/key.properties`. |
+| `ANDROID_KEYSTORE_BASE64` | The **upload-key** keystore, base64-encoded as a one-line string. | See "Encoding the keystore" below. |
+| `ANDROID_KEYSTORE_PASSWORD` | The `storePassword` value from your local `android/key.properties` — value only, no `storePassword=` prefix. | You set this when you originally generated the keystore. |
+| `ANDROID_KEY_PASSWORD` | The `keyPassword` value from `android/key.properties` — value only. | Often identical to the store password. |
+| `ANDROID_KEY_ALIAS` | The alias the upload key is stored under — value only. | Currently `key`. Check `android/key.properties`. |
 | `PLAY_SERVICE_ACCOUNT_JSON` | Full JSON of a Google Cloud service account that has been granted upload permission in Play Console. | See "Service account for Play Store API" below. |
 
 ### Encoding the keystore
@@ -115,23 +151,36 @@ service account and push the AAB to the chosen track.
 Step-by-step, in case you need to debug a failed run:
 
 1. **Checkout** the repo at the commit you ran from.
-2. **Set up Java 21** (Temurin distribution) — required by AGP 8.7.
-3. **Set up Flutter** on the stable channel, with caching so re-runs
-   start in ~30 s instead of 3 min.
+2. **Set up Java 21** (Temurin distribution) — matches the
+   `JavaVersion.VERSION_21` setting in `android/app/build.gradle`.
+3. **Set up Flutter** pinned to `3.41.9` (the version `pubspec.lock`
+   was resolved against), with caching so re-runs start in ~30 s
+   instead of 3 min.
 4. **`flutter pub get`** — resolves dependencies.
 5. **`flutter analyze`** — fails fast on any analyzer warning.
 6. **`flutter test`** — fails fast on any failing unit/widget test.
-7. **Decode keystore**: base64-decodes `ANDROID_KEYSTORE_BASE64` and
-   writes it to `android/workout_log-keystore.jks` (recreating exactly
-   what you have locally).
-8. **Write `key.properties`** from the four `ANDROID_*` secrets so the
-   Gradle build can read the signing config.
-9. **`flutter build appbundle --release`** — produces a signed AAB at
-   `build/app/outputs/bundle/release/app-release.aab`.
-10. **Upload to Play Store** via the `r0adkll/upload-google-play@v1`
+7. **Decode keystore**: `printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64
+   --decode` writes the upload key to
+   `android/workout_log-keystore.jks` (recreating exactly what you
+   have locally). `printf` is binary-safe; `echo` can mangle
+   backslashes on some shells.
+8. **Write `key.properties`** from the three discrete `ANDROID_*`
+   password secrets via per-line `printf 'key=%s\n' "$VAL"`. The
+   per-line approach beats a heredoc because heredoc variable
+   expansion would mangle any password containing `$`, backticks, or
+   double quotes.
+9. **`flutter build appbundle --release`** — produces an AAB at
+   `build/app/outputs/bundle/release/app-release.aab`, signed with
+   the upload key. Play will strip this signature and re-sign with
+   the app signing key after upload.
+10. **Resolve upload status** — the production track is uploaded with
+    `status: draft` so a human in Play Console makes the final
+    go-live decision. Internal / alpha / beta upload with
+    `status: completed` and roll out immediately to that track.
+11. **Upload to Play Store** via the `r0adkll/upload-google-play@v1`
     action, using `PLAY_SERVICE_ACCOUNT_JSON` to authenticate. The
     `track` input from the manual trigger picks the destination.
-11. **Archive the AAB** as a workflow artifact for 30 days.
+12. **Archive the AAB** as a workflow artifact for 30 days.
 
 ## Common failures
 
