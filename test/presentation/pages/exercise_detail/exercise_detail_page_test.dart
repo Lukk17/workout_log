@@ -4,11 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/domain/models/body_part.dart';
 import 'package:workout_log/domain/models/exercise.dart';
 import 'package:workout_log/domain/models/work_log.dart';
-import 'package:workout_log/presentation/pages/exercise_detail_page.dart';
+import 'package:workout_log/presentation/pages/exercise_detail/exercise_detail_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 
-import '../helpers/test_app.dart';
-import '../test_helper.dart';
+import '../../../helpers/test_app.dart';
+import '../../../test_helper.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();
