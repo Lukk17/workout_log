@@ -57,6 +57,7 @@ I write like a tired senior engineer, not a marketing intern.
 - One command per code fence. No piling `cd x && ./y && ./z` unless that chain is genuinely the command.
 - Every shell snippet ships in two fences: one bash, one PowerShell.
 - **Links use plain text**, not code-styled text: `[docs/X.md](./docs/X.md)`, not `` [`docs/X.md`](./docs/X.md) ``. The double styling (link + code) is valid GFM but reads as visual noise — it screams "I am both a link and a path" when one of those is already obvious from context. Reserve backticks for inline references that are NOT also links (a function name in prose, a file path mentioned without anchoring).
+- **Never use Roman numerals for list ordering.** No `i.` / `ii.` / `iii.` / `iv.` and no `(i)` / `(ii)` / `(iii)` for nested or top-level steps. Reasons: nobody parses Roman numerals fluently past `iv`, sort order breaks in tools that don't know them, and they're a tired academic-paper affectation that doesn't survive a code diff. Use Arabic digits (`1.`, `2.`, `3.`) for ordered lists. For sub-steps inside a numbered item, use lowercase letters with closing paren (`a)`, `b)`, `c)`) or just nest with another `1.` / `2.` — both render correctly in GFM. Reserve `I`, `V`, `X`, `L` only for actual proper nouns or version names that already contain them.
 
 Bash example:
 
@@ -101,6 +102,7 @@ When polishing an existing README I walk this list:
 - ❌ Marketing copy with no concrete claim behind it
 - ❌ Unexplained jargon in the first 200 words
 - ❌ Code blocks with comments doing the teaching instead of prose
+- ❌ Roman-numeral list markers (`i.`, `ii.`, `iii.`, `(i)`, `(ii)`...) — replace with Arabic digits or lowercase letters with `)`
 - ✅ One canonical install path (not five "you could also...")
 - ✅ Architecture diagram present and matches reality
 - ✅ Honest comparison section, not a strawman
