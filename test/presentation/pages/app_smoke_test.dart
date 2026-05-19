@@ -5,11 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/data/alarm/alarm_service.dart';
 import 'package:workout_log/data/alarm/notification_gateway.dart';
 import 'package:workout_log/presentation/app.dart';
-import 'package:workout_log/presentation/pages/home_page.dart';
+import 'package:workout_log/presentation/pages/home/home_page.dart';
 import 'package:workout_log/presentation/providers/alarm_providers.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 
-import '../test_helper.dart';
+import '../../test_helper.dart';
 
 class _NoopGateway implements NotificationGateway {
   @override

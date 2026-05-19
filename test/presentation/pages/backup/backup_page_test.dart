@@ -5,11 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workout_log/data/backup/backup_service.dart';
 import 'package:workout_log/domain/models/work_log.dart';
-import 'package:workout_log/presentation/pages/backup_page.dart';
+import 'package:workout_log/presentation/pages/backup/backup_page.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 
-import '../helpers/test_app.dart';
-import '../test_helper.dart';
+import '../../../helpers/test_app.dart';
+import '../../../test_helper.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();

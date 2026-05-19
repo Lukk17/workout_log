@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:workout_log/presentation/pages/calendar_page.dart';
+import 'package:workout_log/presentation/pages/calendar/calendar_page.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 
-import '../helpers/test_app.dart';
+import '../../../helpers/test_app.dart';
 
 Future<void> _settle(WidgetTester tester) async {
   await tester.pump();

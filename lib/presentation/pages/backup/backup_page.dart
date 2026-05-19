@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:workout_log/data/backup/backup_service.dart';
+import 'package:workout_log/presentation/pages/backup/widgets/backup_body.dart';
 import 'package:workout_log/presentation/providers/data_providers.dart';
 import 'package:workout_log/presentation/providers/selected_date_provider.dart';
 import 'package:workout_log/presentation/theme/workout_colors.dart';
@@ -33,7 +34,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
       ),
       body: FutureBuilder<String>(
         future: ref.watch(backupServiceProvider).backupFilePath,
-        builder: (context, snap) => _BackupBody(
+        builder: (context, snap) => BackupBody(
           backupFilePath: snap.data,
           onBackup: _backup,
           onRestore: _restore,
@@ -69,56 +70,5 @@ class _BackupPageState extends ConsumerState<BackupPage> {
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(content: Text('Restore failed: $e')));
     }
-  }
-}
-
-class _BackupBody extends StatelessWidget {
-  const _BackupBody({
-    required this.backupFilePath,
-    required this.onBackup,
-    required this.onRestore,
-  });
-
-  final String? backupFilePath;
-  final VoidCallback onBackup;
-  final VoidCallback onRestore;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = WorkoutColors.of(context);
-    final dims = ResponsiveDimensions.of(context);
-    final path = backupFilePath ?? '…resolving path…';
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Center(child: Text('Place a backup file at:\n$path\nto import it.')),
-        MaterialButton(
-          color: colors.buttonColor,
-          onPressed: onRestore,
-          child: Text(
-            'Import backup',
-            style: TextStyle(
-              color: colors.buttonTextColor,
-              fontSize: WorkoutTypography.fontSize,
-            ),
-          ),
-        ),
-        SizedBox(height: dims.height * 0.25),
-        Center(child: Text('Backup will be created at:\n$path')),
-        MaterialButton(
-          color: colors.buttonColor,
-          onPressed: onBackup,
-          child: Text(
-            'Create backup',
-            style: TextStyle(
-              color: colors.buttonTextColor,
-              fontSize: WorkoutTypography.fontSize,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
